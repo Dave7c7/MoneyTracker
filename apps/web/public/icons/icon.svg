@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="MoneyTracker">
+  <rect width="512" height="512" rx="112" fill="#0f172a"/>
+  <rect x="128" y="259" width="82" height="120" rx="16" fill="#38bdf8"/>
+  <rect x="215" y="197" width="82" height="182" rx="16" fill="#0ea5e9"/>
+  <rect x="302" y="134" width="82" height="245" rx="16" fill="#7dd3fc"/>
+</svg>
