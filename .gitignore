@@ -28,3 +28,6 @@ blob-report/
 .playwright/
 .screenshots/
 tsconfig.tsbuildinfo
+
+# TypeScript incremental build info
+apps/web/tsconfig.tsbuildinfo
