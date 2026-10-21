@@ -1,0 +1,39 @@
+{
+  "name": "moneytracker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @moneytracker/web dev",
+    "build": "pnpm --filter @moneytracker/web build",
+    "start": "pnpm --filter @moneytracker/web start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:db": "pnpm --filter @moneytracker/db test:db",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "pnpm --filter @moneytracker/db db:generate",
+    "db:migrate": "pnpm --filter @moneytracker/db db:migrate",
+    "db:seed": "pnpm --filter @moneytracker/db db:seed",
+    "db:studio": "pnpm --filter @moneytracker/db db:studio",
+    "check": "pnpm test && pnpm lint && pnpm typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.2",
+    "playwright": "^1.64.1",
+    "prettier": "^3.9.10",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^5.0.5"
+  }
+}
