@@ -1,0 +1,110 @@
+# MoneyTracker: the app and its database.
+#
+#   docker compose up                 start the app with an empty database
+#   docker compose --profile demo up  start the app with the demo dataset
+#
+# The database is not published to the host: only the app is, and only on
+# localhost. Put a reverse proxy in front of it for HTTPS.
+
+name: moneytracker
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-moneytracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-moneytracker}
+      POSTGRES_DB: ${POSTGRES_DB:-moneytracker}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_USER:-moneytracker} -d ${POSTGRES_DB:-moneytracker}',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    expose:
+      - '5432'
+    networks:
+      - moneytracker
+
+  # Applies migrations once, before the app starts.
+  migrate:
+    build:
+      context: .
+      target: migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-moneytracker}:${POSTGRES_PASSWORD:-moneytracker}@db:5432/${POSTGRES_DB:-moneytracker}
+    restart: 'no'
+    networks:
+      - moneytracker
+
+  # Optional: loads the demo dataset. Enable with `--profile demo`.
+  seed:
+    build:
+      context: .
+      target: migrate
+    profiles:
+      - demo
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ['pnpm', 'db:seed']
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-moneytracker}:${POSTGRES_PASSWORD:-moneytracker}@db:5432/${POSTGRES_DB:-moneytracker}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Los_Angeles}
+      DEFAULT_CURRENCY: ${DEFAULT_CURRENCY:-USD}
+      DEFAULT_LOCALE: ${DEFAULT_LOCALE:-en-US}
+      ADAPTER_ID: ${ADAPTER_ID:-mock}
+    restart: 'no'
+    networks:
+      - moneytracker
+
+  app:
+    build:
+      context: .
+      target: runner
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-moneytracker}:${POSTGRES_PASSWORD:-moneytracker}@db:5432/${POSTGRES_DB:-moneytracker}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Los_Angeles}
+      DEFAULT_CURRENCY: ${DEFAULT_CURRENCY:-USD}
+      DEFAULT_LOCALE: ${DEFAULT_LOCALE:-en-US}
+      ADAPTER_ID: ${ADAPTER_ID:-mock}
+      REVIEW_CONFIDENCE_THRESHOLD: ${REVIEW_CONFIDENCE_THRESHOLD:-0.8}
+    ports:
+      # Bound to localhost on purpose. Use a reverse proxy for public access.
+      - '127.0.0.1:${PORT:-3000}:3000'
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/apps/web/.next/cache
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3000/api/health']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - moneytracker
+
+volumes:
+  db-data:
+
+networks:
+  moneytracker:
