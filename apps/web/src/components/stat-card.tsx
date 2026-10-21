@@ -17,7 +17,7 @@ export function StatCard({
   tone?: 'neutral' | 'brand';
 }) {
   return (
-    <Card className={tone === 'brand' ? 'bg-slate-900 text-white dark:bg-slate-800' : ''}>
+    <Card tone={tone === 'brand' ? 'brand' : 'default'}>
       <p
         className={`text-xs font-medium uppercase tracking-wide ${
           tone === 'brand' ? 'text-slate-300' : 'text-slate-500 dark:text-slate-400'

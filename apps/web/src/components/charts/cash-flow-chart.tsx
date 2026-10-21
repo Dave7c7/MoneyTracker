@@ -59,6 +59,17 @@ export function CashFlowChart({
             className="fill-slate-500 dark:fill-slate-400"
           />
           <YAxis
+            yAxisId="amount"
+            tick={{ fontSize: 11 }}
+            width={64}
+            tickFormatter={(value: number) =>
+              formatMoney(value, currency, locale).replace(/\.00$/, '')
+            }
+            className="fill-slate-500 dark:fill-slate-400"
+          />
+          <YAxis
+            yAxisId="net"
+            orientation="right"
             tick={{ fontSize: 11 }}
             width={64}
             tickFormatter={(value: number) =>
@@ -93,9 +104,22 @@ export function CashFlowChart({
             }}
           />
           <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" iconSize={8} />
-          <Bar dataKey="income" name="Income" fill="#22c55e" radius={[3, 3, 0, 0]} />
-          <Bar dataKey="expenses" name="Expenses" fill="#f43f5e" radius={[3, 3, 0, 0]} />
+          <Bar
+            yAxisId="amount"
+            dataKey="income"
+            name="Income"
+            fill="#22c55e"
+            radius={[3, 3, 0, 0]}
+          />
+          <Bar
+            yAxisId="amount"
+            dataKey="expenses"
+            name="Expenses"
+            fill="#f43f5e"
+            radius={[3, 3, 0, 0]}
+          />
           <Line
+            yAxisId="net"
             type="monotone"
             dataKey="net"
             name="Net"

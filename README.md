@@ -68,6 +68,7 @@ pnpm dev                      # http://localhost:3000
 | `pnpm dev` | Start the web app in development mode |
 | `pnpm build` / `pnpm start` | Build and run the production app |
 | `pnpm test` | Run the unit tests (and the database tests when `TEST_DATABASE_URL` is set) |
+| `pnpm e2e` | Run the end-to-end tests (needs `pnpm e2e:install` once) |
 | `pnpm lint` / `pnpm typecheck` | Lint and type check everything |
 | `pnpm check` | `test` + `lint` + `typecheck`, the gate before every commit |
 | `pnpm db:generate` | Generate a migration from the schema |
@@ -79,6 +80,15 @@ The database integration tests need a scratch database:
 
 ```bash
 TEST_DATABASE_URL=postgresql://moneytracker:moneytracker@localhost:5432/moneytracker_test pnpm test
+```
+
+The end-to-end tests run against a seeded database and check the dashboards at
+360px and at desktop width:
+
+```bash
+pnpm e2e:install   # once, downloads the browser
+pnpm db:seed
+pnpm e2e
 ```
 
 ---

@@ -23,9 +23,10 @@ export default async function SpendingPage() {
     );
   }
 
+  const monthIndex = data.months.indexOf(data.month);
   const monthTotals = data.categories.map((category) => ({
     ...category,
-    total: category.monthly.reduce((sum, value) => sum + value, 0),
+    total: monthIndex >= 0 ? (category.monthly[monthIndex] ?? 0) : 0,
   }));
 
   const currentTotal = data.comparison.currentMinor;

@@ -71,12 +71,12 @@ export function TransactionFilters({
   }, [search]);
 
   const inputClass =
-    'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
+    'w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
 
   return (
     <div className="space-y-3" aria-busy={isPending}>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="block sm:col-span-2 lg:col-span-1">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <label className="block min-w-0 sm:col-span-2 lg:col-span-1">
           <span className="sr-only">Search transactions</span>
           <input
             type="search"
@@ -87,7 +87,7 @@ export function TransactionFilters({
           />
         </label>
 
-        <label className="block">
+        <label className="block min-w-0">
           <span className="sr-only">Account</span>
           <select
             value={initial.accountId ?? ''}
@@ -103,7 +103,7 @@ export function TransactionFilters({
           </select>
         </label>
 
-        <label className="block">
+        <label className="block min-w-0">
           <span className="sr-only">Category</span>
           <select
             value={initial.categoryId ?? ''}
@@ -119,8 +119,8 @@ export function TransactionFilters({
           </select>
         </label>
 
-        <div className="flex items-center gap-2">
-          <label className="block flex-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <label className="block min-w-0 flex-1">
             <span className="sr-only">From date</span>
             <input
               type="date"
@@ -129,7 +129,7 @@ export function TransactionFilters({
               className={inputClass}
             />
           </label>
-          <label className="block flex-1">
+          <label className="block min-w-0 flex-1">
             <span className="sr-only">To date</span>
             <input
               type="date"
