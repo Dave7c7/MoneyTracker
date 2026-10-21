@@ -13,7 +13,8 @@
     "db:seed": "tsx src/seed.ts",
     "db:studio": "drizzle-kit studio",
     "test:db": "vitest run --dir test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:reset": "tsx src/reset.ts"
   },
   "dependencies": {
     "@moneytracker/adapters": "workspace:*",

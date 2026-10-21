@@ -14,7 +14,7 @@ Works on a phone and a desktop as an installable PWA. Single user first.
 |---|---|---|
 | 0. Foundations | Done | Monorepo, Postgres schema and migrations, Docker Compose, config validation |
 | 1. Mock data and dashboards | Done | Demo dataset, PWA shell, overview/spending/cash-flow/transactions/accounts screens |
-| 2. Categorization, rules, review inbox | Next | Correction flow, rule builder, review inbox |
+| 2. Categorization, rules, review inbox | Done | Fix a category, write a rule, clear the review inbox, undo anything |
 | 3. Transfers, splits, CSV import | Planned | Transfer detection, transaction splitting, CSV import |
 | 4. Subscriptions, bills, budgets, net worth | Planned | Recurring charge detection and budget tracking |
 | 5. Live bank connection | Planned | A new adapter behind the same interface |
@@ -74,6 +74,7 @@ pnpm dev                      # http://localhost:3000
 | `pnpm db:generate` | Generate a migration from the schema |
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:seed` | Load the demo dataset (safe to run twice) |
+| `pnpm db:reset` | Wipe and re-seed a scratch database (refuses a non-test URL) |
 | `pnpm db:studio` | Open Drizzle Studio to browse the data |
 
 The database integration tests need a scratch database:
@@ -86,9 +87,13 @@ The end-to-end tests run against a seeded database and check the dashboards at
 three widths: 360px (the narrowest the app supports), 448px (a Pixel 10 Pro
 XL) and desktop.
 
+The categorization tests change data, so point them at a scratch database. It
+is reset before every run:
+
 ```bash
+createdb moneytracker_e2e
+export E2E_DATABASE_URL=postgresql://moneytracker:moneytracker@localhost:5432/moneytracker_e2e
 pnpm e2e:install   # once, downloads the browser
-pnpm db:seed
 pnpm e2e
 ```
 
@@ -125,6 +130,32 @@ The rules the code follows:
 - **Imports are idempotent.** `(account_id, external_id)` is unique, so
   importing the same data twice creates no duplicates, and a pending
   transaction becomes posted rather than appearing twice.
+
+---
+
+## Categorization
+
+The app is built around the idea that you can see why a transaction was
+categorized the way it was, and change it in two taps.
+
+**Every assignment carries a reason.** The line under a transaction says where
+the category came from: a rule you wrote, a choice you made before, the bank's
+guess, or nothing at all.
+
+**Your rules beat everything.** A rule matches on merchant, description
+pattern, amount range or account, and the first rule in the list wins. Creating
+or changing a rule re-categorizes the transactions it can reach and tells you
+how many changed. Manual edits are never touched: the count of "manual edit
+left alone" is always reported next to the number of changes.
+
+**The review inbox is the fast path.** Transactions the app is not sure about
+are grouped by merchant, so one decision clears dozens of them. It can be
+cleared with the keyboard (`j`/`k` to move, `enter` to confirm, `x` to select,
+`u` to undo) or with taps, and every bulk edit can be undone.
+
+**Corrections stick.** After you change a category, the app asks whether to
+apply it to the whole merchant, or to that merchant within an amount range. Both
+write a rule, so the decision holds for future imports too.
 
 ---
 

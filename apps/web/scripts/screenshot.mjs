@@ -19,6 +19,8 @@ const pages = [
   { name: 'spending', url: '/spending' },
   { name: 'cash-flow', url: '/cash-flow' },
   { name: 'transactions', url: '/transactions' },
+  { name: 'review', url: '/review' },
+  { name: 'rules', url: '/rules' },
   { name: 'accounts', url: '/accounts' },
 ];
 

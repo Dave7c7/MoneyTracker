@@ -13,4 +13,5 @@ export * from './merchant.ts';
 export * from './random.ts';
 export * from './rules.ts';
 export * from './categorization.ts';
+export * from './recategorize.ts';
 export * from './dashboards.ts';

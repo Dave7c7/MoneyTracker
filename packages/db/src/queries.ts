@@ -50,6 +50,8 @@ export interface TransactionRow {
   descriptionRaw: string;
   merchantId: string | null;
   merchantName: string | null;
+  /** The lowercased merchant key, used when writing a rule. */
+  merchantKey: string | null;
   sourceCategory: string | null;
   categoryId: string | null;
   categoryName: string | null;
@@ -196,6 +198,7 @@ export async function listTransactions(
       descriptionRaw: transactions.descriptionRaw,
       merchantId: transactions.merchantId,
       merchantName: merchants.displayName,
+      merchantKey: merchants.key,
       sourceCategory: transactions.sourceCategory,
       categoryId: categories.id,
       categoryName: categories.name,
@@ -288,6 +291,7 @@ export async function listNeedsReview(
       descriptionRaw: transactions.descriptionRaw,
       merchantId: transactions.merchantId,
       merchantName: merchants.displayName,
+      merchantKey: merchants.key,
       sourceCategory: transactions.sourceCategory,
       categoryId: categories.id,
       categoryName: categories.name,

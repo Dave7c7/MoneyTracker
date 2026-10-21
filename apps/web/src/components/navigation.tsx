@@ -4,12 +4,17 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 /** The main sections of the app. */
+/*
+ * Five tabs fit a 360 pixel phone with room to spare. Accounts and rules are
+ * one tap away from the overview, which is where they belong: they are set
+ * up once, not checked every day.
+ */
 const links = [
   { href: '/', label: 'Overview', icon: OverviewIcon },
   { href: '/spending', label: 'Spending', icon: SpendingIcon },
   { href: '/cash-flow', label: 'Cash flow', icon: CashFlowIcon },
   { href: '/transactions', label: 'Transactions', icon: TransactionsIcon },
-  { href: '/accounts', label: 'Accounts', icon: AccountsIcon },
+  { href: '/review', label: 'Review', icon: ReviewIcon },
 ] as const;
 
 function isActive(pathname: string, href: string): boolean {
@@ -21,7 +26,7 @@ function isActive(pathname: string, href: string): boolean {
  *
  * A bottom tab bar on phones (thumb reach) and a top bar on desktop.
  */
-export function Navigation() {
+export function Navigation({ reviewCount = 0 }: { reviewCount?: number }) {
   const pathname = usePathname();
 
   return (
@@ -44,7 +49,17 @@ export function Navigation() {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
                 }`}
               >
-                <Icon />
+                <span className="relative">
+                  <Icon />
+                  {link.href === '/review' && reviewCount > 0 && (
+                    <span
+                      aria-label={`${reviewCount} transactions need review`}
+                      className="absolute -right-2 -top-1 min-w-4 rounded-full bg-amber-500 px-1 text-center text-[9px] font-bold leading-4 text-white"
+                    >
+                      {reviewCount > 99 ? '99+' : reviewCount}
+                    </span>
+                  )}
+                </span>
                 <span>{link.label}</span>
               </Link>
             </li>
@@ -128,7 +143,7 @@ function TransactionsIcon() {
   );
 }
 
-function AccountsIcon() {
+function ReviewIcon() {
   return (
     <svg
       aria-hidden="true"
@@ -137,11 +152,11 @@ function AccountsIcon() {
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect x="3" y="6" width="18" height="12" rx="2" />
-      <path d="M3 10h18" />
-      <path d="M7 14h4" />
+      <path d="M4 5h16v11H8l-4 3z" />
+      <path d="M9 9h6M9 12h4" />
     </svg>
   );
 }

@@ -9,5 +9,8 @@ export * from './client.ts';
 export * from './env.ts';
 export * from './defaults.ts';
 export * from './bootstrap.ts';
+export * from './categorization-state.ts';
+export * from './rules.ts';
+export * from './assignments.ts';
 export * from './queries.ts';
 export * from './sync.ts';

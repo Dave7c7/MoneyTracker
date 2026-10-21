@@ -5,6 +5,8 @@
  * server refuses to start with a bad configuration (see `instrumentation.ts`).
  */
 
+import 'server-only';
+
 import { getEnv as getDbEnv, type AppEnv } from '@moneytracker/db';
 
 /**

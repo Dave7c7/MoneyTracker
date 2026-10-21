@@ -58,14 +58,19 @@ export default async function OverviewPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between">
+      <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-lg font-semibold tracking-tight">{formatMonth(data.month)}</h2>
-        <Link
-          href="/spending"
-          className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-500"
-        >
-          See spending
-        </Link>
+        <div className="flex gap-3 text-sm font-medium">
+          <Link
+            href="/rules"
+            className="text-slate-500 hover:text-slate-900 hover:underline dark:text-slate-400 dark:hover:text-slate-100"
+          >
+            Rules
+          </Link>
+          <Link href="/spending" className="text-brand-600 hover:underline dark:text-brand-500">
+            See spending
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2.5 ph:gap-3 lg:grid-cols-4">
@@ -88,12 +93,14 @@ export default async function OverviewPage() {
           value={formatAmount(netThisMonth)}
           hint={netThisMonth >= 0 ? 'Money left over' : 'Spent more than earned'}
         />
-        <StatCard
-          label="Needs review"
-          value={String(data.needsReview)}
-          hint={data.needsReview > 0 ? 'Transactions to categorize' : 'All caught up'}
-          tone={data.needsReview > 0 ? 'brand' : 'neutral'}
-        />
+        <Link href="/review" className="block">
+          <StatCard
+            label="Needs review"
+            value={String(data.needsReview)}
+            hint={data.needsReview > 0 ? 'Tap to categorize' : 'All caught up'}
+            tone={data.needsReview > 0 ? 'brand' : 'neutral'}
+          />
+        </Link>
       </div>
 
       {chartCategories.length > 0 ? (

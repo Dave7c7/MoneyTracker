@@ -90,6 +90,7 @@ export function TransactionFilters({
         <label className="block min-w-0">
           <span className="sr-only">Account</span>
           <select
+            aria-label="Account"
             value={initial.accountId ?? ''}
             onChange={(event) => update('accountId', event.target.value)}
             className={inputClass}
@@ -106,6 +107,7 @@ export function TransactionFilters({
         <label className="block min-w-0">
           <span className="sr-only">Category</span>
           <select
+            aria-label="Category"
             value={initial.categoryId ?? ''}
             onChange={(event) => update('categoryId', event.target.value)}
             className={inputClass}

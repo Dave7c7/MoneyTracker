@@ -9,7 +9,7 @@
 
 import { createHash } from 'node:crypto';
 
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import {
   categorize,
   merchantKey,
@@ -20,12 +20,11 @@ import {
   type DataSourceAdapter,
 } from '@moneytracker/core';
 
+import { loadCategorizationState } from './categorization-state.ts';
 import type { Database } from './client.ts';
 import {
   accounts,
   balanceSnapshots,
-  bankCategoryMappings,
-  categories,
   categoryAssignments,
   merchants,
   transactions,
@@ -103,7 +102,7 @@ export async function syncFromAdapter(options: SyncOptions): Promise<SyncResult>
     }
   }
 
-  const context = await buildCategorizationContext(db, userId);
+  const { context } = await loadCategorizationState(db, userId);
 
   for (const account of normalizedAccounts) {
     const accountId = accountIdByExternalId.get(account.externalId);
@@ -300,55 +299,6 @@ async function importTransactions(
  * Merchant memory comes from locked assignments, so a correction the user
  * made for one transaction applies to the rest of that merchant.
  */
-async function buildCategorizationContext(
-  db: Database,
-  userId: string,
-): Promise<CategorizationContext> {
-  const categoryRows = await db
-    .select({ id: categories.id, name: categories.name, slug: categories.slug })
-    .from(categories)
-    .where(eq(categories.userId, userId));
-
-  const uncategorized = categoryRows.find((row) => row.slug === 'uncategorized');
-  const categoryNames = new Map(categoryRows.map((row) => [row.id, row.name]));
-
-  const mappingRows = await db
-    .select({
-      sourceCategory: bankCategoryMappings.sourceCategory,
-      categoryId: bankCategoryMappings.categoryId,
-    })
-    .from(bankCategoryMappings)
-    .where(eq(bankCategoryMappings.userId, userId));
-  const bankCategoryMap = new Map(
-    mappingRows.map((row) => [row.sourceCategory.toUpperCase(), row.categoryId]),
-  );
-
-  const memoryRows = await db
-    .select({
-      key: merchants.key,
-      categoryId: categoryAssignments.categoryId,
-      name: categories.name,
-    })
-    .from(categoryAssignments)
-    .innerJoin(transactions, eq(transactions.id, categoryAssignments.transactionId))
-    .innerJoin(merchants, eq(merchants.id, transactions.merchantId))
-    .innerJoin(categories, eq(categories.id, categoryAssignments.categoryId))
-    .where(and(eq(categoryAssignments.userId, userId), eq(categoryAssignments.locked, true)));
-
-  const merchantMemory = new Map<string, { categoryId: string; displayName?: string }>();
-  for (const row of memoryRows) {
-    merchantMemory.set(row.key, { categoryId: row.categoryId, displayName: row.name });
-  }
-
-  return {
-    rules: [],
-    merchantMemory,
-    bankCategoryMap,
-    categoryNames,
-    uncategorizedCategoryId: uncategorized?.id ?? 'uncategorized',
-  };
-}
-
 async function upsertMerchant(
   db: Database,
   userId: string,

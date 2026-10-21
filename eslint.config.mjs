@@ -47,7 +47,12 @@ const config = [
   },
   {
     // Command line tools print their results to stdout.
-    files: ['packages/db/src/migrate.ts', 'packages/db/src/seed.ts', '**/scripts/**/*.mjs'],
+    files: [
+      'packages/db/src/migrate.ts',
+      'packages/db/src/seed.ts',
+      'packages/db/src/reset.ts',
+      '**/scripts/**/*.mjs',
+    ],
     rules: {
       'no-console': 'off',
     },

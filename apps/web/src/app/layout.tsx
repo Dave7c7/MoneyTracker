@@ -4,6 +4,9 @@ import './globals.css';
 
 import { Navigation } from '@/components/navigation.tsx';
 import { ServiceWorkerRegistration } from '@/components/service-worker-registration.tsx';
+import { countNeedsReview, getLocalUser } from '@moneytracker/db';
+
+import { getDatabase } from '@/lib/db.ts';
 
 export const metadata: Metadata = {
   title: {
@@ -38,7 +41,9 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const reviewCount = await countReview();
+
   return (
     <html lang="en">
       <body className="min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
@@ -63,10 +68,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </main>
 
-          <Navigation />
+          <Navigation reviewCount={reviewCount} />
         </div>
         <ServiceWorkerRegistration />
       </body>
     </html>
   );
+}
+
+/**
+ * How many transactions are waiting for a decision.
+ *
+ * A failure here must not take the whole app down, so it falls back to zero.
+ */
+async function countReview(): Promise<number> {
+  try {
+    const { db } = getDatabase();
+    const user = await getLocalUser(db);
+    if (!user) return 0;
+    return await countNeedsReview(db, user.id);
+  } catch {
+    return 0;
+  }
 }

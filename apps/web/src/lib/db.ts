@@ -5,6 +5,8 @@
  * object to avoid opening a new pool on every reload.
  */
 
+import 'server-only';
+
 import { createDatabase } from '@moneytracker/db';
 
 import { getEnv } from './env.ts';

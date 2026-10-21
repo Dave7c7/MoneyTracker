@@ -8,6 +8,9 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
+  // Every run starts from a clean database, so the tests never depend on
+  // what a previous run left behind.
+  globalSetup: './e2e/global-setup.ts',
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,
@@ -53,5 +56,13 @@ export default defineConfig({
         url: 'http://localhost:3000',
         reuseExistingServer: true,
         timeout: 120_000,
+        env: process.env.E2E_DATABASE_URL
+          ? {
+              // The end-to-end tests change data, so they run against a
+              // database of their own. The environment variable wins over the
+              // .env file.
+              DATABASE_URL: process.env.E2E_DATABASE_URL,
+            }
+          : undefined,
       },
 });

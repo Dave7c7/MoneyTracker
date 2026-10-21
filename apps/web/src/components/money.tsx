@@ -1,6 +1,6 @@
 import { formatMoney } from '@moneytracker/core';
 
-import { getEnv } from '@/lib/env.ts';
+import { UI_CURRENCY, UI_LOCALE } from '@/lib/settings.ts';
 
 /**
  * Formats an amount for display.
@@ -11,8 +11,8 @@ import { getEnv } from '@/lib/env.ts';
  * @example
  * formatAmount(-1999, 'USD'); // "-$19.99"
  */
-export function formatAmount(amountMinor: number, currency = getEnv().DEFAULT_CURRENCY): string {
-  return formatMoney(amountMinor, currency, getEnv().DEFAULT_LOCALE);
+export function formatAmount(amountMinor: number, currency = UI_CURRENCY): string {
+  return formatMoney(amountMinor, currency, UI_LOCALE);
 }
 
 /**
@@ -21,10 +21,7 @@ export function formatAmount(amountMinor: number, currency = getEnv().DEFAULT_CU
  * @example
  * formatSignedAmount(-1999, 'USD'); // "-$19.99"
  */
-export function formatSignedAmount(
-  amountMinor: number,
-  currency = getEnv().DEFAULT_CURRENCY,
-): string {
+export function formatSignedAmount(amountMinor: number, currency = UI_CURRENCY): string {
   const formatted = formatAmount(Math.abs(amountMinor), currency);
   if (amountMinor > 0) return `+${formatted}`;
   if (amountMinor < 0) return `-${formatted}`;

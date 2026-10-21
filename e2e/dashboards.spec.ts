@@ -61,8 +61,8 @@ test.describe('transactions', () => {
   test('the filters use the extra width on a large phone', async ({ page }) => {
     await page.goto('/transactions');
 
-    const account = page.getByLabel('Account');
-    const category = page.getByLabel('Category');
+    const account = page.getByLabel('Account', { exact: true });
+    const category = page.getByLabel('Category', { exact: true });
 
     const width = page.viewportSize()?.width ?? 0;
     const sameRow =
@@ -107,7 +107,7 @@ test.describe('transactions', () => {
     await page.goto('/transactions');
     const main = page.getByRole('main');
 
-    await page.getByLabel('Account').selectOption({ label: 'High-Yield Savings' });
+    await page.getByLabel('Account', { exact: true }).selectOption({ label: 'High-Yield Savings' });
 
     const items = main.getByRole('listitem');
     await expect(items.first()).toContainText('High-Yield Savings', { timeout: 15_000 });

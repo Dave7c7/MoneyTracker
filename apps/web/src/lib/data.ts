@@ -23,6 +23,8 @@ import {
   listBalances,
   listCategories,
   listDashboardTransactions,
+  listReviewGroups,
+  listRules,
   listTransactions,
   getLocalUser,
   type TransactionRow,
@@ -219,6 +221,57 @@ export async function getTransactionsData(filters: Parameters<typeof listTransac
 
   return {
     rows,
+    categories: categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      kind: category.kind,
+      color: category.color,
+    })),
+    accounts: accounts.map((account) => ({ id: account.id, name: account.name })),
+  };
+}
+
+/** Data for the review inbox. */
+export async function getReviewData() {
+  const { db } = getDatabase();
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const [groups, categories, needsReview] = await Promise.all([
+    listReviewGroups(db, userId),
+    listCategories(db, userId),
+    countNeedsReview(db, userId),
+  ]);
+
+  return {
+    groups,
+    needsReview,
+    totalTransactions: groups.reduce((sum, group) => sum + group.transactions.length, 0),
+    categories: categories
+      .filter((category) => category.kind === 'spending' || category.kind === 'income')
+      .map((category) => ({
+        id: category.id,
+        name: category.name,
+        kind: category.kind,
+        color: category.color,
+      })),
+  };
+}
+
+/** Data for the rules screen. */
+export async function getRulesData() {
+  const { db } = getDatabase();
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const [rules, categories, accounts] = await Promise.all([
+    listRules(db, userId),
+    listCategories(db, userId),
+    listAccounts(db, userId),
+  ]);
+
+  return {
+    rules,
     categories: categories.map((category) => ({
       id: category.id,
       name: category.name,
