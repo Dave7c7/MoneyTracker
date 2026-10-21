@@ -1,0 +1,16 @@
+/**
+ * @moneytracker/core - pure domain logic.
+ *
+ * Nothing here imports from `apps/` or `packages/db`, and nothing here
+ * touches the network. Adapters and the database layer depend on this
+ * package; it depends on neither.
+ */
+
+export * from './types.ts';
+export * from './money.ts';
+export * from './dates.ts';
+export * from './merchant.ts';
+export * from './random.ts';
+export * from './rules.ts';
+export * from './categorization.ts';
+export * from './dashboards.ts';
