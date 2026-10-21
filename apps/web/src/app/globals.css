@@ -12,6 +12,13 @@
   --color-brand-500: #0ea5e9;
   --color-brand-600: #0284c7;
   --color-brand-700: #0369a1;
+
+  /*
+   * Large phones. A Pixel 10 Pro XL reports 448 CSS pixels wide, which is
+   * wider than the 360 pixel floor the app supports, so it gets its own
+   * breakpoint: two columns of filters, denser stat cards.
+   */
+  --breakpoint-ph: 26.25rem;
 }
 
 :root {

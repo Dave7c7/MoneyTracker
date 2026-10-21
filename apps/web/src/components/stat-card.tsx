@@ -9,24 +9,26 @@ export function StatCard({
   delta,
   hint,
   tone = 'neutral',
+  className = '',
 }: {
   label: string;
   value: string;
   delta?: { value: string; direction: 'up' | 'down' | 'flat'; positive: boolean };
   hint?: string;
   tone?: 'neutral' | 'brand';
+  className?: string;
 }) {
   return (
-    <Card tone={tone === 'brand' ? 'brand' : 'default'}>
+    <Card tone={tone === 'brand' ? 'brand' : 'default'} className={className}>
       <p
-        className={`text-xs font-medium uppercase tracking-wide ${
+        className={`text-[11px] font-medium uppercase tracking-wide ${
           tone === 'brand' ? 'text-slate-300' : 'text-slate-500 dark:text-slate-400'
         }`}
       >
         {label}
       </p>
       <p
-        className={`tabular mt-1 text-2xl font-semibold tracking-tight ${
+        className={`tabular mt-0.5 text-xl font-semibold tracking-tight sm:text-2xl ${
           tone === 'brand' ? 'text-white' : 'text-slate-900 dark:text-slate-100'
         }`}
       >
@@ -35,7 +37,7 @@ export function StatCard({
 
       {delta && (
         <p
-          className={`mt-1 text-xs font-medium ${
+          className={`mt-0.5 text-xs font-medium ${
             tone === 'brand'
               ? 'text-slate-300'
               : delta.positive
@@ -49,7 +51,7 @@ export function StatCard({
 
       {hint && (
         <p
-          className={`mt-1 text-xs ${
+          className={`mt-0.5 text-xs ${
             tone === 'brand' ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'
           }`}
         >

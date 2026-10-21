@@ -7,11 +7,14 @@ import { formatMonthLabel } from '@moneytracker/core';
 /**
  * Formats a plain date for display, e.g. "Oct 15".
  *
+ * A transaction that has not posted yet has no date; the UI marks those with
+ * a pending badge instead.
+ *
  * @example
  * formatShortDate('2026-10-15'); // "Oct 15"
  */
 export function formatShortDate(plainDate: string | null, locale = 'en-US'): string {
-  if (!plainDate) return 'Pending';
+  if (!plainDate) return '—';
   const date = new Date(`${plainDate}T00:00:00Z`);
   return new Intl.DateTimeFormat(locale, {
     month: 'short',

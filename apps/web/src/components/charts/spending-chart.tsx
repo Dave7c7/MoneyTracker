@@ -50,7 +50,7 @@ export function SpendingByCategoryChart({
 
   return (
     <div
-      className="h-72 w-full"
+      className="h-60 w-full md:h-72"
       role="img"
       aria-label={`Spending by category from ${months[0]} to ${months[months.length - 1]}`}
     >
@@ -104,7 +104,7 @@ export function SpendingByCategoryChart({
             }}
           />
           {categories.length > 1 && (
-            <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" iconSize={8} />
+            <Legend wrapperStyle={{ fontSize: 10, paddingTop: 4 }} iconType="circle" iconSize={7} />
           )}
           {categories.map((category) => (
             <Bar

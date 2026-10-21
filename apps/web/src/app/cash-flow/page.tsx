@@ -34,7 +34,7 @@ export default async function CashFlowPage() {
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2.5 ph:gap-3 lg:grid-cols-4">
         <StatCard
           label="Income"
           value={formatAmount(data.current?.incomeMinor ?? 0)}
@@ -69,11 +69,11 @@ export default async function CashFlowPage() {
 
       <Card title="Month by month">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[420px] text-sm">
             <caption className="sr-only">Income, expenses and net savings per month</caption>
             <thead>
               <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                <th scope="col" className="py-2 pr-3 font-medium">
+                <th scope="col" className="py-2 pr-3 font-medium whitespace-nowrap">
                   Month
                 </th>
                 <th scope="col" className="py-2 pr-3 text-right font-medium">
@@ -92,18 +92,18 @@ export default async function CashFlowPage() {
                 <tr key={entry.month}>
                   <th
                     scope="row"
-                    className="py-2 pr-3 text-left font-normal text-slate-700 dark:text-slate-200"
+                    className="py-2 pr-3 text-left font-normal whitespace-nowrap text-slate-700 dark:text-slate-200"
                   >
                     {formatMonth(entry.month)}
                   </th>
-                  <td className="tabular py-2 pr-3 text-right text-slate-600 dark:text-slate-300">
+                  <td className="tabular py-2 pr-3 text-right whitespace-nowrap text-slate-600 dark:text-slate-300">
                     {formatAmount(entry.incomeMinor)}
                   </td>
-                  <td className="tabular py-2 pr-3 text-right text-slate-600 dark:text-slate-300">
+                  <td className="tabular py-2 pr-3 text-right whitespace-nowrap text-slate-600 dark:text-slate-300">
                     {formatAmount(entry.expenseMinor)}
                   </td>
                   <td
-                    className={`tabular py-2 text-right font-medium ${
+                    className={`tabular py-2 text-right font-medium whitespace-nowrap ${
                       entry.netMinor >= 0
                         ? 'text-emerald-600 dark:text-emerald-400'
                         : 'text-rose-600 dark:text-rose-400'

@@ -31,6 +31,17 @@ export default defineConfig({
       },
     },
     {
+      // Pixel 10 Pro XL: 6.8 inch, 1344 x 2992 at 3x, so 448 x 997 CSS pixels.
+      name: 'pixel',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 448, height: 997 },
+        isMobile: true,
+        hasTouch: true,
+        deviceScaleFactor: 3,
+      },
+    },
+    {
       name: 'desktop',
       use: { ...devices['Desktop Chrome'] },
     },

@@ -75,8 +75,8 @@ export function TransactionFilters({
 
   return (
     <div className="space-y-3" aria-busy={isPending}>
-      <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="block min-w-0 sm:col-span-2 lg:col-span-1">
+      <div className="grid min-w-0 gap-3 ph:grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+        <label className="block min-w-0 ph:col-span-2 lg:col-span-1">
           <span className="sr-only">Search transactions</span>
           <input
             type="search"
@@ -119,7 +119,7 @@ export function TransactionFilters({
           </select>
         </label>
 
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2 ph:col-span-2">
           <label className="block min-w-0 flex-1">
             <span className="sr-only">From date</span>
             <input

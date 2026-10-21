@@ -83,12 +83,19 @@ TEST_DATABASE_URL=postgresql://moneytracker:moneytracker@localhost:5432/moneytra
 ```
 
 The end-to-end tests run against a seeded database and check the dashboards at
-360px and at desktop width:
+three widths: 360px (the narrowest the app supports), 448px (a Pixel 10 Pro
+XL) and desktop.
 
 ```bash
 pnpm e2e:install   # once, downloads the browser
 pnpm db:seed
 pnpm e2e
+```
+
+To look at the app the way each device sees it:
+
+```bash
+node apps/web/scripts/screenshot.mjs http://localhost:3000
 ```
 
 ---

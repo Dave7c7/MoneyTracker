@@ -44,8 +44,8 @@ export default async function SpendingPage() {
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label="This month" value={formatAmount(currentTotal)} hint="Excludes transfers" />
+      <div className="grid grid-cols-2 gap-2.5 ph:grid-cols-3 ph:gap-3 lg:grid-cols-3">
+        <StatCard label="This month" value={formatAmount(currentTotal)} />
         <StatCard
           label="Last month"
           value={formatAmount(previousTotal)}

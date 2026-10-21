@@ -23,9 +23,9 @@ export function Card({
   } as const;
 
   return (
-    <section className={`rounded-2xl border p-4 shadow-sm ${tones[tone]} ${className}`}>
+    <section className={`rounded-2xl border p-3.5 shadow-sm sm:p-4 ${tones[tone]} ${className}`}>
       {(title || action) && (
-        <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="mb-2.5 flex items-start justify-between gap-3 sm:mb-3">
           <div>
             {title && (
               <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h2>

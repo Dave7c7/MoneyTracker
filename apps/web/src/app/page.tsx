@@ -68,7 +68,7 @@ export default async function OverviewPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2.5 ph:gap-3 lg:grid-cols-4">
         <StatCard
           label="Spending"
           value={formatAmount(spendingThisMonth)}
@@ -81,7 +81,6 @@ export default async function OverviewPage() {
                   positive: !deltaIsSpendingMore,
                 }
           }
-          hint="Transfers excluded"
         />
         <StatCard label="Income" value={formatAmount(incomeThisMonth)} hint="This month" />
         <StatCard

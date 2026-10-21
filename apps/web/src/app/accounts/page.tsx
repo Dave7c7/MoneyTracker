@@ -25,12 +25,13 @@ export default async function AccountsPage() {
     <div className="space-y-4">
       <h2 className="text-lg font-semibold tracking-tight">Accounts</h2>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2.5 ph:grid-cols-2 ph:gap-3 sm:grid-cols-3">
         <StatCard
           label="Net worth"
           value={formatAmount(data.netWorthMinor)}
           hint="Assets minus liabilities"
           tone="brand"
+          className="ph:col-span-2"
         />
         <StatCard label="Assets" value={formatAmount(data.assetsMinor)} hint="Cash and savings" />
         <StatCard
@@ -74,11 +75,11 @@ export default async function AccountsPage() {
 
       <Card title="Balance history" subtitle="Month-end snapshots">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[520px] text-sm">
             <caption className="sr-only">Balance history per account</caption>
             <thead>
               <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                <th scope="col" className="py-2 pr-3 font-medium">
+                <th scope="col" className="py-2 pr-3 font-medium whitespace-nowrap">
                   Date
                 </th>
                 {data.accounts.map((account) => (
@@ -96,14 +97,14 @@ export default async function AccountsPage() {
                   <tr key={`${balance.accountId}-${balance.asOf.toISOString()}`}>
                     <th
                       scope="row"
-                      className="py-1.5 pr-3 text-left font-normal text-slate-700 dark:text-slate-200"
+                      className="py-1.5 pr-3 text-left font-normal whitespace-nowrap text-slate-700 dark:text-slate-200"
                     >
                       {formatShortDate(balance.asOf.toISOString().slice(0, 10))}
                     </th>
                     {data.accounts.map((account) => (
                       <td
                         key={account.id}
-                        className="tabular py-1.5 pr-3 text-right text-slate-600 dark:text-slate-300"
+                        className="tabular py-1.5 pr-3 text-right whitespace-nowrap text-slate-600 dark:text-slate-300"
                       >
                         {balance.accountId === account.id
                           ? formatAmount(balance.balanceMinor, balance.currency)

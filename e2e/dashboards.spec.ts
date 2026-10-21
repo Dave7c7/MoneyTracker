@@ -11,7 +11,7 @@ test.describe('dashboards', () => {
     await page.goto('/');
     const main = page.getByRole('main');
 
-    await expect(page.getByRole('heading', { name: 'Your money, in the open' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'MoneyTracker', level: 1 })).toBeVisible();
 
     // October 2026 in the demo dataset: rent, groceries and the rest.
     await expect(main.getByText('$5,275.80').first()).toBeVisible();
@@ -58,6 +58,26 @@ test.describe('dashboards', () => {
 });
 
 test.describe('transactions', () => {
+  test('the filters use the extra width on a large phone', async ({ page }) => {
+    await page.goto('/transactions');
+
+    const account = page.getByLabel('Account');
+    const category = page.getByLabel('Category');
+
+    const width = page.viewportSize()?.width ?? 0;
+    const sameRow =
+      Math.abs((await account.boundingBox())!.y - (await category.boundingBox())!.y) < 4;
+
+    if (width >= 420) {
+      // A Pixel 10 Pro XL is 448 CSS pixels wide: the two selects fit side by
+      // side, so the filters take three rows instead of four.
+      expect(sameRow).toBe(true);
+    } else {
+      // At 360 pixels the selects stack.
+      expect(sameRow).toBe(false);
+    }
+  });
+
   test('searching narrows the list', async ({ page }) => {
     await page.goto('/transactions');
     const main = page.getByRole('main');

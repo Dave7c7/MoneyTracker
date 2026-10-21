@@ -1,5 +1,5 @@
 /**
- * Takes screenshots of the app at phone and desktop widths.
+ * Takes screenshots of the app at the widths it has to support.
  *
  * Used to eyeball the dashboards during development:
  *   node scripts/screenshot.mjs http://localhost:3000
@@ -22,9 +22,14 @@ const pages = [
   { name: 'accounts', url: '/accounts' },
 ];
 
+/**
+ * The viewports the app supports. A Pixel 10 Pro XL reports 448 CSS pixels
+ * wide: 1344 physical pixels at 3x.
+ */
 const viewports = [
-  { name: 'phone', width: 360, height: 780 },
-  { name: 'desktop', width: 1280, height: 900 },
+  { name: '360', width: 360, height: 780, scale: 2 },
+  { name: 'pixel', width: 448, height: 997, scale: 3 },
+  { name: 'desktop', width: 1280, height: 900, scale: 2 },
 ];
 
 mkdirSync(outputDir, { recursive: true });
@@ -34,7 +39,9 @@ const browser = await chromium.launch();
 for (const viewport of viewports) {
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
-    deviceScaleFactor: 2,
+    deviceScaleFactor: viewport.scale,
+    isMobile: viewport.width < 1024,
+    hasTouch: viewport.width < 1024,
   });
   const page = await context.newPage();
 
