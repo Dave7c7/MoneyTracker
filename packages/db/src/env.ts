@@ -34,6 +34,20 @@ const envSchema = z.object({
   DEFAULT_USER_EMAIL: z.string().email().default('you@example.com'),
   /** Display name of the single local user. */
   DEFAULT_USER_NAME: z.string().min(1).default('Me'),
+  /**
+   * The key that encrypts provider credentials.
+   *
+   * It is only needed once a live connection is added, so an empty value
+   * means "not set yet" rather than a broken configuration. 32 bytes, written
+   * as hex.
+   */
+  ENCRYPTION_KEY: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z
+      .string()
+      .regex(/^[0-9a-f]{64}$/i, 'ENCRYPTION_KEY must be 32 bytes written as hex')
+      .optional(),
+  ),
 });
 
 /** Validated application configuration. */
