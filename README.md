@@ -17,11 +17,17 @@ Works on a phone and a desktop as an installable PWA. Single user first.
 | 2. Categorization, rules, review inbox | Done | Fix a category, write a rule, clear the review inbox, undo anything |
 | 3. Transfers, splits, CSV import | Done | Transfers are linked and kept out of the totals, a charge can be split across categories, and a bank export is imported with a saved mapping profile |
 | 4. Subscriptions, bills, budgets, net worth | Done | Recurring charges are found and confirmed, bills can be added by hand, budgets per category, net worth over time, savings goals |
-| 5. Live bank connection | Started | A read-only SimpleFIN connection: paste a setup token, pick the accounts, and the transactions come in |
-| 6. Hardening and extras | Planned | Auth, alerts, backups, export |
+| 5. Live bank connection | Done | A read-only SimpleFIN connection: paste a setup token, pick the accounts, and the transactions come in |
+| 6. Hardening and extras | Started | Auth (passkey/password + TOTP), alerts, backups, export, data export (CSV/JSON), full data delete |
+  
+Rules directory created for agent guidance:
+- `rules/categorization.md` - Categorization rules
+- `rules/security.md` - Security rules
+- `rules/data-and-money.md` - Data and money rules
+- `rules/testing.md` - Testing rules
 
 The plan and the binding rules live in `PLAN.md`, `AGENTS.md` and the rule
-files in the repository root.
+files in the `rules/` directory.
 
 ---
 
