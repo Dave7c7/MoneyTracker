@@ -15,9 +15,9 @@ import { childOpacity, colorForGroup, OTHER_COLOR, withOpacity } from '@/lib/pal
 /**
  * Where the month's money went, as a donut.
  *
- * The donut has two levels. The first one shows the groups, the second one
- * the categories inside the group that was opened. Tapping a category takes
- * the user to the transactions of that category, in the same month.
+ * The first level shows the groups, and every group opens into the categories
+ * inside it. Tapping a category takes the user to the transactions of that
+ * category, in the same month.
  */
 export function CategoryDonut({
   initial,

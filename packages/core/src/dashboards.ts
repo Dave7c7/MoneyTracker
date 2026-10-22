@@ -429,8 +429,8 @@ export interface CategoryBreakdownOptions {
  * Breaks a month of spending down by group, and by the categories inside it.
  *
  * A group is a top level category: "Food" is a group, "Groceries" is one of
- * its categories. The breakdown has two levels: the groups, and the
- * categories inside the group that was opened.
+ * its categories. Every level is built the same way: a group opens into the
+ * categories inside it, and the folded "Other" opens into the groups it holds.
  *
  * A refund reduces the total of its category. A category that was refunded
  * more than it spent ends up below zero, and then it is not a slice at all:
@@ -591,8 +591,7 @@ function buildLevel(entries: readonly BreakdownEntry[], levelTotal: number): Cat
     amountMinor: entry.amountMinor,
     percent: shares[index] ?? 0,
     colorKey: entry.colorKey,
-    children:
-      entry.children.length > 0 ? buildLevel(entry.children, entry.amountMinor) : undefined,
+    children: entry.children.length > 0 ? buildLevel(entry.children, entry.amountMinor) : undefined,
   }));
 }
 

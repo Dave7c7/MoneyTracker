@@ -105,6 +105,11 @@ test.describe('dashboards', () => {
     expect(url.searchParams.get('categoryId')).toBeTruthy();
     expect(url.searchParams.get('from')).toMatch(/^\d{4}-\d{2}-01$/);
     expect(url.searchParams.get('to')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+    // The list the user lands on has the transactions of that category.
+    const shown = page.getByRole('main').getByText(/^\d+ shown$/);
+    await expect(shown).toBeVisible();
+    await expect(shown).not.toHaveText('0 shown');
   });
 
   test('the donut fits a narrow phone', async ({ page }) => {
