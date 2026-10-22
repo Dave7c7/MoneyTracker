@@ -105,6 +105,21 @@ node apps/web/scripts/screenshot.mjs http://localhost:3000
 
 ---
 
+## Continuous integration
+
+Every push to `main` and every pull request runs `.github/workflows/ci.yml`:
+
+- **check** starts Postgres 16, creates `moneytracker_test`, migrates it, and
+  runs `pnpm check` (tests, lint, typecheck).
+- **e2e** starts after that, creates `moneytracker_e2e`, and runs the Playwright
+  suite against the phone, Pixel and desktop projects. The Playwright report is
+  uploaded as an artifact when a run fails.
+
+The workflow does the same things as the commands above, so a green run locally
+means a green run in CI.
+
+---
+
 ## Architecture
 
 ```

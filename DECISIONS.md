@@ -37,3 +37,6 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-21 | The first import is a CSV, so that history no provider can backfill is not lost | Only an export carries the past; an aggregator only carries what it can see from today.
 2026-10-21 | When a provider covers an account already imported by CSV, the provider becomes authoritative and the imported rows are relinked | One bank account must not appear twice because it was imported twice.
 2026-10-21 | A category supplied by a provider counts as bank-provided, capped at 0.7 confidence | A provider's own category is not an explanation the user can trust blindly, exactly like a bank's own category.
+2026-10-21 | Continuous integration runs the unit, lint, typecheck and end-to-end suites on every push | The suites pass locally; CI keeps them honest.
+2026-10-21 | The end-to-end suite uses its own database in CI as well | The tests change data, so a shared database would make one run depend on another.
+2026-10-21 | Playwright writes an HTML report when the CI environment variable is set | The report is what makes a failed CI run readable without downloading logs.

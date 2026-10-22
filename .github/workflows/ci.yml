@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  POSTGRES_USER: moneytracker
+  POSTGRES_PASSWORD: moneytracker
+  DATABASE_URL: postgresql://moneytracker:moneytracker@localhost:5432/moneytracker
+  TEST_DATABASE_URL: postgresql://moneytracker:moneytracker@localhost:5432/moneytracker_test
+  E2E_DATABASE_URL: postgresql://moneytracker:moneytracker@localhost:5432/moneytracker_e2e
+  ADAPTER_ID: mock
+  APP_TIMEZONE: America/Los_Angeles
+  REVIEW_CONFIDENCE_THRESHOLD: "0.8"
+
+jobs:
+  check:
+    name: Test, lint, typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: moneytracker
+          POSTGRES_PASSWORD: moneytracker
+          POSTGRES_DB: moneytracker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U moneytracker"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Create the test database
+        run: |
+          PGPASSWORD=moneytracker psql -h localhost -U moneytracker -d moneytracker -c "CREATE DATABASE moneytracker_test;"
+      - name: Migrate the databases
+        run: |
+          pnpm db:migrate
+          DATABASE_URL="$TEST_DATABASE_URL" pnpm db:migrate
+      - name: Test, lint, typecheck
+        run: pnpm check
+
+  e2e:
+    name: Playwright end-to-end
+    runs-on: ubuntu-latest
+    needs: check
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: moneytracker
+          POSTGRES_PASSWORD: moneytracker
+          POSTGRES_DB: moneytracker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U moneytracker"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Create the end-to-end database
+        run: |
+          PGPASSWORD=moneytracker psql -h localhost -U moneytracker -d moneytracker -c "CREATE DATABASE moneytracker_e2e;"
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run the end-to-end suite
+        run: pnpm e2e
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
