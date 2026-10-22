@@ -18,6 +18,10 @@ const config = [
       '**/coverage/**',
       'packages/db/drizzle/**',
       'apps/web/public/**',
+      // The end-to-end suite leaves traces and reports behind.
+      'test-results/**',
+      'playwright-report/**',
+      'blob-report/**',
     ],
   },
   ...nextCoreWebVitals,

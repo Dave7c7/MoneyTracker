@@ -1,0 +1,1 @@
+ALTER TABLE "split_lines" ADD CONSTRAINT "split_lines_amount_not_zero" CHECK ("split_lines"."amount_minor" <> 0);

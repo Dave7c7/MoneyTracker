@@ -75,11 +75,9 @@ Build in phases. Each phase ends with a "Done when" checklist. Do not start the 
 - Idempotent import with dedupe (see `rules/data-and-money.md`)
 - The first import is a CSV, so that the history no provider can backfill is not lost
 
-**Done so far:** transfer detection, and the whole CSV import path: the generic adapter, the mapping
-profiles, the preview and the idempotent import. A SoFi export can be read today by creating a
-profile for it; no institution has code of its own.
-
-**Still to do:** splitting a transaction across categories.
+**Done so far:** transfer detection, the whole CSV import path (the generic
+adapter, the mapping profiles, the preview and the idempotent import), and
+splitting a transaction across categories.
 
 **Done when:** importing the same CSV twice creates no duplicates; an export from an institution with
 no built-in profile can be imported by creating a mapping profile; spending totals exclude transfers;

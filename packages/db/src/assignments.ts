@@ -22,6 +22,7 @@ import {
   detachFromTransferGroup,
   detachManyFromTransferGroups,
 } from './transfers.ts';
+import { clearTransactionSplit } from './splits.ts';
 
 /** An assignment as it was, so an edit can be undone exactly. */
 export interface PreviousAssignment {
@@ -111,6 +112,9 @@ export async function setManualCategory(
     await detachFromTransferGroup(db, userId, transactionId);
   }
 
+  // One category for the whole transaction means it is not split any more.
+  await clearTransactionSplit(db, userId, transactionId);
+
   const rows = await db
     .insert(categoryAssignments)
     .values({
@@ -163,6 +167,11 @@ export async function bulkSetCategory(
     }
   } else {
     await detachManyFromTransferGroups(db, userId, transactionIds);
+  }
+
+  // One category for the whole transaction means it is not split any more.
+  for (const transactionId of transactionIds) {
+    await clearTransactionSplit(db, userId, transactionId);
   }
 
   const rows = await db

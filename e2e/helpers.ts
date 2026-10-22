@@ -9,7 +9,12 @@
  * outside the workspace packages and would otherwise not find it.
  */
 
-import { createDatabase, getLocalUser, removeImportedRows } from '../packages/db/src/index.ts';
+import {
+  createDatabase,
+  getLocalUser,
+  removeImportedRows,
+  removeSplits as removeSplitsInApp,
+} from '../packages/db/src/index.ts';
 
 /** The database the end-to-end tests use. */
 function databaseUrl(): string | undefined {
@@ -31,6 +36,25 @@ export async function removeImportedData(): Promise<void> {
   try {
     const user = await getLocalUser(db);
     if (user) await removeImportedRows(db, user.id);
+  } finally {
+    await pool.end();
+  }
+}
+
+/**
+ * Removes every split, so the database is the way it was found.
+ *
+ * @example
+ * await removeSplits();
+ */
+export async function removeSplits(): Promise<void> {
+  const url = databaseUrl();
+  if (!url) return;
+
+  const { db, pool } = createDatabase(url);
+  try {
+    const user = await getLocalUser(db);
+    if (user) await removeSplitsInApp(db, user.id);
   } finally {
     await pool.end();
   }

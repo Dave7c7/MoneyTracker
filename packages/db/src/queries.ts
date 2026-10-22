@@ -19,6 +19,7 @@ import {
   transferGroups,
   users,
 } from './schema.ts';
+import { listSplitsByTransaction, type SplitLine } from './splits.ts';
 
 /** Filters accepted by the transaction list. */
 export interface TransactionFilters {
@@ -73,6 +74,12 @@ export interface TransactionRow {
   transferGroupId: string | null;
   /** How the transfer was decided: 'detected', 'suspected' or 'user'. */
   transferSource: string | null;
+  /**
+   * The parts of the split, when the transaction is split.
+   *
+   * An empty list means the transaction is not split.
+   */
+  splitLines: SplitLine[];
 }
 
 /**
@@ -233,7 +240,18 @@ export async function listTransactions(
     .limit(filters.limit ?? 100)
     .offset(filters.offset ?? 0);
 
-  return rows;
+  // A split transaction carries its parts with it, so the list can show them
+  // and the dashboards can count them.
+  const splitsByTransaction = await listSplitsByTransaction(
+    db,
+    userId,
+    rows.map((row) => row.id),
+  );
+
+  return rows.map((row) => ({
+    ...row,
+    splitLines: splitsByTransaction.get(row.id) ?? [],
+  }));
 }
 
 /** Counts the transactions matching the filters. */
@@ -334,7 +352,7 @@ export async function listNeedsReview(
     .orderBy(desc(transactions.postedAt))
     .limit(limit);
 
-  return rows;
+  return rows.map((row) => ({ ...row, splitLines: [] }));
 }
 
 /** Lists the merchants the user has seen, most used first. */

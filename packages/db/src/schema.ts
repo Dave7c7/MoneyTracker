@@ -6,10 +6,11 @@
  * type.
  */
 
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   bigint,
   boolean,
+  check,
   date,
   index,
   integer,
@@ -366,6 +367,39 @@ export const bankCategoryMappings = pgTable(
       table.userId,
       table.sourceCategory,
     ),
+  }),
+);
+
+/**
+ * The parts of a split transaction.
+ *
+ * A split never changes the row the bank gave us. The parts live next to it
+ * and always add up to its amount.
+ */
+export const splitLines = pgTable(
+  'split_lines',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    transactionId: uuid('transaction_id')
+      .notNull()
+      .references(() => transactions.id, { onDelete: 'cascade' }),
+    categoryId: uuid('category_id')
+      .notNull()
+      .references(() => categories.id, { onDelete: 'cascade' }),
+    /** Signed amount in minor units. The parts add up to the transaction. */
+    amountMinor: bigint('amount_minor', { mode: 'number' }).notNull(),
+    note: text('note'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    transactionIdx: index('split_lines_transaction_idx').on(table.transactionId),
+    userIdx: index('split_lines_user_idx').on(table.userId),
+    // A part of nothing is not a part. The sum of the parts has to equal the
+    // transaction, and that is checked in code, where the parent is known.
+    nonZeroAmount: check('split_lines_amount_not_zero', sql`${table.amountMinor} <> 0`),
   }),
 );
 

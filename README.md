@@ -15,7 +15,7 @@ Works on a phone and a desktop as an installable PWA. Single user first.
 | 0. Foundations | Done | Monorepo, Postgres schema and migrations, Docker Compose, config validation |
 | 1. Mock data and dashboards | Done | Demo dataset, PWA shell, overview/spending/cash-flow/transactions/accounts screens |
 | 2. Categorization, rules, review inbox | Done | Fix a category, write a rule, clear the review inbox, undo anything |
-| 3. Transfers, splits, CSV import | In progress | Transfer detection is done: transfers are linked, badged and kept out of the totals. CSV import is done: a file is read with a saved mapping profile, previewed, then imported |
+| 3. Transfers, splits, CSV import | Done | Transfers are linked and kept out of the totals, a charge can be split across categories, and a bank export is imported with a saved mapping profile |
 | 4. Subscriptions, bills, budgets, net worth | Planned | Recurring charge detection and budget tracking |
 | 5. Live bank connection | Planned | A new adapter behind the same interface |
 | 6. Hardening and extras | Planned | Auth, alerts, backups, export |
@@ -238,6 +238,30 @@ charges that look identical on the same day stay two charges.
 **The rows land like any other.** An imported file goes through the same
 rules, the same merchant memory and the same transfer detection as a bank
 connection, so a transfer between two of your accounts is found in a file too.
+
+---
+
+## Splits
+
+One charge can be more than one thing: a hotel bill that is also dinner, a shop
+run that is groceries and household. The app lets you say so.
+
+**The row the bank gave you stays as it is.** A split adds parts next to the
+transaction. The amount, the date and the description are still the bank's,
+and the transaction still shows up in the list as one thing.
+
+**The parts add up to the whole.** The editor says how much is left before
+you save, and it will not save a split that does not add up. Two halves and
+three parts are one tap away when the numbers are awkward.
+
+**Every part counts under its own category.** The spending chart, the totals
+and the cash flow all see the parts, so a charge that is half groceries and
+half dinner is counted as exactly that. The total does not change; the
+categories do.
+
+**A split is your decision.** Like a manual edit, it is locked: no rule, no
+re-categorization run and no later import moves it. Taking the split away
+gives the transaction back to the pipeline.
 
 ---
 

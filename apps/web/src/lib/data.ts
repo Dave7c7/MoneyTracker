@@ -66,21 +66,43 @@ export async function getUserId(): Promise<string | null> {
   return user?.id ?? null;
 }
 
-/** Converts a transaction row into the shape the aggregation functions want. */
-export function toDashboardTransaction(row: TransactionRow): DashboardTransaction {
-  return {
+/**
+ * Converts a transaction row into the shape the aggregation functions want.
+ *
+ * A split transaction becomes one row per part, each with the category of
+ * that part and the amount of that part. The parts add up to the whole, so
+ * the totals stay the same and the categories become the truth.
+ */
+export function toDashboardTransactions(row: TransactionRow): DashboardTransaction[] {
+  const base = {
     id: row.id,
     accountId: row.accountId,
     postedAt: row.postedAt,
-    amountMinor: row.amountMinor,
     currency: row.currency,
     pending: row.pending,
     merchantId: row.merchantId,
     merchantName: row.merchantName,
-    categoryId: row.categoryId,
-    categoryName: row.categoryName,
-    categoryKind: row.categoryKind ?? 'uncategorized',
   };
+
+  if (row.splitLines.length > 0) {
+    return row.splitLines.map((line) => ({
+      ...base,
+      amountMinor: line.amountMinor,
+      categoryId: line.categoryId,
+      categoryName: line.categoryName,
+      categoryKind: line.categoryKind,
+    }));
+  }
+
+  return [
+    {
+      ...base,
+      amountMinor: row.amountMinor,
+      categoryId: row.categoryId,
+      categoryName: row.categoryName,
+      categoryKind: row.categoryKind ?? 'uncategorized',
+    },
+  ];
 }
 
 /** The current month bucket in the user's timezone. */
@@ -103,7 +125,7 @@ export async function getOverviewData(month = currentMonth()) {
   const timeZone = getEnv().APP_TIMEZONE;
   const months = recentMonths(12, month);
   const rows = await listDashboardTransactions(db, userId);
-  const transactions = rows.map(toDashboardTransaction);
+  const transactions = rows.flatMap(toDashboardTransactions);
 
   const spending = spendingByCategory(transactions, { timeZone, months });
   const cashFlow = cashFlowByMonth(transactions, { timeZone, months });
@@ -136,7 +158,7 @@ export async function getSpendingData(month = currentMonth()) {
   const timeZone = getEnv().APP_TIMEZONE;
   const months = recentMonths(12, month);
   const rows = await listDashboardTransactions(db, userId);
-  const transactions = rows.map(toDashboardTransaction);
+  const transactions = rows.flatMap(toDashboardTransactions);
 
   const spending = spendingByCategory(transactions, { timeZone, months });
   const grouped = groupSmallCategories(spending.categories, { topN: 7, label: 'Other' });
@@ -165,7 +187,7 @@ export async function getCashFlowData(month = currentMonth()) {
   const timeZone = getEnv().APP_TIMEZONE;
   const months = recentMonths(12, month);
   const rows = await listDashboardTransactions(db, userId);
-  const transactions = rows.map(toDashboardTransaction);
+  const transactions = rows.flatMap(toDashboardTransactions);
   const cashFlow = cashFlowByMonth(transactions, { timeZone, months });
 
   const totals = cashFlow.reduce(

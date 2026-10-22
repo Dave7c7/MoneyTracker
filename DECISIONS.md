@@ -60,3 +60,8 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-22 | Two rows that look exactly the same in a file stay two rows | Two coffees on the same day are two coffees; a number keeps them apart while the import stays repeatable.
 2026-10-22 | A mapping profile is saved before the preview | The ids of the rows come from the profile, so the preview and the import can only agree when both use the same one.
 2026-10-22 | A profile keeps the key of its account even when it is renamed | Renaming a profile must never move its history to another account.
+2026-10-22 | A split lives next to the transaction, not in it | The row the bank gave us keeps its amount, its date and its description; only the parts are the user's.
+2026-10-22 | The parts of a split always add up to the whole | A split that does not add up is a rounding mistake waiting to happen, so it is never saved.
+2026-10-22 | A split transaction is locked, like a manual edit | The user decided how the money is split, so no rule and no later import may move it.
+2026-10-22 | A transfer cannot be split | Money that moves between your own accounts is not spending, so it has no parts.
+2026-10-22 | The dashboards count the parts, not the whole | A hotel bill that is also dinner is groceries for one part and restaurants for the other.

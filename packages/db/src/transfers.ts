@@ -28,6 +28,7 @@ import {
   transactions as transactionsTable,
   transferGroups,
 } from './schema.ts';
+import { clearTransactionSplit } from './splits.ts';
 
 /** What one detection run did. */
 export interface TransferDetectionResult {
@@ -220,6 +221,19 @@ export async function markAsTransfer(
     .where(and(eq(transactionsTable.id, transactionId), eq(transactionsTable.userId, userId)));
   const transaction = existing[0];
   if (!transaction || transaction.transferGroupId) return false;
+
+  // Saying "this is a transfer" ends a split: money that moves between your
+  // own accounts is not spending, so it has no parts.
+  await clearTransactionSplit(db, userId, transactionId);
+  await db
+    .update(categoryAssignments)
+    .set({ locked: false, updatedAt: new Date() })
+    .where(
+      and(
+        eq(categoryAssignments.userId, userId),
+        eq(categoryAssignments.transactionId, transactionId),
+      ),
+    );
 
   const [group] = await db
     .insert(transferGroups)

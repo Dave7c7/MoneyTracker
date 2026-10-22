@@ -22,6 +22,20 @@
       "when": 1792645664188,
       "tag": "0002_curious_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792646579710,
+      "tag": "0003_lean_daimon_hellstrom",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792647374817,
+      "tag": "0004_busy_vindicator",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,7 @@ import { toMinorUnits } from '@moneytracker/core';
 
 import { CategoryMenu, type PickerCategory } from './category-menu.tsx';
 import { Money } from './money.tsx';
+import { SplitEditor } from './split-editor.tsx';
 import { UndoToast } from './undo-toast.tsx';
 
 /** A transaction as the list shows it. */
@@ -39,6 +40,8 @@ export interface TransactionListItem {
   transferGroupId: string | null;
   /** How the transfer was decided: 'detected', 'suspected' or 'user'. */
   transferSource: string | null;
+  /** The parts of the split, when the transaction is split. */
+  splitLines: { categoryId: string; categoryName: string; amountMinor: number }[];
 }
 
 /** The correction prompt, shown after a category is changed by hand. */
@@ -71,6 +74,7 @@ export function TransactionList({
   const [showAmountRange, setShowAmountRange] = useState(false);
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
+  const [splittingId, setSplittingId] = useState<string | null>(null);
 
   /** Changes the category of one transaction, by hand. */
   const changeCategory = useCallback(
@@ -259,12 +263,41 @@ export function TransactionList({
                 </p>
 
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <CategoryMenu
-                    categories={categories}
-                    value={row.categoryId}
-                    label={`Category for ${row.merchantName ?? row.descriptionRaw}`}
-                    onSelect={(categoryId) => void changeCategory(row, categoryId)}
-                  />
+                  {row.splitLines.length > 0 ? (
+                    <>
+                      <span className="rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-950 dark:text-brand-200">
+                        Split: {row.splitLines.map((line) => line.categoryName).join(' + ')}
+                      </span>
+                      {splitIsOff(row) && (
+                        <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">
+                          Does not add up
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setSplittingId(splittingId === row.id ? null : row.id)}
+                        className="rounded-full px-1.5 py-0.5 text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                      >
+                        {splittingId === row.id ? 'Close' : 'Edit split'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <CategoryMenu
+                        categories={categories}
+                        value={row.categoryId}
+                        label={`Category for ${row.merchantName ?? row.descriptionRaw}`}
+                        onSelect={(categoryId) => void changeCategory(row, categoryId)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setSplittingId(splittingId === row.id ? null : row.id)}
+                        className="rounded-full px-1.5 py-0.5 text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                      >
+                        {splittingId === row.id ? 'Close' : 'Split'}
+                      </button>
+                    </>
+                  )}
                   {row.pending ? (
                     <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-300">
                       Pending
@@ -307,6 +340,41 @@ export function TransactionList({
                 className="shrink-0 text-sm font-semibold"
               />
             </div>
+
+            {splittingId === row.id && (
+              <SplitEditor
+                transactionId={row.id}
+                amountMinor={row.amountMinor}
+                currency={row.currency}
+                categories={categories}
+                initialLines={row.splitLines}
+                onCancel={() => setSplittingId(null)}
+                onSaved={(lines) => {
+                  setRows((current) =>
+                    current.map((item) =>
+                      item.id === row.id
+                        ? {
+                            ...item,
+                            splitLines: lines.map((line) => ({
+                              categoryId: line.categoryId,
+                              categoryName:
+                                categories.find((category) => category.id === line.categoryId)
+                                  ?.name ?? 'Uncategorized',
+                              amountMinor: line.amountMinor,
+                            })),
+                            reason: `Split into ${lines.length} parts`,
+                            assignmentSource: 'user_manual',
+                            confidence: 1,
+                          }
+                        : item,
+                    ),
+                  );
+                  setSplittingId(null);
+                  setMessage('Split saved');
+                  setError(null);
+                }}
+              />
+            )}
 
             {prompt?.transactionId === row.id && (
               <div className="mt-2 rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm dark:border-brand-900 dark:bg-slate-800">
@@ -406,4 +474,15 @@ function formatDate(plainDate: string): string {
     day: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(`${plainDate}T00:00:00Z`));
+}
+
+/**
+ * True when the parts of a split no longer add up to the transaction.
+ *
+ * The bank can correct an amount after the fact. The split stays, because it
+ * is the user's decision, but the app says that it no longer adds up.
+ */
+function splitIsOff(row: TransactionListItem): boolean {
+  const total = row.splitLines.reduce((sum, line) => sum + line.amountMinor, 0);
+  return total !== row.amountMinor;
 }

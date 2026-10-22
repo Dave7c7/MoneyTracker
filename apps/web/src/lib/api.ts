@@ -55,6 +55,20 @@ export const transferActionSchema = z.object({
   action: z.enum(['mark', 'unmark']),
 });
 
+/** The body of a split: the parts of a transaction. */
+export const splitBodySchema = z.object({
+  lines: z
+    .array(
+      z.object({
+        categoryId: categoryId,
+        amountMinor: amountMinor,
+        note: z.string().trim().max(200).nullable().optional(),
+      }),
+    )
+    .min(1)
+    .max(50),
+});
+
 /**
  * Reads and validates a JSON body.
  *
