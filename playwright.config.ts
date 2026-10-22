@@ -53,7 +53,11 @@ export default defineConfig({
     ? undefined
     : {
         command: 'pnpm --filter @moneytracker/web dev',
-        url: 'http://localhost:3000',
+        // The health check is used as the readiness probe on purpose: it only
+        // asks whether the database is reachable. The pages themselves need the
+        // schema, and the schema is created by the global setup, which runs
+        // after the server has started.
+        url: 'http://localhost:3000/api/health',
         reuseExistingServer: true,
         timeout: 120_000,
         env: process.env.E2E_DATABASE_URL
