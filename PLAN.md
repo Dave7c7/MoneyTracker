@@ -144,6 +144,12 @@ credentials are encrypted at rest.
 
 ## Phase 6: Hardening and extras
 
+- **Rules created:**
+  - `rules/categorization.md` - Categorization rules
+  - `rules/security.md` - Security rules  
+  - `rules/data-and-money.md` - Data and money rules
+  - `rules/testing.md` - Testing rules
+
 - Auth (passkey or password + TOTP), session security, rate limiting
 - Alerts: unusually large charge, new subscription, price increase, low balance (push or email)
 - Backups (documented `pg_dump` routine), data export (CSV/JSON), full data delete
