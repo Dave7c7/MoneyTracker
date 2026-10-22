@@ -29,3 +29,11 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-21 | The database tests run in their own Vitest project, one file at a time | They share one scratch database, so two files must not truncate it at the same time.
 2026-10-21 | The client list of transactions is remounted when the filters change | A client component keeps the rows it was given, so without a new key the list would show stale rows after a filter change.
 2026-10-21 | Browser-side settings live in `lib/settings.ts`, not in the environment module | A client component that imports the environment module drags the database driver into the browser bundle.
+2026-10-21 | CSV import is the guaranteed data path; a live provider is an optional upgrade | The export format is not known yet, so the baseline must not assume the columns of one institution.
+2026-10-21 | The CSV adapter is generic: column mappings are saved as named profiles per institution | Any bank's export must be importable without new code; SoFi is one profile, not a special case.
+2026-10-21 | The live provider is chosen by a trial, not by assumption | SimpleFIN, Teller, Plaid and the SoFi export all work in theory; coverage, price and terms are unverified.
+2026-10-21 | One provider per account, many providers per install | Coverage differs per bank, so the app must not depend on a single aggregator.
+2026-10-21 | Each source declares its own history window and refresh cadence | SimpleFIN refreshes about daily and may hold under 90 days; a CSV export reaches two years back.
+2026-10-21 | The first import is a CSV, so that history no provider can backfill is not lost | Only an export carries the past; an aggregator only carries what it can see from today.
+2026-10-21 | When a provider covers an account already imported by CSV, the provider becomes authoritative and the imported rows are relinked | One bank account must not appear twice because it was imported twice.
+2026-10-21 | A category supplied by a provider counts as bank-provided, capped at 0.7 confidence | A provider's own category is not an explanation the user can trust blindly, exactly like a bank's own category.
