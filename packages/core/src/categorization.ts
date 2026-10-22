@@ -5,9 +5,10 @@
  *
  *   1. user rules          (confidence 1.0)
  *   2. merchant memory     (confidence 0.9)
- *   3. bank category       (confidence capped at 0.7)
- *   4. AI suggestion       (confidence capped below the others, optional)
- *   5. fallback            (Uncategorized, confidence 0)
+ *   3. transfer detection  (confidence 0.95, or 0.4 when unconfirmed)
+ *   4. bank category       (confidence capped at 0.7)
+ *   5. AI suggestion       (confidence capped below the others, optional)
+ *   6. fallback            (Uncategorized, confidence 0)
  *
  * Every assignment carries its source and a human-readable reason, so the UI
  * can always explain why a transaction was categorized the way it was.
@@ -27,6 +28,10 @@ import type {
 export const RULE_CONFIDENCE = 1;
 /** Confidence assigned to merchant memory. */
 export const MEMORY_CONFIDENCE = 0.9;
+/** Confidence assigned to a transfer whose other side was found. */
+export const TRANSFER_CONFIDENCE = 0.95;
+/** Confidence assigned to a transfer that has no other side yet. */
+export const SUSPECTED_TRANSFER_CONFIDENCE = 0.4;
 /** Highest confidence a bank-provided category may ever get. */
 export const BANK_CONFIDENCE_CAP = 0.7;
 /** Highest confidence an AI suggestion may ever get. */
@@ -95,7 +100,36 @@ export function categorize(
     };
   }
 
-  // 3. Bank-provided category, mapped through a table and capped.
+  // 3. Transfer detection: money moving between the user's own accounts is
+  // never spending. A suspected transfer keeps a low confidence, so it still
+  // asks for a look in the review inbox.
+  if (tx.transferState && ctx.transferCategoryId) {
+    if (tx.transferState === 'suspected') {
+      return {
+        categoryId: ctx.transferCategoryId,
+        source: 'transfer_detection',
+        confidence: SUSPECTED_TRANSFER_CONFIDENCE,
+        reason:
+          'Looks like money moving between your own accounts, but no matching transaction was found',
+      };
+    }
+    if (tx.transferState === 'user') {
+      return {
+        categoryId: ctx.transferCategoryId,
+        source: 'user_manual',
+        confidence: 1,
+        reason: 'Marked as a transfer by you',
+      };
+    }
+    return {
+      categoryId: ctx.transferCategoryId,
+      source: 'transfer_detection',
+      confidence: TRANSFER_CONFIDENCE,
+      reason: 'Transfer between your own accounts',
+    };
+  }
+
+  // 4. Bank-provided category, mapped through a table and capped.
   if (tx.sourceCategory) {
     const mapped = ctx.bankCategoryMap?.get(tx.sourceCategory.toUpperCase());
     if (mapped) {
@@ -108,7 +142,7 @@ export function categorize(
     }
   }
 
-  // 5. Fallback: goes to the review inbox.
+  // 6. Fallback: goes to the review inbox.
   return {
     categoryId: ctx.uncategorizedCategoryId,
     source: 'fallback',

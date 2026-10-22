@@ -34,7 +34,14 @@ export interface ReviewGroupView {
 /** An assignment as it was, so an edit can be undone exactly. */
 interface PreviousAssignment {
   categoryId: string;
-  source: 'user_manual' | 'user_rule' | 'merchant_memory' | 'bank' | 'ai' | 'fallback';
+  source:
+    | 'user_manual'
+    | 'user_rule'
+    | 'merchant_memory'
+    | 'bank'
+    | 'ai'
+    | 'transfer_detection'
+    | 'fallback';
   confidence: number;
   reason: string;
   locked: boolean;

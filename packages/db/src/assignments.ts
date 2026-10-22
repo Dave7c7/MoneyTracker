@@ -17,11 +17,23 @@ import {
   merchants,
   transactions as transactionsTable,
 } from './schema.ts';
+import {
+  confirmTransferGroup,
+  detachFromTransferGroup,
+  detachManyFromTransferGroups,
+} from './transfers.ts';
 
 /** An assignment as it was, so an edit can be undone exactly. */
 export interface PreviousAssignment {
   categoryId: string;
-  source: 'user_manual' | 'user_rule' | 'merchant_memory' | 'bank' | 'ai' | 'fallback';
+  source:
+    | 'user_manual'
+    | 'user_rule'
+    | 'merchant_memory'
+    | 'bank'
+    | 'ai'
+    | 'transfer_detection'
+    | 'fallback';
   confidence: number;
   reason: string;
   locked: boolean;
@@ -42,7 +54,15 @@ export interface ReviewTransaction {
   categoryId: string | null;
   categoryName: string | null;
   categoryKind: 'spending' | 'income' | 'transfer' | 'uncategorized' | null;
-  source: 'user_manual' | 'user_rule' | 'merchant_memory' | 'bank' | 'ai' | 'fallback' | null;
+  source:
+    | 'user_manual'
+    | 'user_rule'
+    | 'merchant_memory'
+    | 'bank'
+    | 'ai'
+    | 'transfer_detection'
+    | 'fallback'
+    | null;
   confidence: number | null;
   reason: string | null;
 }
@@ -65,6 +85,8 @@ export interface ReviewGroup {
  * Sets a transaction's category by hand.
  *
  * The assignment is locked, so later re-categorization runs leave it alone.
+ * Changing the category by hand also takes the transaction out of its transfer
+ * group: deciding what something is means deciding it is not a transfer.
  *
  * @example
  * await setManualCategory(db, userId, transactionId, categoryId);
@@ -75,6 +97,20 @@ export async function setManualCategory(
   transactionId: string,
   categoryId: string,
 ): Promise<boolean> {
+  // Picking the transfer category means "this is a transfer", so the
+  // transaction keeps its place in the transfer group. Any other category
+  // means it is not, so it leaves the group.
+  const [target] = await db
+    .select({ kind: categories.kind })
+    .from(categories)
+    .where(eq(categories.id, categoryId));
+
+  if (target?.kind === 'transfer') {
+    await confirmTransferGroup(db, userId, transactionId);
+  } else {
+    await detachFromTransferGroup(db, userId, transactionId);
+  }
+
   const rows = await db
     .insert(categoryAssignments)
     .values({
@@ -115,6 +151,19 @@ export async function bulkSetCategory(
   categoryId: string,
 ): Promise<number> {
   if (transactionIds.length === 0) return 0;
+
+  const [target] = await db
+    .select({ kind: categories.kind })
+    .from(categories)
+    .where(eq(categories.id, categoryId));
+
+  if (target?.kind === 'transfer') {
+    for (const transactionId of transactionIds) {
+      await confirmTransferGroup(db, userId, transactionId);
+    }
+  } else {
+    await detachManyFromTransferGroups(db, userId, transactionIds);
+  }
 
   const rows = await db
     .insert(categoryAssignments)
@@ -240,6 +289,35 @@ export async function undoBulkSetCategory(
         ),
       );
     restored += 1;
+  }
+
+  // A transaction that is no longer a transfer leaves its transfer group, so
+  // the badge and the category always agree.
+  const restoredCategoryIds = [
+    ...new Set(
+      previous
+        .map((entry) => entry.assignment?.categoryId)
+        .filter((categoryId): categoryId is string => Boolean(categoryId)),
+    ),
+  ];
+
+  if (restoredCategoryIds.length > 0) {
+    const kinds = await db
+      .select({ id: categories.id, kind: categories.kind })
+      .from(categories)
+      .where(inArray(categories.id, restoredCategoryIds));
+    const transferCategoryIds = new Set(
+      kinds.filter((row) => row.kind === 'transfer').map((row) => row.id),
+    );
+
+    const notTransfers = previous
+      .filter((entry) => {
+        const categoryId = entry.assignment?.categoryId;
+        return categoryId ? !transferCategoryIds.has(categoryId) : true;
+      })
+      .map((entry) => entry.transactionId);
+
+    await detachManyFromTransferGroups(db, userId, notTransfers);
   }
 
   return restored;

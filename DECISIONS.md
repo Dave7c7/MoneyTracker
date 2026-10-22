@@ -41,3 +41,11 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-21 | The end-to-end suite uses its own database in CI as well | The tests change data, so a shared database would make one run depend on another.
 2026-10-21 | Playwright writes an HTML report when the CI environment variable is set | The report is what makes a failed CI run readable without downloading logs.
 2026-10-21 | `apps/web/next-env.d.ts` is excluded from formatting | Next regenerates the file, so formatting it only adds noise to every diff.
+2026-10-21 | A transfer needs two accounts, equal and opposite amounts, postings within three days, and a payment word on one side | The rules ask for opposite amounts and close dates; the payment word keeps a refund from looking like a payment.
+2026-10-21 | A confirmed transfer is an assignment with the source `transfer_detection` and confidence 0.95 | Every assignment has to be explainable, and this one says exactly why.
+2026-10-21 | A suspected transfer keeps the transfer category but a low confidence | It must never count as spending, and it still has to be looked at.
+2026-10-21 | Changing a category by hand takes a transaction out of its transfer group | A decision the user made beats the detection.
+2026-10-21 | Choosing the `Transfer` category by hand keeps the transaction in its group | Saying "this is a transfer" should not throw the link away, and it confirms a suspected one.
+2026-10-21 | Transfer detection runs after every import, because both sides have to be in the database first | The matcher needs two transactions before it can pair them.
+2026-10-21 | The transfer step sits between merchant memory and the bank category | A detected transfer is more reliable than a bank's own category, and a user rule still beats it.
+2026-10-21 | The end-to-end readiness probe is the health check, not the home page | Playwright starts the web server before the global setup creates the schema, so the probe must not need a table.

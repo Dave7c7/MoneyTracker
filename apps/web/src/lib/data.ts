@@ -248,7 +248,12 @@ export async function getReviewData() {
     needsReview,
     totalTransactions: groups.reduce((sum, group) => sum + group.transactions.length, 0),
     categories: categories
-      .filter((category) => category.kind === 'spending' || category.kind === 'income')
+      .filter(
+        (category) =>
+          category.kind === 'spending' ||
+          category.kind === 'income' ||
+          category.kind === 'transfer',
+      )
       .map((category) => ({
         id: category.id,
         name: category.name,

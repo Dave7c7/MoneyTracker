@@ -25,9 +25,20 @@ export interface TransactionListItem {
   categoryName: string | null;
   /** The source of the assignment: user_manual, user_rule, bank, ... */
   assignmentSource:
-    'user_manual' | 'user_rule' | 'merchant_memory' | 'bank' | 'ai' | 'fallback' | null;
+    | 'user_manual'
+    | 'user_rule'
+    | 'merchant_memory'
+    | 'bank'
+    | 'ai'
+    | 'transfer_detection'
+    | 'fallback'
+    | null;
   confidence: number | null;
   reason: string | null;
+  /** The transfer group the transaction belongs to, if any. */
+  transferGroupId: string | null;
+  /** How the transfer was decided: 'detected', 'suspected' or 'user'. */
+  transferSource: string | null;
 }
 
 /** The correction prompt, shown after a category is changed by hand. */
@@ -126,6 +137,59 @@ export function TransactionList({
     [categories],
   );
 
+  /** Marks a transaction as a transfer, or takes that back. */
+  const toggleTransfer = useCallback(async (row: TransactionListItem) => {
+    const wasTransfer = Boolean(row.transferGroupId);
+    const action = wasTransfer ? 'unmark' : 'mark';
+    const transferCategory = categories.find((category) => category.kind === 'transfer');
+
+    setRows((current) =>
+      current.map((item) =>
+        item.id === row.id
+          ? {
+              ...item,
+              transferGroupId: wasTransfer ? null : 'pending',
+              transferSource: wasTransfer ? null : 'user',
+              ...(action === 'mark' && transferCategory
+                ? {
+                    categoryId: transferCategory.id,
+                    categoryName: transferCategory.name,
+                    assignmentSource: 'user_manual' as const,
+                    confidence: 1,
+                    reason: 'Marked as a transfer by you',
+                  }
+                : {}),
+            }
+          : item,
+      ),
+    );
+
+    try {
+      const response = await fetch(`/api/transactions/${row.id}/transfer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      if (!response.ok) throw new Error('The server refused the change');
+
+      setMessage(action === 'mark' ? 'Marked as a transfer' : 'No longer a transfer');
+      setError(null);
+    } catch (cause) {
+      setRows((current) =>
+        current.map((item) =>
+          item.id === row.id
+            ? {
+                ...item,
+                transferGroupId: row.transferGroupId,
+                transferSource: row.transferSource,
+              }
+            : item,
+        ),
+      );
+      setError(cause instanceof Error ? cause.message : 'Could not change the transfer');
+    }
+  }, [categories]);
+
   /** Creates a rule that covers the whole merchant. */
   const applyToMerchant = useCallback(
     async (scope: ScopePrompt, range?: { min: string; max: string }) => {
@@ -209,6 +273,28 @@ export function TransactionList({
                     <span className="text-xs text-slate-400">
                       {row.postedDate ? formatDate(row.postedDate) : '—'} · {row.accountName}
                     </span>
+                  )}
+                  {row.transferGroupId ? (
+                    <button
+                      type="button"
+                      onClick={() => void toggleTransfer(row)}
+                      title="This money moved between your own accounts. Click to undo."
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                        row.transferSource === 'suspected'
+                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200'
+                          : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-200'
+                      }`}
+                    >
+                      {row.transferSource === 'suspected' ? 'Possible transfer' : 'Transfer'}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void toggleTransfer(row)}
+                      className="rounded-full px-1.5 py-0.5 text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                    >
+                      Mark as transfer
+                    </button>
                   )}
                 </div>
 

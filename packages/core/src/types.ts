@@ -21,7 +21,22 @@ export type CategoryKind = 'spending' | 'income' | 'transfer' | 'uncategorized';
 
 /** Where a category assignment came from. Always explainable. */
 export type AssignmentSource =
-  'user_manual' | 'user_rule' | 'merchant_memory' | 'bank' | 'ai' | 'fallback';
+  | 'user_manual'
+  | 'user_rule'
+  | 'merchant_memory'
+  | 'bank'
+  | 'ai'
+  | 'transfer_detection'
+  | 'fallback';
+
+/**
+ * How a transaction is known to be a transfer.
+ *
+ * - `confirmed`: both sides of the transfer were found.
+ * - `suspected`: it looks like a transfer, but no other side was found.
+ * - `user`: the user said so.
+ */
+export type TransferState = 'confirmed' | 'suspected' | 'user';
 
 /** An account as exposed by a data source. */
 export interface NormalizedAccount {
@@ -67,6 +82,11 @@ export interface NormalizedTransaction {
   merchantRaw?: string;
   /** Bank-provided category, if any. */
   sourceCategory?: string;
+  /**
+   * Set by the app, not by adapters: the transaction moves money between the
+   * user's own accounts, so it is never spending.
+   */
+  transferState?: TransferState | null;
 }
 
 /**
@@ -97,6 +117,8 @@ export interface CategorizationContext {
   bankCategoryMap?: ReadonlyMap<string, string>;
   /** Display names for categories, used to build explanations. */
   categoryNames?: ReadonlyMap<string, string>;
+  /** The category that means "money moved between the user's own accounts". */
+  transferCategoryId?: string;
   /** Category id used when nothing matches. */
   uncategorizedCategoryId: string;
 }

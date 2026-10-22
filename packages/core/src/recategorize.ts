@@ -21,6 +21,7 @@ import type {
   CategoryAssignment,
   NormalizedTransaction,
   Rule,
+  TransferState,
 } from './types.ts';
 
 /** A transaction as the pipeline sees it, with its current assignment. */
@@ -37,6 +38,8 @@ export interface CategorizableTransaction {
   sourceCategory: string | null;
   postedAt: Date | null;
   pending: boolean;
+  /** Set when the transaction moves money between the user's own accounts. */
+  transferState?: TransferState | null;
   /** The assignment as it stands today. */
   currentAssignment: Pick<
     CategoryAssignment,
@@ -80,6 +83,7 @@ export function toNormalized(transaction: CategorizableTransaction): NormalizedT
     descriptionRaw: transaction.descriptionRaw,
     ...(transaction.merchantDisplayName ? { merchantRaw: transaction.merchantDisplayName } : {}),
     ...(transaction.sourceCategory ? { sourceCategory: transaction.sourceCategory } : {}),
+    ...(transaction.transferState ? { transferState: transaction.transferState } : {}),
   };
 }
 

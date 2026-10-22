@@ -15,7 +15,7 @@ Works on a phone and a desktop as an installable PWA. Single user first.
 | 0. Foundations | Done | Monorepo, Postgres schema and migrations, Docker Compose, config validation |
 | 1. Mock data and dashboards | Done | Demo dataset, PWA shell, overview/spending/cash-flow/transactions/accounts screens |
 | 2. Categorization, rules, review inbox | Done | Fix a category, write a rule, clear the review inbox, undo anything |
-| 3. Transfers, splits, CSV import | Planned | Transfer detection, transaction splitting, CSV import |
+| 3. Transfers, splits, CSV import | In progress | Transfer detection is done: transfers are linked, badged and kept out of the totals |
 | 4. Subscriptions, bills, budgets, net worth | Planned | Recurring charge detection and budget tracking |
 | 5. Live bank connection | Planned | A new adapter behind the same interface |
 | 6. Hardening and extras | Planned | Auth, alerts, backups, export |
@@ -171,6 +171,36 @@ cleared with the keyboard (`j`/`k` to move, `enter` to confirm, `x` to select,
 **Corrections stick.** After you change a category, the app asks whether to
 apply it to the whole merchant, or to that merchant within an amount range. Both
 write a rule, so the decision holds for future imports too.
+
+---
+
+## Transfers
+
+Money that moves between your own accounts is not spending, and the app treats
+it that way.
+
+**Transfers are found, not guessed.** Two transactions on two of your accounts
+with the same amount, opposite signs, no more than three days apart, and a
+description that reads like a payment, are the two sides of one transfer. A
+credit card payment counts too: the money leaves checking and arrives on the
+card.
+
+**They stay visible.** A transfer keeps its place in the transaction list with
+a `Transfer` badge, and the explanation says which transaction on which
+account it was matched with.
+
+**They never count as spending.** Both sides get the `Transfer` category, so
+the spending chart, the cash flow and the totals all leave them out.
+
+**A transfer without a partner asks for attention.** If a payment arrives with
+no matching transaction on another account, the app keeps it out of the totals
+and puts it in the review inbox as a *possible transfer*, so you can confirm it
+or decide what it really was.
+
+**You always have the last word.** Every row has a `Mark as transfer` button,
+and a transfer that is already marked can be turned back into an ordinary
+transaction. Changing a category by hand also takes the transaction out of its
+transfer group.
 
 ---
 

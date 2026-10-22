@@ -29,6 +29,7 @@ import {
   merchants,
   transactions,
 } from './schema.ts';
+import { detectAndApplyTransfers } from './transfers.ts';
 
 /** What a sync run did. */
 export interface SyncResult {
@@ -37,6 +38,12 @@ export interface SyncResult {
   transactionsUpdated: number;
   assignmentsWritten: number;
   balancesWritten: number;
+  /** Transfer groups the matcher created. */
+  transferGroupsCreated: number;
+  /** Transactions that were linked into a transfer group. */
+  transfersLinked: number;
+  /** Transactions that look like transfers but found no other side. */
+  suspectedTransfers: number;
 }
 
 /** Options for a sync run. */
@@ -64,6 +71,9 @@ export async function syncFromAdapter(options: SyncOptions): Promise<SyncResult>
     transactionsUpdated: 0,
     assignmentsWritten: 0,
     balancesWritten: 0,
+    transferGroupsCreated: 0,
+    transfersLinked: 0,
+    suspectedTransfers: 0,
   };
 
   const normalizedAccounts = await adapter.fetchAccounts();
@@ -141,6 +151,14 @@ export async function syncFromAdapter(options: SyncOptions): Promise<SyncResult>
       });
     result.balancesWritten += 1;
   }
+
+  // Money that moves between the user's own accounts is found after the
+  // import, because both sides have to be in the database before they can be
+  // paired.
+  const transfers = await detectAndApplyTransfers(db, userId);
+  result.transferGroupsCreated += transfers.groupsCreated;
+  result.transfersLinked += transfers.transactionsLinked;
+  result.suspectedTransfers += transfers.suspected;
 
   return result;
 }

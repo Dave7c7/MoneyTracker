@@ -9,7 +9,12 @@
 
 import { and, eq } from 'drizzle-orm';
 
-import type { CategorizableTransaction, CategorizationContext, Rule } from '@moneytracker/core';
+import type {
+  CategorizableTransaction,
+  CategorizationContext,
+  Rule,
+  TransferState,
+} from '@moneytracker/core';
 
 import type { Database } from './client.ts';
 import {
@@ -19,6 +24,7 @@ import {
   merchants,
   rules as rulesTable,
   transactions as transactionsTable,
+  transferGroups,
 } from './schema.ts';
 
 /** A rule as it is stored. */
@@ -36,8 +42,7 @@ export interface CategorizationState {
  *
  * @example
  * toCoreRule(row); // { id, name, priority, ... }
- */
-export function toCoreRule(row: RuleRow): Rule {
+ */export function toCoreRule(row: RuleRow): Rule {
   return {
     id: row.id,
     name: row.name,
@@ -65,7 +70,7 @@ export async function loadCategorizationState(
 ): Promise<CategorizationState> {
   const [categoryRows, mappingRows, ruleRows, transactionRows] = await Promise.all([
     db
-      .select({ id: categories.id, name: categories.name, slug: categories.slug })
+      .select({ id: categories.id, name: categories.name, slug: categories.slug, kind: categories.kind })
       .from(categories)
       .where(eq(categories.userId, userId)),
     db
@@ -88,6 +93,7 @@ export async function loadCategorizationState(
         sourceCategory: transactionsTable.sourceCategory,
         postedAt: transactionsTable.postedAt,
         pending: transactionsTable.pending,
+        transferGroupSource: transferGroups.source,
         categoryId: categoryAssignments.categoryId,
         assignmentSource: categoryAssignments.source,
         confidence: categoryAssignments.confidence,
@@ -97,10 +103,12 @@ export async function loadCategorizationState(
       .from(transactionsTable)
       .leftJoin(merchants, eq(merchants.id, transactionsTable.merchantId))
       .leftJoin(categoryAssignments, eq(categoryAssignments.transactionId, transactionsTable.id))
+      .leftJoin(transferGroups, eq(transferGroups.id, transactionsTable.transferGroupId))
       .where(eq(transactionsTable.userId, userId)),
   ]);
 
   const uncategorized = categoryRows.find((row) => row.slug === 'uncategorized');
+  const transferCategory = categoryRows.find((row) => row.kind === 'transfer');
   const categoryNames = new Map(categoryRows.map((row) => [row.id, row.name]));
   const bankCategoryMap = new Map(
     mappingRows.map((row) => [row.sourceCategory.toUpperCase(), row.categoryId]),
@@ -136,6 +144,7 @@ export async function loadCategorizationState(
     bankCategoryMap,
     categoryNames,
     uncategorizedCategoryId: uncategorized?.id ?? 'uncategorized',
+    ...(transferCategory ? { transferCategoryId: transferCategory.id } : {}),
   };
 
   const categorizable: CategorizableTransaction[] = transactionRows.map((row) => ({
@@ -149,6 +158,7 @@ export async function loadCategorizationState(
     sourceCategory: row.sourceCategory,
     postedAt: row.postedAt,
     pending: row.pending,
+    transferState: transferStateOf(row.transferGroupSource),
     currentAssignment: row.categoryId
       ? {
           categoryId: row.categoryId,
@@ -161,4 +171,17 @@ export async function loadCategorizationState(
   }));
 
   return { context, transactions: categorizable, rules };
+}
+
+/**
+ * The transfer state of a transaction, taken from the group it belongs to.
+ *
+ * A group that was found by the matcher has both sides; one that was only
+ * suspected has a single side and still needs a look.
+ */
+function transferStateOf(groupSource: string | null): TransferState | null {
+  if (groupSource === 'detected') return 'confirmed';
+  if (groupSource === 'suspected') return 'suspected';
+  if (groupSource === 'user') return 'user';
+  return null;
 }

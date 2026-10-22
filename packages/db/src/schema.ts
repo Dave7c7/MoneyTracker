@@ -43,6 +43,7 @@ export const assignmentSourceEnum = pgEnum('assignment_source', [
   'merchant_memory',
   'bank',
   'ai',
+  'transfer_detection',
   'fallback',
 ]);
 
@@ -125,6 +126,33 @@ export const merchants = pgTable(
   }),
 );
 
+/**
+ * The two sides of a transfer.
+ *
+ * A group links the transactions that move money between the user's own
+ * accounts. `source` says whether the group was found by the matcher or
+ * marked by the user.
+ */
+export const transferGroups = pgTable(
+  'transfer_groups',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** 'internal' | 'card_payment' | 'user' */
+    kind: text('kind').notNull().default('internal'),
+    /** 'detected' | 'user' */
+    source: text('source').notNull().default('detected'),
+    /** Why the group exists, in words a person can read. */
+    reason: text('reason'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index('transfer_groups_user_idx').on(table.userId),
+  }),
+);
+
 export const transactions = pgTable(
   'transactions',
   {
@@ -152,7 +180,9 @@ export const transactions = pgTable(
     sourceCategory: text('source_category'),
     sourceAdapter: text('source_adapter').notNull(),
     /** Shared id linking the two sides of a transfer. */
-    transferGroupId: uuid('transfer_group_id'),
+    transferGroupId: uuid('transfer_group_id').references(() => transferGroups.id, {
+      onDelete: 'set null',
+    }),
     notes: text('notes'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

@@ -50,6 +50,11 @@ export const bulkCategorySchema = z.object({
   categoryId,
 });
 
+/** The body of a transfer decision: mark it as one, or take that back. */
+export const transferActionSchema = z.object({
+  action: z.enum(['mark', 'unmark']),
+});
+
 /**
  * Reads and validates a JSON body.
  *

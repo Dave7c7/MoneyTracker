@@ -6,9 +6,10 @@ Categorization is the core feature. Treat it with the most care.
 
 1. **User rules**: explicit rules the user created (merchant, description pattern, amount range, account). Highest priority. Among rules, lower `priority` number wins; ties broken by most specific match.
 2. **Merchant memory**: the category the user previously chose for this normalized merchant.
-3. **Bank-provided category**: mapped through a mapping table. Never trusted blindly; confidence is capped at 0.7.
-4. **ML/LLM suggestion** (optional): always lower confidence than 1-3.
-5. **Fallback**: `Uncategorized`, confidence 0, goes to review inbox.
+3. **Transfer detection**: money moving between the user's own accounts is never spending. A confirmed transfer is confident; a suspected one stays below the threshold and waits in the review inbox.
+4. **Bank-provided category**: mapped through a mapping table. Never trusted blindly; confidence is capped at 0.7.
+5. **ML/LLM suggestion** (optional): always lower confidence than 1-3.
+6. **Fallback**: `Uncategorized`, confidence 0, goes to review inbox.
 
 Stop at the first step that produces a result.
 
@@ -52,3 +53,8 @@ Stop at the first step that produces a result.
 ## Transfers are special
 
 Transfers and card payments are not categories of spending. See `data-and-money.md`.
+
+- A transfer needs two of the user's own accounts, opposite amounts of the same size, postings no more than three days apart, and a description on one side that reads like a payment.
+- A confirmed transfer gets the transfer category at 0.95 confidence and a shared group id.
+- A suspected transfer (it reads like a payment, but no other side was found) keeps the transfer category so it is never counted as spending, and stays below the threshold so the review inbox asks about it.
+- Changing a category by hand takes a transaction out of its transfer group: deciding what something is means deciding it is not a transfer. Choosing the `Transfer` category keeps it in the group, and confirms a suspected transfer.

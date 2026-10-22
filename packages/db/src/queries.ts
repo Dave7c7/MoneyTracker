@@ -16,6 +16,7 @@ import {
   categoryAssignments,
   merchants,
   transactions,
+  transferGroups,
   users,
 } from './schema.ts';
 
@@ -57,10 +58,21 @@ export interface TransactionRow {
   categoryName: string | null;
   categoryKind: 'spending' | 'income' | 'transfer' | 'uncategorized' | null;
   assignmentSource:
-    'user_manual' | 'user_rule' | 'merchant_memory' | 'bank' | 'ai' | 'fallback' | null;
+    | 'user_manual'
+    | 'user_rule'
+    | 'merchant_memory'
+    | 'bank'
+    | 'ai'
+    | 'transfer_detection'
+    | 'fallback'
+    | null;
   confidence: number | null;
   reason: string | null;
   locked: boolean | null;
+  /** The transfer group the transaction belongs to, if any. */
+  transferGroupId: string | null;
+  /** How the transfer was decided: 'detected', 'suspected' or 'user'. */
+  transferSource: string | null;
 }
 
 /**
@@ -207,12 +219,15 @@ export async function listTransactions(
       confidence: categoryAssignments.confidence,
       reason: categoryAssignments.reason,
       locked: categoryAssignments.locked,
+      transferGroupId: transactions.transferGroupId,
+      transferSource: transferGroups.source,
     })
     .from(transactions)
     .innerJoin(accounts, eq(accounts.id, transactions.accountId))
     .leftJoin(merchants, eq(merchants.id, transactions.merchantId))
     .leftJoin(categoryAssignments, eq(categoryAssignments.transactionId, transactions.id))
     .leftJoin(categories, eq(categories.id, categoryAssignments.categoryId))
+    .leftJoin(transferGroups, eq(transferGroups.id, transactions.transferGroupId))
     .where(transactionConditions(userId, filters))
     .orderBy(desc(transactions.postedAt), desc(transactions.createdAt))
     .limit(filters.limit ?? 100)
@@ -300,12 +315,15 @@ export async function listNeedsReview(
       confidence: categoryAssignments.confidence,
       reason: categoryAssignments.reason,
       locked: categoryAssignments.locked,
+      transferGroupId: transactions.transferGroupId,
+      transferSource: transferGroups.source,
     })
     .from(categoryAssignments)
     .innerJoin(transactions, eq(transactions.id, categoryAssignments.transactionId))
     .innerJoin(accounts, eq(accounts.id, transactions.accountId))
     .leftJoin(merchants, eq(merchants.id, transactions.merchantId))
     .leftJoin(categories, eq(categories.id, categoryAssignments.categoryId))
+    .leftJoin(transferGroups, eq(transferGroups.id, transactions.transferGroupId))
     .where(
       and(
         eq(categoryAssignments.userId, userId),
