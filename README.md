@@ -98,6 +98,7 @@ Check with `lsof -nP -iTCP:3000 -sTCP:LISTEN` before you compare the two.
 | `pnpm db:generate` | Generate a migration from the schema |
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:seed` | Load the demo dataset (safe to run twice) |
+| `pnpm db:sync` | Sync every bank connection (put it in cron) |
 | `pnpm db:reset` | Wipe and re-seed a scratch database (refuses a non-test URL) |
 | `pnpm db:studio` | Open Drizzle Studio to browse the data |
 
@@ -336,6 +337,14 @@ account belongs to exactly one of them.
 into the app. The app exchanges the token for a read-only access URL. The
 bank password never reaches the app, and the user can revoke the access at
 SimpleFIN at any time.
+
+**The connections are refreshed by a command.** A self-hosted app has no
+scheduler of its own, so the sync is something you run:
+
+```bash
+pnpm db:sync                    # sync every connection now
+17 7 * * *  cd /app && pnpm sync >> /var/log/moneytracker-sync.log 2>&1
+```
 
 **The credential is encrypted before it is stored.** A provider token is a
 password for the transactions, so it is encrypted with AES-256-GCM and the key

@@ -56,6 +56,7 @@ const config = [
       'packages/db/src/migrate.ts',
       'packages/db/src/seed.ts',
       'packages/db/src/reset.ts',
+      'packages/db/src/sync-connections.ts',
       '**/scripts/**/*.mjs',
     ],
     rules: {

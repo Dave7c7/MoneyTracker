@@ -24,6 +24,7 @@
     "db:generate": "pnpm --filter @moneytracker/db db:generate",
     "db:migrate": "pnpm --filter @moneytracker/db db:migrate",
     "db:seed": "pnpm --filter @moneytracker/db db:seed",
+    "db:sync": "pnpm --filter @moneytracker/db db:sync",
     "db:studio": "pnpm --filter @moneytracker/db db:studio",
     "check": "pnpm test && pnpm lint && pnpm typecheck",
     "db:reset": "pnpm --filter @moneytracker/db db:reset"
