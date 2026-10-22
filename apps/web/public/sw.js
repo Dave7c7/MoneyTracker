@@ -6,8 +6,8 @@
  * server.
  */
 
-const CACHE_NAME = 'moneytracker-shell-v1';
-const SHELL = ['/', '/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png'];
+const CACHE_NAME = 'moneytracker-shell-v2';
+const SHELL = ['/manifest.webmanifest', '/icons/icon.svg', '/icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -38,6 +38,11 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   // Never cache API responses or anything that carries account data.
   if (url.pathname.startsWith('/api/')) return;
+
+  // Pages are never cached. A page in the cache can point at JavaScript that
+  // no longer exists, and then the app comes up without its scripts: the
+  // numbers are there and the charts are not.
+  if (request.mode === 'navigate') return;
 
   event.respondWith(
     fetch(request)

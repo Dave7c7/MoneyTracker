@@ -19,20 +19,27 @@ test.describe('transfers', () => {
   });
 
   test('a transaction can be marked as a transfer by hand', async ({ page }) => {
-    await page.goto('/transactions?search=Blue%20Bottle');
+    await page.goto('/transactions?search=STARBUCKS');
 
-    const row = page.getByRole('listitem').first();
-    await expect(row).toBeVisible();
+    // The projects share one database, so the test has to leave it the way it
+    // found it. Every step below puts the row back.
+    const markButton = page.getByRole('button', { name: 'Mark as transfer', exact: true }).first();
+    await expect(markButton).toBeVisible();
 
-    await row.getByRole('button', { name: 'Mark as transfer', exact: true }).click();
+    await markButton.click();
 
-    // The badge appears, and the category follows.
-    await expect(row.getByRole('button', { name: 'Transfer', exact: true })).toBeVisible();
-    await expect(row.getByRole('button', { name: /Category for/ })).toContainText('Transfer');
+    // The app says what it did, the row carries the badge, and the category
+    // follows.
+    await expect(page.getByText('Marked as a transfer', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Transfer', exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: /Category for/ }).filter({ hasText: 'Transfer' }).first(),
+    ).toBeVisible();
 
     // And it can be taken back.
-    await row.getByRole('button', { name: 'Transfer', exact: true }).click();
-    await expect(row.getByRole('button', { name: 'Mark as transfer', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Transfer', exact: true }).first().click();
+    await expect(page.getByText('No longer a transfer', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Mark as transfer', exact: true }).first()).toBeVisible();
   });
 
   test('a confirmed transfer does not ask for review', async ({ page }) => {

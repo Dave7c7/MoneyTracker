@@ -45,7 +45,7 @@ export function CashFlowChart({
 
   return (
     <div className="h-60 w-full md:h-72" role="img" aria-label="Income and expenses per month">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={280}>
         <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid
             strokeDasharray="3 3"
