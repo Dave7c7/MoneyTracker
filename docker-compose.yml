@@ -84,7 +84,9 @@ services:
       REVIEW_CONFIDENCE_THRESHOLD: ${REVIEW_CONFIDENCE_THRESHOLD:-0.8}
     ports:
       # Bound to localhost on purpose. Use a reverse proxy for public access.
-      - '127.0.0.1:${PORT:-3000}:3000'
+      # To let a phone on the same network reach the app, start it with
+      # BIND_ADDRESS=0.0.0.0 docker compose up.
+      - '${BIND_ADDRESS:-127.0.0.1}:${PORT:-3000}:3000'
     restart: unless-stopped
     read_only: true
     tmpfs:

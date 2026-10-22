@@ -36,6 +36,17 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  /*
+   * The development server only answers to the hosts it knows about.
+   *
+   * A phone on the same network reaches the dev server through the
+   * machine's LAN address, and Next.js refuses development requests from
+   * hosts it was not told about. The page then loads, but the scripts do
+   * not: the numbers arrive from the server and every chart stays blank.
+   *
+   * These patterns cover the private networks a phone is usually on.
+   */
+  allowedDevOrigins: ['192.168.*.*', '10.*.*.*'],
   // The workspace packages ship TypeScript sources.
   transpilePackages: ['@moneytracker/core', '@moneytracker/db'],
   // Trace from the monorepo root so the workspace packages are included.

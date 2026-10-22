@@ -65,3 +65,6 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-22 | A split transaction is locked, like a manual edit | The user decided how the money is split, so no rule and no later import may move it.
 2026-10-22 | A transfer cannot be split | Money that moves between your own accounts is not spending, so it has no parts.
 2026-10-22 | The dashboards count the parts, not the whole | A hotel bill that is also dinner is groceries for one part and restaurants for the other.
+2026-10-22 | The development server allows the private networks in `allowedDevOrigins` | Next.js refuses development requests from hosts it was not told about, so a phone got the page without the scripts: the numbers arrived and every chart stayed blank.
+2026-10-22 | The app is published on the network only when `BIND_ADDRESS` says so | The default stays on localhost; a phone on the same network is an explicit opt-in, not a default.
+2026-10-22 | The end-to-end tests check that the app booted and that a chart drew a bar | A page without scripts and a chart without bars both look like a working page, so the tests have to look at the pixels.

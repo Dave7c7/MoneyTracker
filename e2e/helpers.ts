@@ -9,6 +9,8 @@
  * outside the workspace packages and would otherwise not find it.
  */
 
+import { expect, type Page } from '@playwright/test';
+
 import {
   createDatabase,
   getLocalUser,
@@ -58,4 +60,37 @@ export async function removeSplits(): Promise<void> {
   } finally {
     await pool.end();
   }
+}
+
+/**
+ * Waits until the app has taken over the page.
+ *
+ * The pages are sent by the server and the interactive parts are added by
+ * the browser. A page whose scripts never ran still shows its numbers, so
+ * the tests have to check that the app really started.
+ */
+export async function expectAppToBoot(page: Page): Promise<void> {
+  await expect(page.locator('html')).toHaveAttribute('data-app', 'ready', { timeout: 30_000 });
+  await expect(page.locator('[data-boot-warning]')).toBeHidden();
+}
+
+/**
+ * Waits until a chart has drawn a bar that has a size.
+ *
+ * The charts are drawn in the browser, so a page can look complete while
+ * every chart is empty. The bars grow from nothing while the chart animates,
+ * so this waits for a bar with an area instead of looking once.
+ */
+export async function expectChartToDraw(page: Page): Promise<void> {
+  await expect
+    .poll(
+      async () => {
+        const bar = page.locator('.recharts-bar-rectangle').first();
+        if ((await bar.count()) === 0) return 0;
+        const box = await bar.boundingBox();
+        return box ? box.width * box.height : 0;
+      },
+      { timeout: 30_000 },
+    )
+    .toBeGreaterThan(0);
 }

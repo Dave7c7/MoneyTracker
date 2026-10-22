@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { expectAppToBoot, expectChartToDraw } from './helpers.ts';
+
 /**
  * The end-to-end flows for Phase 1.
  *
@@ -7,6 +9,21 @@ import { expect, test } from '@playwright/test';
  * hand-checked fixtures in `packages/core/test` produce.
  */
 test.describe('dashboards', () => {
+  test('the app takes over the page', async ({ page }) => {
+    await page.goto('/');
+    await expectAppToBoot(page);
+  });
+
+  test('the charts draw their bars', async ({ page }) => {
+    // Every page with a chart has to draw it. A chart that is empty looks
+    // exactly like a page that is working.
+    for (const path of ['/', '/spending', '/cash-flow']) {
+      await page.goto(path);
+      await expectAppToBoot(page);
+      await expectChartToDraw(page);
+    }
+  });
+
   test('the overview shows the seeded month at a glance', async ({ page }) => {
     await page.goto('/');
     const main = page.getByRole('main');

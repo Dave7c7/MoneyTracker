@@ -59,6 +59,30 @@ pnpm db:seed                  # optional: load the demo dataset
 pnpm dev                      # http://localhost:3000
 ```
 
+### On your phone
+
+A phone on the same network reaches the app through your machine's address,
+for example `http://192.168.1.20:3000`.
+
+**The development server only answers to the hosts it knows about.** The
+allowed addresses are in `apps/web/next.config.ts` (`allowedDevOrigins`), and
+the private ranges are already listed. If the page loads but nothing works —
+no charts, and the amber "the scripts of the app did not load" message at the
+top — the dev server refused that address: add it to `allowedDevOrigins` and
+restart `pnpm dev`.
+
+**For the real build, publish it on the network.** The app binds to
+`localhost` by default, on purpose:
+
+```bash
+BIND_ADDRESS=0.0.0.0 docker compose up --build    # reachable from your phone
+```
+
+**Watch out for two servers on port 3000.** On macOS, `localhost` and
+`127.0.0.1` can reach different servers: a development server bound to all
+interfaces and a Docker container bound to `127.0.0.1` can share the port.
+Check with `lsof -nP -iTCP:3000 -sTCP:LISTEN` before you compare the two.
+
 ---
 
 ## Commands
