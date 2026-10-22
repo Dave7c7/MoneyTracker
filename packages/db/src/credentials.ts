@@ -76,6 +76,22 @@ export function isEncryptionKey(value: string | undefined | null): boolean {
   return /^[0-9a-f]{64}$/i.test(value.trim());
 }
 
+/**
+ * The key the credentials are encrypted with.
+ *
+ * It has to be in the environment before a connection can be added, and it
+ * never leaves the server.
+ */
+export function requireEncryptionKey(value: string | undefined): string {
+  if (!isEncryptionKey(value)) {
+    throw new Error(
+      'ENCRYPTION_KEY is needed to store a provider credential, and it must be 32 bytes ' +
+        'written as hex. Generate one with: openssl rand -hex 32',
+    );
+  }
+  return value!.trim();
+}
+
 /** Reads the key and says what is wrong with it when it is not usable. */
 function parseKey(keyHex: string): Buffer {
   if (!isEncryptionKey(keyHex)) {

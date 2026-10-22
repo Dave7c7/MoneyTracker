@@ -4,6 +4,9 @@ Phase 5 adds a live bank connection. `PLAN.md` puts an evaluation gate before
 any code: the provider is chosen by a trial, not by an assumption, and the
 findings go into `DECISIONS.md`.
 
+**The answer: SimpleFIN.** The trial below is what it was based on, and the
+questions are kept so the decision can be looked at again in a year.
+
 This file is the trial: what to check, what is known today, and where to write
 the answer down.
 
@@ -70,6 +73,12 @@ Only the first one needs a real account; the rest follow from it.
    the same merchant memory and the same transfer detection.
 
 ## Recording the outcome
+
+The answer was written down in `DECISIONS.md` on 2026-10-22: SimpleFIN, at
+$1.50 a month or $15 a year, read-only, with a setup token the user pastes
+into the app. The adapter is `packages/adapters/src/simplefin/`, it is
+registered in `packages/adapters/src/registry.ts`, and it runs the shared
+contract suite like every other source.
 
 When the questions are answered, add a row to `DECISIONS.md` with the date,
 the provider, the price and the coverage. Then write the adapter:

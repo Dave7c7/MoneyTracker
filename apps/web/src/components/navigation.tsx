@@ -21,6 +21,7 @@ const links = [
 const secondaryLinks = [
   { href: '/import', label: 'Import', icon: ImportIcon },
   { href: '/accounts', label: 'Accounts', icon: AccountsIcon },
+  { href: '/connections', label: 'Connections', icon: ConnectionsIcon },
   { href: '/subscriptions', label: 'Subscriptions', icon: SubscriptionsIcon },
   { href: '/budgets', label: 'Budgets', icon: BudgetsIcon },
   { href: '/goals', label: 'Goals', icon: GoalsIcon },
@@ -300,6 +301,26 @@ function GoalsIcon() {
     >
       <path d="M5 21V4" />
       <path d="M5 5h11l-2 4 2 4H5" />
+    </svg>
+  );
+}
+
+function ConnectionsIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    >
+      <path d="M9 7a4 4 0 0 1 4 4" />
+      <path d="M5 11a8 8 0 0 1 8-8" />
+      <path d="M15 17a4 4 0 0 1-4-4" />
+      <circle cx="9" cy="7" r="2" />
+      <circle cx="15" cy="17" r="2" />
     </svg>
   );
 }

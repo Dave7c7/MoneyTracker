@@ -227,6 +227,11 @@ export default async function OverviewPage() {
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">
           {[
             {
+              href: '/connections',
+              title: 'Bank connections',
+              hint: 'Read-only connections to the accounts you have',
+            },
+            {
               href: '/subscriptions',
               title: 'Subscriptions and bills',
               hint: 'What lands every month, and what it costs',

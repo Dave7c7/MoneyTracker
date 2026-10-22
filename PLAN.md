@@ -117,14 +117,19 @@ rollover, net worth over time from the balance snapshots, and savings goals.
   authoritative for that account and the imported rows are relinked instead of duplicated.
 
 **Done so far:** the evaluation, with what is known today and the questions
-still to answer, in `PROVIDER-TRIAL.md`; the connection itself, as one row
-per provider account with its own credential, refresh rhythm, history window
-and status; the credential encrypted with AES-256-GCM before it is stored; an
-account belonging to exactly one connection; and a per-connection status and
-error that never contains the credential.
+still to answer, in `PROVIDER-TRIAL.md`; the provider chosen: SimpleFIN, at
+$1.50 a month or $15 a year, read-only, with a setup token the user pastes
+into the app; the adapter, behind the same interface as every other source
+and proven by the shared contract suite; the connection itself, as one row per
+provider account with its own credential, refresh rhythm, history window and
+status; the credential encrypted with AES-256-GCM before it is stored; an
+account belonging to exactly one connection; a per-connection status and error
+that never contains the credential; the screen that connects a bank, picks the
+accounts and syncs them; and the history fetched in slices, because one
+request covers at most 90 days.
 
-**Still to do:** the trial answer, the provider adapter, the scheduled sync and
-the screen that shows the connections.
+**Still to do:** a scheduled sync, and the backfill of the history a CSV
+export brought before a provider took the account over.
 
 | Option | Cost and fit | Caveats to verify |
 |---|---|---|

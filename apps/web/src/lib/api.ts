@@ -112,6 +112,20 @@ export const goalBodySchema = z.object({
 /** The body of a change to a savings goal. */
 export const goalUpdateSchema = goalBodySchema.partial();
 
+/** The body of a new connection: the setup token the user was given. */
+export const connectionSchema = z.object({
+  setupToken: z.string().trim().min(10).max(4000),
+  /** The name the user gives the connection. */
+  name: z.string().trim().max(120).optional(),
+  /** How far back to reach, in days. */
+  historyDays: z.number().int().min(1).max(730).optional(),
+});
+
+/** The body of linking the accounts of a provider to a connection. */
+export const linkAccountsSchema = z.object({
+  externalIds: z.array(z.string().trim().min(1).max(200)).min(1).max(50),
+});
+
 /**
  * Reads and validates a JSON body.
  *

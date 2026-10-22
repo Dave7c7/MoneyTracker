@@ -80,3 +80,8 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-22 | Plaid is the fallback, and its free Trial plan is the way in | Since April 2026 new signups get ten production items with real data, so the trial costs nothing before the pricing question is asked.
 2026-10-22 | A connection is one provider account, and an account belongs to exactly one connection | The plan asks for one provider per account and many providers per install, and it keeps a provider from taking over an account by accident.
 2026-10-22 | Provider credentials are encrypted with AES-256-GCM before they are stored | A provider token is a password for the transactions; the app never shows it and never returns it from a read.
+2026-10-22 | The live connection is SimpleFIN | It is built for self-hosting, read-only, $15 a year, and needs no security questionnaire; its 90-day window and daily refresh are limits the app is designed around.
+2026-10-22 | A SimpleFIN account is identified by its connection and its own id | Two banks may both call an account "2930002", and the app has to keep them apart.
+2026-10-22 | The history is fetched in slices of 90 days | One request covers at most 90 days, so a longer window is several requests.
+2026-10-22 | An empty ENCRYPTION_KEY means "not set yet", not a broken configuration | The key is only needed once a connection is added, and the app must still start without it.
+2026-10-22 | The user picks which accounts of a connection to keep | One access URL can cover many banks, and the app only takes the ones the user wants.

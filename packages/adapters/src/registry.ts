@@ -9,12 +9,25 @@ import type { DataSourceAdapter } from '@moneytracker/core';
 
 import { CsvAdapter, type CsvAdapterOptions } from './csv/index.ts';
 import { MockAdapter } from './mock/index.ts';
+import { SimpleFinAdapter, claimAccessUrl, type SimpleFinOptions } from './simplefin/index.ts';
 
 export type AdapterFactory = (options?: Record<string, unknown>) => DataSourceAdapter;
+
+/**
+ * Exchanges a setup token for the credential the app stores.
+ *
+ * Only a provider that hands out a setup token has one.
+ */
+export type ClaimHandler = (setupToken: string) => Promise<string>;
 
 const registry = new Map<string, AdapterFactory>([
   ['mock', () => new MockAdapter()],
   ['csv', (options) => new CsvAdapter(options as unknown as CsvAdapterOptions)],
+  ['simplefin', (options) => new SimpleFinAdapter(options as unknown as SimpleFinOptions)],
+]);
+
+const claims = new Map<string, ClaimHandler>([
+  ['simplefin', (setupToken) => claimAccessUrl(setupToken)],
 ]);
 
 /**
@@ -47,4 +60,30 @@ export function getAdapter(id: string, options?: Record<string, unknown>): DataS
 /** Lists the registered data source ids. */
 export function listAdapters(): string[] {
   return [...registry.keys()];
+}
+
+/**
+ * Registers how a data source is connected with a setup token.
+ *
+ * @example
+ * registerClaim('mybank', (setupToken) => claimAccessUrl(setupToken));
+ */
+export function registerClaim(id: string, handler: ClaimHandler): void {
+  claims.set(id, handler);
+}
+
+/**
+ * Exchanges a setup token for the credential of a provider.
+ *
+ * The token is given to the app by the user, and it only works once.
+ *
+ * @example
+ * const accessUrl = await claimFor('simplefin', setupToken);
+ */
+export async function claimFor(id: string, setupToken: string): Promise<string> {
+  const claim = claims.get(id);
+  if (!claim) {
+    throw new Error(`The data source "${id}" cannot be connected with a setup token.`);
+  }
+  return claim(setupToken);
 }

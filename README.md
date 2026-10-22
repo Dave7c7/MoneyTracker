@@ -17,7 +17,7 @@ Works on a phone and a desktop as an installable PWA. Single user first.
 | 2. Categorization, rules, review inbox | Done | Fix a category, write a rule, clear the review inbox, undo anything |
 | 3. Transfers, splits, CSV import | Done | Transfers are linked and kept out of the totals, a charge can be split across categories, and a bank export is imported with a saved mapping profile |
 | 4. Subscriptions, bills, budgets, net worth | Done | Recurring charges are found and confirmed, bills can be added by hand, budgets per category, net worth over time, savings goals |
-| 5. Live bank connection | Started | The connection and its encrypted credential are in place; the provider trial is open, see [PROVIDER-TRIAL.md](PROVIDER-TRIAL.md) |
+| 5. Live bank connection | Started | A read-only SimpleFIN connection: paste a setup token, pick the accounts, and the transactions come in |
 | 6. Hardening and extras | Planned | Auth, alerts, backups, export |
 
 The plan and the binding rules live in `PLAN.md`, `AGENTS.md` and the rule
@@ -331,18 +331,28 @@ A live connection is one provider account: its own credential, its own refresh
 rhythm, its own history window. Many of them live in one install, and every
 account belongs to exactly one of them.
 
+**The provider is SimpleFIN.** The user connects their bank at
+[SimpleFIN](https://bridge.simplefin.org), gets a setup token, and pastes it
+into the app. The app exchanges the token for a read-only access URL. The
+bank password never reaches the app, and the user can revoke the access at
+SimpleFIN at any time.
+
 **The credential is encrypted before it is stored.** A provider token is a
 password for the transactions, so it is encrypted with AES-256-GCM and the key
 comes from `ENCRYPTION_KEY`. The app never shows it and never returns it from
-a read.
+a read. Losing the key means the stored credentials cannot be read any more,
+so keep it with your other secrets.
+
+**The limits are known and the app is built around them.** One request covers
+at most 90 days, so the history is fetched in slices; the data is refreshed
+about once a day, so the app shows when the last sync was; and a source that
+never reports a pending transaction is a normal source.
 
 **One failing connection never blocks another.** Each connection records its
 own status and its own error, and the error never contains the credential.
 
-**The provider is chosen by a trial, not by an assumption.** The plan puts an
-evaluation gate before any code: check the price, the terms and the coverage,
-write the answer down in `DECISIONS.md`, and only then write the adapter. The
-trial, and what is known today, is in [PROVIDER-TRIAL.md](PROVIDER-TRIAL.md).
+**The trial that chose it, and what is known today, is in
+[PROVIDER-TRIAL.md](PROVIDER-TRIAL.md).**
 
 ---
 

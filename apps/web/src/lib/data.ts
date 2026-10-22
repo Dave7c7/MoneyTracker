@@ -31,6 +31,8 @@ import {
   listCategories,
   listDashboardTransactions,
   listImportProfiles,
+  listConnections,
+  listLinkedAccounts,
   listRecurringItems,
   listReviewGroups,
   listRules,
@@ -38,6 +40,7 @@ import {
   listTransactions,
   detectRecurringItems,
   getLocalUser,
+  isEncryptionKey,
   toBudgets,
   type TransactionRow,
 } from '@moneytracker/db';
@@ -336,6 +339,36 @@ export async function getBudgetsData(month = currentMonth()) {
     categories: categories
       .filter((category) => category.kind === 'spending')
       .map((category) => ({ id: category.id, name: category.name })),
+  };
+}
+
+/** Data for the connections screen. */
+export async function getConnectionsData() {
+  const { db } = getDatabase();
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const connections = await listConnections(db, userId);
+  const accounts = connections.length
+    ? await Promise.all(
+        connections.map((connection) => listLinkedAccounts(db, userId, connection.id)),
+      )
+    : [];
+
+  return {
+    connections: connections.map((connection, index) => ({
+      id: connection.id,
+      adapterId: connection.adapterId,
+      name: connection.name,
+      institution: connection.institution,
+      status: connection.status,
+      lastSyncedAt: connection.lastSyncedAt,
+      lastError: connection.lastError,
+      historyDays: connection.historyDays,
+      accounts: accounts[index] ?? [],
+    })),
+    /** Whether the app can store a credential at all. */
+    canConnect: isEncryptionKey(getEnv().ENCRYPTION_KEY),
   };
 }
 
