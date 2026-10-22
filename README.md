@@ -325,6 +325,27 @@ what has to be saved each month to get there.
 
 ---
 
+## Live bank connections
+
+A live connection is one provider account: its own credential, its own refresh
+rhythm, its own history window. Many of them live in one install, and every
+account belongs to exactly one of them.
+
+**The credential is encrypted before it is stored.** A provider token is a
+password for the transactions, so it is encrypted with AES-256-GCM and the key
+comes from `ENCRYPTION_KEY`. The app never shows it and never returns it from
+a read.
+
+**One failing connection never blocks another.** Each connection records its
+own status and its own error, and the error never contains the credential.
+
+**The provider is chosen by a trial, not by an assumption.** The plan puts an
+evaluation gate before any code: check the price, the terms and the coverage,
+write the answer down in `DECISIONS.md`, and only then write the adapter. The
+trial, and what is known today, is in [PROVIDER-TRIAL.md](PROVIDER-TRIAL.md).
+
+---
+
 ## Configuration
 
 Every setting is an environment variable, validated at startup with Zod. Copy

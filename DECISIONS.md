@@ -75,3 +75,8 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-22 | A budget rollover carries one month of what was left over | Carrying every empty month would multiply the limit; a rollover means last month's leftover.
 2026-10-22 | A savings goal tracks progress and never moves money | Moving money is out of scope; the goal says what has to be saved each month to reach the target.
 2026-10-22 | The plan screens live next to the overview, not in the phone tab bar | Five tabs fit a 360 pixel phone; subscriptions, budgets and goals are checked now and then.
+2026-10-22 | Teller is out: the API product was withdrawn in July 2026 | A provider that does not exist cannot be a fallback; the remaining options are SimpleFIN and Plaid.
+2026-10-22 | SimpleFIN is the first candidate for the live connection, pending a coverage check | It is built for self-hosting, read-only, $15 a year, and needs no security questionnaire; its 90-day window and daily refresh are limits the app is designed around.
+2026-10-22 | Plaid is the fallback, and its free Trial plan is the way in | Since April 2026 new signups get ten production items with real data, so the trial costs nothing before the pricing question is asked.
+2026-10-22 | A connection is one provider account, and an account belongs to exactly one connection | The plan asks for one provider per account and many providers per install, and it keeps a provider from taking over an account by accident.
+2026-10-22 | Provider credentials are encrypted with AES-256-GCM before they are stored | A provider token is a password for the transactions; the app never shows it and never returns it from a read.

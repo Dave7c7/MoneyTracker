@@ -19,4 +19,6 @@ export * from './imports.ts';
 export * from './recurring.ts';
 export * from './budgets.ts';
 export * from './goals.ts';
+export * from './connections.ts';
+export * from './credentials.ts';
 export * from './sync.ts';

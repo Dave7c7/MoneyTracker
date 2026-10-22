@@ -43,6 +43,13 @@
       "when": 1792673875133,
       "tag": "0005_mute_nico_minoru",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792674870381,
+      "tag": "0006_clever_maximus",
+      "breakpoints": true
     }
   ]
 }

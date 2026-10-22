@@ -301,6 +301,74 @@ export const syncRuns = pgTable(
 );
 
 /**
+ * A live connection to a data provider.
+ *
+ * One connection is one provider account: it has its own credential, its own
+ * refresh rhythm and its own history window. Many connections can live in one
+ * install, and every account belongs to exactly one of them.
+ */
+export const connections = pgTable(
+  'connections',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** Which provider serves this connection, e.g. "simplefin". */
+    adapterId: text('adapter_id').notNull(),
+    /** The name the user gave the connection, e.g. "SoFi checking". */
+    name: text('name').notNull(),
+    /** The institution behind it, e.g. "SoFi". */
+    institution: text('institution'),
+    /** The provider's token, encrypted. Never shown in the app. */
+    credentialCiphertext: text('credential_ciphertext').notNull(),
+    /** 'active' | 'error' | 'disabled' */
+    status: text('status').notNull().default('active'),
+    /** When the last successful sync finished. */
+    lastSyncedAt: timestamp('last_synced_at', { withTimezone: true }),
+    /** What went wrong, in words. Never contains the credential. */
+    lastError: text('last_error'),
+    /** How far back this provider can reach, in days. */
+    historyDays: integer('history_days').notNull().default(90),
+    /** How often the provider refreshes, in hours. */
+    refreshHours: integer('refresh_hours').notNull().default(24),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index('connections_user_idx').on(table.userId),
+    adapterIdx: index('connections_adapter_idx').on(table.adapterId),
+  }),
+);
+
+/**
+ * Which accounts a connection feeds.
+ *
+ * An account belongs to one connection: when a provider covers an account
+ * that was imported from a file, the provider becomes the one that owns it.
+ */
+export const connectionAccounts = pgTable(
+  'connection_accounts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    connectionId: uuid('connection_id')
+      .notNull()
+      .references(() => connections.id, { onDelete: 'cascade' }),
+    accountId: uuid('account_id')
+      .notNull()
+      .references(() => accounts.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    uniqueAccount: uniqueIndex('connection_accounts_account_idx').on(table.accountId),
+    connectionIdx: index('connection_accounts_connection_idx').on(table.connectionId),
+  }),
+);
+
+/**
  * A recurring charge: a subscription, a bill, or something the app found that
  * looks like one.
  *
