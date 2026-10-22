@@ -13,6 +13,7 @@ import {
   date,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   real,
@@ -21,6 +22,8 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
+
+import type { CsvMapping } from '@moneytracker/core';
 
 export const accountTypeEnum = pgEnum('account_type', [
   'checking',
@@ -363,5 +366,44 @@ export const bankCategoryMappings = pgTable(
       table.userId,
       table.sourceCategory,
     ),
+  }),
+);
+
+/**
+ * How one institution's export is laid out.
+ *
+ * A profile is the user's answer to "what does a file from this bank look
+ * like?". It holds the column mapping, the formats and the account the rows
+ * belong to, so the next export is read the same way without any guessing.
+ */
+export const importProfiles = pgTable(
+  'import_profiles',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** The name the user gave the profile, e.g. "SoFi checking". */
+    name: text('name').notNull(),
+    /** The institution the profile belongs to, e.g. "SoFi". */
+    institution: text('institution'),
+    /** How to read the file: a CsvMapping. */
+    mapping: jsonb('mapping').$type<CsvMapping>().notNull(),
+    /**
+     * Stable key of the account this profile imports into.
+     *
+     * It is generated once, so renaming the profile never moves its history
+     * to another account.
+     */
+    accountKey: text('account_key').notNull(),
+    /** The name that account is given. */
+    accountName: text('account_name').notNull(),
+    accountType: accountTypeEnum('account_type').notNull().default('checking'),
+    currency: text('currency').notNull().default('USD'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    uniqueName: uniqueIndex('import_profiles_user_name_idx').on(table.userId, table.name),
   }),
 );

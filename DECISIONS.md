@@ -56,3 +56,7 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-22 | The web scripts take their port from the environment | The end-to-end tests need their own port, and the container sets `PORT` as well.
 2026-10-22 | The page says when its scripts did not load | The numbers come from the server and the charts from the browser, so a page without scripts looks broken without saying why.
 2026-10-22 | The charts fall back to the numbers when there is no JavaScript | A browser without scripts should still be able to read the month.
+2026-10-22 | A CSV row is identified by the account, the date, the amount and the description | Importing the same file twice must update the rows it already has, not make new ones.
+2026-10-22 | Two rows that look exactly the same in a file stay two rows | Two coffees on the same day are two coffees; a number keeps them apart while the import stays repeatable.
+2026-10-22 | A mapping profile is saved before the preview | The ids of the rows come from the profile, so the preview and the import can only agree when both use the same one.
+2026-10-22 | A profile keeps the key of its account even when it is renamed | Renaming a profile must never move its history to another account.
