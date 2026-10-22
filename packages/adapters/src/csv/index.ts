@@ -15,6 +15,7 @@
 import { createHash } from 'node:crypto';
 
 import {
+  currencyMinorUnits,
   parseCsvRows,
   type AccountType,
   type CsvMapping,
@@ -68,9 +69,11 @@ export interface CsvFileRead {
  */
 export function readCsvFile(options: CsvAdapterOptions): CsvFileRead {
   const { mapping } = options;
-  const outcome = parseCsvRows(options.content, mapping);
-
   const currency = options.currency.toUpperCase();
+  const outcome = parseCsvRows(options.content, mapping, {
+    minorUnits: currencyMinorUnits(currency),
+  });
+
   const accounts: NormalizedAccount[] = [];
   const accountIdByKey = new Map<string, string>();
 

@@ -68,7 +68,6 @@ export interface CsvMapping {
   categoryColumn: string | null;
   /** Column that names the account, for files that hold several accounts. */
   accountColumn: string | null;
-  currency: string;
 }
 
 /** A mapping with every field filled in, ready to be adjusted. */
@@ -87,7 +86,6 @@ export function createCsvMapping(overrides: Partial<CsvMapping> = {}): CsvMappin
     descriptionColumn: '',
     categoryColumn: null,
     accountColumn: null,
-    currency: 'USD',
     ...overrides,
   };
 }
@@ -253,11 +251,18 @@ export interface CsvParseOutcome {
  * a date or an amount is never worth importing, and the user deserves to
  * know that three rows were skipped.
  *
+ * The number of decimals in the amounts comes from the currency of the
+ * account, not from the file, so a file in yen is read as yen.
+ *
  * @example
- * const outcome = parseCsvRows(text, createCsvMapping({ dateColumn: 'Date', amountColumn: 'Amount', descriptionColumn: 'Description' }));
+ * const outcome = parseCsvRows(text, createCsvMapping({ dateColumn: 'Date', amountColumn: 'Amount', descriptionColumn: 'Description' }), { minorUnits: 2 });
  * outcome.rows.length; // 412
  */
-export function parseCsvRows(text: string, mapping: CsvMapping): CsvParseOutcome {
+export function parseCsvRows(
+  text: string,
+  mapping: CsvMapping,
+  options: { minorUnits: number },
+): CsvParseOutcome {
   const delimiter = mapping.delimiter === 'auto' ? detectDelimiter(text) : mapping.delimiter;
   const allRows = parseCsv(text, delimiter);
 
@@ -289,7 +294,7 @@ export function parseCsvRows(text: string, mapping: CsvMapping): CsvParseOutcome
   );
   const missingColumns = [...usedColumns].filter((column) => !indexByColumn.has(column));
 
-  const minorUnits = currencyMinorUnits(mapping.currency);
+  const minorUnits = options.minorUnits;
   const rows: CsvParsedRow[] = [];
   const errors: CsvRowError[] = [];
   const accountKeys: string[] = [];

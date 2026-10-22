@@ -121,4 +121,16 @@ describe('readCsvFile', () => {
     expect(read.outcome.errors).toHaveLength(1);
     expect(read.outcome.errors[0]?.rowNumber).toBe(2);
   });
+
+  it('reads a file in a currency without decimals', () => {
+    const read = readCsvFile({
+      ...OPTIONS,
+      currency: 'JPY',
+      content: 'Date,Amount,Description\n2026-01-05,-1200,COFFEE',
+    });
+
+    // Yen has no decimals, so 1200 yen is 1200 minor units.
+    expect(read.transactions[0]?.amountMinor).toBe(-1200);
+    expect(read.transactions[0]?.currency).toBe('JPY');
+  });
 });

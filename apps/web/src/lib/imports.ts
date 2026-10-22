@@ -23,7 +23,6 @@ export const csvMappingSchema = z.object({
   descriptionColumn: z.string().max(200),
   categoryColumn: z.string().max(200).nullable(),
   accountColumn: z.string().max(200).nullable(),
-  currency: z.string().trim().length(3),
 });
 
 /** The body of a new import profile. */

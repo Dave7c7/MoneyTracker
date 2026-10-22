@@ -156,7 +156,7 @@ describe('parseCsvRows', () => {
       '2026-01-06,2500.00,PAYROLL',
     ].join('\n');
 
-    const outcome = parseCsvRows(text, mapping);
+    const outcome = parseCsvRows(text, mapping, { minorUnits: 2 });
 
     expect(outcome.errors).toEqual([]);
     expect(outcome.rows).toHaveLength(2);
@@ -173,7 +173,7 @@ describe('parseCsvRows', () => {
 
   it('reports the columns the mapping does not use', () => {
     const text = 'Date,Amount,Description,Memo\n2026-01-05,-1.00,Coffee,hello';
-    const outcome = parseCsvRows(text, mapping);
+    const outcome = parseCsvRows(text, mapping, { minorUnits: 2 });
 
     expect(outcome.unmappedColumns).toEqual(['Memo']);
     expect(outcome.missingColumns).toEqual([]);
@@ -181,7 +181,7 @@ describe('parseCsvRows', () => {
 
   it('reports columns the mapping names that the file does not have', () => {
     const text = 'Date,Description\n2026-01-05,Coffee';
-    const outcome = parseCsvRows(text, mapping);
+    const outcome = parseCsvRows(text, mapping, { minorUnits: 2 });
 
     expect(outcome.missingColumns).toEqual(['Amount']);
   });
@@ -193,7 +193,7 @@ describe('parseCsvRows', () => {
       '2026-01-05,-4.50,COFFEE',
     ].join('\n');
 
-    const outcome = parseCsvRows(text, mapping);
+    const outcome = parseCsvRows(text, mapping, { minorUnits: 2 });
 
     expect(outcome.rows).toHaveLength(2);
     expect(outcome.rows[0]?.occurrence).toBe(0);
@@ -208,7 +208,7 @@ describe('parseCsvRows', () => {
       '2026-01-07,-1.00,',
     ].join('\n');
 
-    const outcome = parseCsvRows(text, mapping);
+    const outcome = parseCsvRows(text, mapping, { minorUnits: 2 });
 
     expect(outcome.rows).toHaveLength(0);
     expect(outcome.errors).toHaveLength(3);
@@ -232,6 +232,7 @@ describe('parseCsvRows', () => {
         creditColumn: 'Credit',
         descriptionColumn: 'Description',
       }),
+      { minorUnits: 2 },
     );
 
     expect(outcome.rows[0]?.amountMinor).toBe(-1234);
@@ -253,6 +254,7 @@ describe('parseCsvRows', () => {
         amountColumn: 'Amount',
         descriptionColumn: 'Description',
       }),
+      { minorUnits: 2 },
     );
 
     expect(outcome.accountKeys).toEqual(['Checking', 'Savings']);
@@ -264,7 +266,7 @@ describe('parseCsvRows', () => {
       '\n',
     );
 
-    const outcome = parseCsvRows(text, createCsvMapping({ ...mapping, headerRow: 1 }));
+    const outcome = parseCsvRows(text, createCsvMapping({ ...mapping, headerRow: 1 }), { minorUnits: 2 });
 
     expect(outcome.rows).toHaveLength(1);
     expect(outcome.rows[0]?.description).toBe('COFFEE');
@@ -277,9 +279,17 @@ describe('parseCsvRows', () => {
       '2026-01-07,-2.00,BOOK',
     ].join('\n');
 
-    const outcome = parseCsvRows(text, mapping);
+    const outcome = parseCsvRows(text, mapping, { minorUnits: 2 });
 
     expect(outcome.ambiguousDates).toBe(1);
     expect(outcome.rows[0]?.ambiguousDate).toBe(true);
+  });
+
+  it('reads the amounts of a currency without decimals', () => {
+    const text = 'Date,Amount,Description\n2026-01-05,1200,COFFEE';
+
+    const outcome = parseCsvRows(text, mapping, { minorUnits: 0 });
+
+    expect(outcome.rows[0]?.amountMinor).toBe(1200);
   });
 });
