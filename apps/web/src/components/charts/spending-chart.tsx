@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import {
   Bar,
   BarChart,
@@ -48,14 +50,35 @@ export function SpendingByCategoryChart({
     return row;
   });
 
+  // The last month in numbers, so the chart is not the only way to read them.
+  const lastIndex = months.length - 1;
+  const totals = categories
+    .map((category) => ({
+      name: category.categoryName,
+      total: category.monthly[lastIndex] ?? 0,
+    }))
+    .filter((entry) => entry.total !== 0)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
+
+  // A chart that cannot be sized is worth saying out loud, instead of leaving
+  // an empty box on the screen.
+  const [measuredWidth, setMeasuredWidth] = useState<number | null>(null);
+
   return (
-    <div
-      className="h-60 w-full md:h-72"
-      role="img"
-      aria-label={`Spending by category from ${months[0]} to ${months[months.length - 1]}`}
-    >
-      <ResponsiveContainer width="100%" height="100%" minWidth={280}>
-        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+    <>
+      <div
+        className="h-60 w-full md:h-72"
+        role="img"
+        aria-label={`Spending by category from ${months[0]} to ${months[months.length - 1]}`}
+      >
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          minWidth={280}
+          onResize={(width) => setMeasuredWidth(width)}
+        >
+          <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid
             strokeDasharray="3 3"
             className="stroke-slate-200 dark:stroke-slate-800"
@@ -115,8 +138,38 @@ export function SpendingByCategoryChart({
               radius={[0, 0, 0, 0]}
             />
           ))}
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {measuredWidth === 0 && (
+        <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
+          This browser could not give the chart a size. The numbers are below.
+        </p>
+      )}
+
+      {/*
+        The chart is drawn by the browser, so a browser with no JavaScript
+        shows nothing at all. The numbers are still there, and they are on the
+        server.
+      */}
+      <noscript>
+        <div className="mt-2 rounded-xl border border-slate-200 p-3 text-sm dark:border-slate-700">
+          <p className="font-medium text-slate-700 dark:text-slate-200">
+            The chart needs JavaScript. Here is {formatMonth(months[lastIndex] ?? '', locale)}:
+          </p>
+          <ul className="mt-2 space-y-1">
+            {totals.map((entry) => (
+              <li key={entry.name} className="flex items-center justify-between gap-3">
+                <span className="truncate text-slate-600 dark:text-slate-300">{entry.name}</span>
+                <span className="tabular font-medium text-slate-900 dark:text-slate-100">
+                  {formatMoney(entry.total, currency, locale)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </noscript>
+    </>
   );
 }

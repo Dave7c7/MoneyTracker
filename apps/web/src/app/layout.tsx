@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 
 import './globals.css';
 
+import { AppBootCheck } from '@/components/app-boot-check.tsx';
 import { Navigation } from '@/components/navigation.tsx';
 import { ServiceWorkerRegistration } from '@/components/service-worker-registration.tsx';
 import { countNeedsReview, getLocalUser } from '@moneytracker/db';
@@ -45,7 +46,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const reviewCount = await countReview();
 
   return (
-    <html lang="en">
+    /*
+      The page works without any script, but the interactive parts are added by
+      the browser. The attribute starts as "loading" and the app changes it to
+      "ready" once it runs, so the message below stays hidden exactly as long
+      as the scripts are on their way.
+    */
+    <html lang="en" data-app="loading">
+      <head>
+        <style
+          dangerouslySetInnerHTML={{
+            __html:
+              "[data-boot-warning]{display:none}html[data-app='loading'] [data-boot-warning]{display:block}",
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
         <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col">
           <header className="px-4 pb-1 pt-[calc(0.75rem+env(safe-area-inset-top))] md:px-0 md:pt-8">
@@ -65,12 +80,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </header>
 
           <main className="flex-1 px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 md:px-0 md:pb-12">
+            <p
+              data-boot-warning
+              className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100"
+            >
+              The scripts of the app did not load, so the charts and the buttons
+              are missing. The numbers below are still correct. Reload the page,
+              and if it keeps happening, open it in a private window.
+            </p>
             {children}
           </main>
 
           <Navigation reviewCount={reviewCount} />
         </div>
         <ServiceWorkerRegistration />
+        <AppBootCheck />
       </body>
     </html>
   );

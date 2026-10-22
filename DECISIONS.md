@@ -54,3 +54,5 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-22 | The end-to-end tests build the app and start it on port 3100 | A development server watches the repository and reloads whenever a file changes, which reloads the browser mid-test and disturbs a running development server.
 2026-10-22 | The end-to-end build goes into its own directory | The tests and a development server must never write to the same build directory.
 2026-10-22 | The web scripts take their port from the environment | The end-to-end tests need their own port, and the container sets `PORT` as well.
+2026-10-22 | The page says when its scripts did not load | The numbers come from the server and the charts from the browser, so a page without scripts looks broken without saying why.
+2026-10-22 | The charts fall back to the numbers when there is no JavaScript | A browser without scripts should still be able to read the month.
