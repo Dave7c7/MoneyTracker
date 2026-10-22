@@ -4,6 +4,7 @@ import { formatAmount } from '@/components/money.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
 import { getAccountsData } from '@/lib/data.ts';
 import { formatAccountName, formatShortDate } from '@/lib/format.ts';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,15 @@ export default async function AccountsPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold tracking-tight">Accounts</h2>
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-lg font-semibold tracking-tight">Accounts</h2>
+        <Link
+          href="/import"
+          className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-500"
+        >
+          Import a file
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 gap-2.5 ph:grid-cols-2 ph:gap-3 sm:grid-cols-3">
         <StatCard

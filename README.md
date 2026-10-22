@@ -15,7 +15,7 @@ Works on a phone and a desktop as an installable PWA. Single user first.
 | 0. Foundations | Done | Monorepo, Postgres schema and migrations, Docker Compose, config validation |
 | 1. Mock data and dashboards | Done | Demo dataset, PWA shell, overview/spending/cash-flow/transactions/accounts screens |
 | 2. Categorization, rules, review inbox | Done | Fix a category, write a rule, clear the review inbox, undo anything |
-| 3. Transfers, splits, CSV import | In progress | Transfer detection is done: transfers are linked, badged and kept out of the totals |
+| 3. Transfers, splits, CSV import | In progress | Transfer detection is done: transfers are linked, badged and kept out of the totals. CSV import is done: a file is read with a saved mapping profile, previewed, then imported |
 | 4. Subscriptions, bills, budgets, net worth | Planned | Recurring charge detection and budget tracking |
 | 5. Live bank connection | Planned | A new adapter behind the same interface |
 | 6. Hardening and extras | Planned | Auth, alerts, backups, export |
@@ -208,6 +208,36 @@ or decide what it really was.
 and a transfer that is already marked can be turned back into an ordinary
 transaction. Changing a category by hand also takes the transaction out of its
 transfer group.
+
+---
+
+## Importing a file
+
+A bank export is a file, not a format. Every institution names its columns
+differently, writes its dates differently, and has its own idea of which sign
+means "money left". The app does not guess: you tell it once how to read one
+institution's files, and it remembers that.
+
+**You say how the file is laid out.** The import screen reads the file in your
+browser, shows its columns, and fills in a first guess from the column names.
+You correct what is wrong and save it as a profile: the date column, the
+amount column, the description column, the sign convention, the date format,
+the decimal separator, the delimiter, and the account the rows belong to. The
+next export of the same bank is read the same way.
+
+**You see what will happen before it happens.** The preview gives the row
+count, the date range, how many rows are already in the app, how many could
+not be read and why, which columns are not used, which accounts will be
+created, and the first rows as the app read them.
+
+**The same file never becomes two.** Every row of a file gets an id derived
+from its account, date, amount and description, so importing the same export
+again updates the rows that are already there instead of making new ones. Two
+charges that look identical on the same day stay two charges.
+
+**The rows land like any other.** An imported file goes through the same
+rules, the same merchant memory and the same transfer detection as a bank
+connection, so a transfer between two of your accounts is found in a file too.
 
 ---
 

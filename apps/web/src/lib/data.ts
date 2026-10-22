@@ -23,6 +23,7 @@ import {
   listBalances,
   listCategories,
   listDashboardTransactions,
+  listImportProfiles,
   listReviewGroups,
   listRules,
   listTransactions,
@@ -204,6 +205,27 @@ export async function getAccountsData() {
     assetsMinor,
     liabilitiesMinor,
     balances,
+  };
+}
+
+/** Data for the import screen. */
+export async function getImportData() {
+  const { db } = getDatabase();
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const profiles = await listImportProfiles(db, userId);
+
+  return {
+    profiles: profiles.map((profile) => ({
+      id: profile.id,
+      name: profile.name,
+      institution: profile.institution,
+      mapping: profile.mapping,
+      accountName: profile.accountName,
+      accountType: profile.accountType,
+      currency: profile.currency,
+    })),
   };
 }
 

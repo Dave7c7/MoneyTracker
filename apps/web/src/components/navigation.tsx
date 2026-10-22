@@ -5,9 +5,9 @@ import { usePathname } from 'next/navigation';
 
 /** The main sections of the app. */
 /*
- * Five tabs fit a 360 pixel phone with room to spare. Accounts and rules are
- * one tap away from the overview, which is where they belong: they are set
- * up once, not checked every day.
+ * Five tabs fit a 360 pixel phone with room to spare. Accounts, rules and
+ * import are one tap away from the overview, which is where they belong:
+ * they are set up once, not checked every day.
  */
 const links = [
   { href: '/', label: 'Overview', icon: OverviewIcon },
@@ -15,6 +15,13 @@ const links = [
   { href: '/cash-flow', label: 'Cash flow', icon: CashFlowIcon },
   { href: '/transactions', label: 'Transactions', icon: TransactionsIcon },
   { href: '/review', label: 'Review', icon: ReviewIcon },
+] as const;
+
+/** The sections that only have room in the top bar. */
+const secondaryLinks = [
+  { href: '/import', label: 'Import', icon: ImportIcon },
+  { href: '/accounts', label: 'Accounts', icon: AccountsIcon },
+  { href: '/rules', label: 'Rules', icon: RulesIcon },
 ] as const;
 
 function isActive(pathname: string, href: string): boolean {
@@ -60,6 +67,31 @@ export function Navigation({ reviewCount = 0 }: { reviewCount?: number }) {
                     </span>
                   )}
                 </span>
+                <span>{link.label}</span>
+              </Link>
+            </li>
+          );
+        })}
+
+        {/*
+          The sections that do not fit in a phone tab bar live in the top bar
+          on a desktop, and one tap away from the overview on a phone.
+        */}
+        {secondaryLinks.map((link) => {
+          const active = isActive(pathname, link.href);
+          const Icon = link.icon;
+          return (
+            <li key={link.href} className="hidden md:flex-none">
+              <Link
+                href={link.href}
+                aria-current={active ? 'page' : undefined}
+                className={`flex items-center gap-2 px-3 py-3 text-xs font-medium whitespace-nowrap transition-colors ${
+                  active
+                    ? 'text-brand-600 dark:text-brand-500'
+                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+                }`}
+              >
+                <Icon />
                 <span>{link.label}</span>
               </Link>
             </li>
@@ -157,6 +189,62 @@ function ReviewIcon() {
     >
       <path d="M4 5h16v11H8l-4 3z" />
       <path d="M9 9h6M9 12h4" />
+    </svg>
+  );
+}
+
+function ImportIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 3v12" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M4 19h16" />
+    </svg>
+  );
+}
+
+function AccountsIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="6" width="18" height="13" rx="2" />
+      <path d="M3 10h18" />
+      <path d="M7 15h4" />
+    </svg>
+  );
+}
+
+function RulesIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 6h10M4 12h16M4 18h7" />
+      <circle cx="17" cy="6" r="2" />
     </svg>
   );
 }

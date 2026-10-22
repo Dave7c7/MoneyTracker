@@ -182,12 +182,20 @@ export default async function OverviewPage() {
       <Card
         title="Accounts"
         action={
-          <Link
-            href="/accounts"
-            className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-500"
-          >
-            Manage
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/import"
+              className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-500"
+            >
+              Import
+            </Link>
+            <Link
+              href="/accounts"
+              className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-500"
+            >
+              Manage
+            </Link>
+          </div>
         }
       >
         <ul className="divide-y divide-slate-100 dark:divide-slate-800">

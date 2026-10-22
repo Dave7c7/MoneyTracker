@@ -313,6 +313,27 @@ export async function runImport(
   };
 }
 
+/**
+ * Removes everything an import brought in: the transactions, the accounts and
+ * the profiles.
+ *
+ * @example
+ * await removeImportedRows(db, userId);
+ */
+export async function removeImportedRows(db: Database, userId: string): Promise<void> {
+  const imported = await db
+    .select({ id: accounts.id })
+    .from(accounts)
+    .where(and(eq(accounts.userId, userId), eq(accounts.adapterId, 'csv')));
+
+  for (const account of imported) {
+    await db.delete(transactions).where(eq(transactions.accountId, account.id));
+    await db.delete(accounts).where(eq(accounts.id, account.id));
+  }
+
+  await db.delete(importProfiles).where(eq(importProfiles.userId, userId));
+}
+
 /** Reads a file the way its profile says. */
 function readFile(profile: ImportProfile, content: string) {
   return readCsvFile({
