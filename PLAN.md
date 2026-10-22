@@ -116,6 +116,16 @@ rollover, net worth over time from the balance snapshots, and savings goals.
 - When a provider covers an account that was already imported by CSV, the provider becomes
   authoritative for that account and the imported rows are relinked instead of duplicated.
 
+**Done so far:** the evaluation, with what is known today and the questions
+still to answer, in `PROVIDER-TRIAL.md`; the connection itself, as one row
+per provider account with its own credential, refresh rhythm, history window
+and status; the credential encrypted with AES-256-GCM before it is stored; an
+account belonging to exactly one connection; and a per-connection status and
+error that never contains the credential.
+
+**Still to do:** the trial answer, the provider adapter, the scheduled sync and
+the screen that shows the connections.
+
 | Option | Cost and fit | Caveats to verify |
 |---|---|---|
 | SimpleFIN Bridge | Up to 25 institutions for $1.50/month or $15/year. Good self-hosting fit. | Refreshes about once a day; some accounts have less than 90 days of history. SoFi coverage unconfirmed. |
