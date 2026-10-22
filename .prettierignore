@@ -5,3 +5,4 @@ coverage/
 pnpm-lock.yaml
 packages/db/drizzle/
 *.md
+apps/web/next-env.d.ts

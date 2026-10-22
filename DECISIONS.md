@@ -40,3 +40,4 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-21 | Continuous integration runs the unit, lint, typecheck and end-to-end suites on every push | The suites pass locally; CI keeps them honest.
 2026-10-21 | The end-to-end suite uses its own database in CI as well | The tests change data, so a shared database would make one run depend on another.
 2026-10-21 | Playwright writes an HTML report when the CI environment variable is set | The report is what makes a failed CI run readable without downloading logs.
+2026-10-21 | `apps/web/next-env.d.ts` is excluded from formatting | Next regenerates the file, so formatting it only adds noise to every diff.
