@@ -25,6 +25,7 @@ import {
 } from '@moneytracker/core';
 import {
   countNeedsReview,
+  getCategorySpendByMonth,
   listAccounts,
   listBalances,
   listBudgets,
@@ -45,6 +46,7 @@ import {
   type TransactionRow,
 } from '@moneytracker/db';
 
+import { buildCategoryBreakdownView } from './category-breakdown.ts';
 import { getDatabase } from './db.ts';
 import { getEnv } from './env.ts';
 
@@ -148,6 +150,7 @@ export async function getOverviewData(month = currentMonth()) {
   const accounts = await listAccounts(db, userId);
   const needsReview = await countNeedsReview(db, userId);
   const recent = await listTransactions(db, userId, { limit: 6 });
+  const breakdownRows = await getCategorySpendByMonth(db, userId, { month });
 
   return {
     month,
@@ -160,6 +163,8 @@ export async function getOverviewData(month = currentMonth()) {
     accounts: accounts.map(toAccountSummary),
     needsReview,
     recent,
+    breakdown: buildCategoryBreakdownView(breakdownRows, month),
+    breakdownMonths: months,
   };
 }
 

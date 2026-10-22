@@ -85,3 +85,11 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-22 | The history is fetched in slices of 90 days | One request covers at most 90 days, so a longer window is several requests.
 2026-10-22 | An empty ENCRYPTION_KEY means "not set yet", not a broken configuration | The key is only needed once a connection is added, and the app must still start without it.
 2026-10-22 | The user picks which accounts of a connection to keep | One access URL can cover many banks, and the app only takes the ones the user wants.
+2026-10-22 | The donut shows at most six slices, and the folded "Other" counts as one of them | Six slices are readable on a phone; a seventh would need a legend nobody can hold in their head.
+2026-10-22 | A group keeps its colour, and the categories inside it use its hue with a decreasing opacity | The colour belongs to the category, so changing the month or filtering never repaints a slice.
+2026-10-22 | Red is not the colour of a category | Red is reserved for spending that went up and for a budget that was passed.
+2026-10-22 | The palette covers seven groups, and the three remaining default groups got their own hues | Two groups in one donut must never share a colour, and the default tree has ten groups.
+2026-10-22 | Tapping a category takes the user to the transactions of that category in the same month | The donut is a way into the list, not another place where the numbers live.
+2026-10-22 | The donut has a month of its own, and the rest of the overview keeps the current month | The donut answers one question about one month; the rest of the screen is the month the user is in.
+2026-10-22 | Uncategorized spending is part of the donut | The money left the account, so it is spending, and the total has to match the spending the overview shows.
+2026-10-22 | The month of the breakdown is a range of plain dates, like the transaction list | The donut and the list have to show the same transactions for the same month.

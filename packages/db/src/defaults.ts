@@ -22,6 +22,11 @@ export interface DefaultCategory {
  *
  * Parents group categories for the charts; the kind decides how a category
  * counts towards spending, income or transfers.
+ *
+ * The colours are the palette of the dashboard: one fixed colour per group,
+ * so a group keeps its colour when the month changes or a filter is set. The
+ * children carry a lighter shade of their group, and the charts use the
+ * group's hue with a decreasing opacity.
  */
 export const DEFAULT_CATEGORIES: readonly DefaultCategory[] = [
   { slug: 'income', name: 'Income', kind: 'income', color: '#16a34a', sortOrder: 0 },
@@ -42,12 +47,12 @@ export const DEFAULT_CATEGORIES: readonly DefaultCategory[] = [
     sortOrder: 2,
   },
 
-  { slug: 'housing', name: 'Housing', kind: 'spending', color: '#0ea5e9', sortOrder: 10 },
+  { slug: 'housing', name: 'Housing', kind: 'spending', color: '#2a78d6', sortOrder: 10 },
   {
     slug: 'rent',
     name: 'Rent',
     kind: 'spending',
-    color: '#0ea5e9',
+    color: '#2a78d6',
     parentSlug: 'housing',
     sortOrder: 11,
   },
@@ -55,17 +60,17 @@ export const DEFAULT_CATEGORIES: readonly DefaultCategory[] = [
     slug: 'utilities',
     name: 'Utilities',
     kind: 'spending',
-    color: '#38bdf8',
+    color: '#5996df',
     parentSlug: 'housing',
     sortOrder: 12,
   },
 
-  { slug: 'bills', name: 'Bills', kind: 'spending', color: '#6366f1', sortOrder: 20 },
+  { slug: 'bills', name: 'Bills', kind: 'spending', color: '#eb6834', sortOrder: 20 },
   {
     slug: 'internet',
     name: 'Internet',
     kind: 'spending',
-    color: '#818cf8',
+    color: '#eb6834',
     parentSlug: 'bills',
     sortOrder: 21,
   },
@@ -73,7 +78,7 @@ export const DEFAULT_CATEGORIES: readonly DefaultCategory[] = [
     slug: 'phone',
     name: 'Phone',
     kind: 'spending',
-    color: '#a5b4fc',
+    color: '#ef8961',
     parentSlug: 'bills',
     sortOrder: 22,
   },
@@ -81,17 +86,17 @@ export const DEFAULT_CATEGORIES: readonly DefaultCategory[] = [
     slug: 'insurance',
     name: 'Insurance',
     kind: 'spending',
-    color: '#c7d2fe',
+    color: '#f4aa8d',
     parentSlug: 'bills',
     sortOrder: 23,
   },
 
-  { slug: 'food', name: 'Food', kind: 'spending', color: '#f97316', sortOrder: 30 },
+  { slug: 'food', name: 'Food', kind: 'spending', color: '#1baf7a', sortOrder: 30 },
   {
     slug: 'groceries',
     name: 'Groceries',
     kind: 'spending',
-    color: '#f97316',
+    color: '#1baf7a',
     parentSlug: 'food',
     sortOrder: 31,
   },
@@ -99,7 +104,7 @@ export const DEFAULT_CATEGORIES: readonly DefaultCategory[] = [
     slug: 'restaurants',
     name: 'Restaurants',
     kind: 'spending',
-    color: '#fb923c',
+    color: '#4dc197',
     parentSlug: 'food',
     sortOrder: 32,
   },
@@ -107,17 +112,17 @@ export const DEFAULT_CATEGORIES: readonly DefaultCategory[] = [
     slug: 'coffee',
     name: 'Coffee',
     kind: 'spending',
-    color: '#fdba74',
+    color: '#7fd2b5',
     parentSlug: 'food',
     sortOrder: 33,
   },
 
-  { slug: 'transport', name: 'Transport', kind: 'spending', color: '#eab308', sortOrder: 40 },
+  { slug: 'transport', name: 'Transport', kind: 'spending', color: '#eda100', sortOrder: 40 },
   {
     slug: 'gas',
     name: 'Gas',
     kind: 'spending',
-    color: '#eab308',
+    color: '#eda100',
     parentSlug: 'transport',
     sortOrder: 41,
   },
@@ -125,7 +130,7 @@ export const DEFAULT_CATEGORIES: readonly DefaultCategory[] = [
     slug: 'transit',
     name: 'Transit',
     kind: 'spending',
-    color: '#facc15',
+    color: '#f1b638',
     parentSlug: 'transport',
     sortOrder: 42,
   },
@@ -134,14 +139,14 @@ export const DEFAULT_CATEGORIES: readonly DefaultCategory[] = [
     slug: 'entertainment',
     name: 'Entertainment',
     kind: 'spending',
-    color: '#a855f7',
+    color: '#e87ba4',
     sortOrder: 50,
   },
   {
     slug: 'subscriptions',
     name: 'Subscriptions',
     kind: 'spending',
-    color: '#a855f7',
+    color: '#e87ba4',
     parentSlug: 'entertainment',
     sortOrder: 51,
   },
@@ -149,22 +154,22 @@ export const DEFAULT_CATEGORIES: readonly DefaultCategory[] = [
     slug: 'movies',
     name: 'Movies & Events',
     kind: 'spending',
-    color: '#c084fc',
+    color: '#ed98b8',
     parentSlug: 'entertainment',
     sortOrder: 52,
   },
 
-  { slug: 'travel', name: 'Travel', kind: 'spending', color: '#ec4899', sortOrder: 60 },
-  { slug: 'health', name: 'Health', kind: 'spending', color: '#14b8a6', sortOrder: 70 },
-  { slug: 'shopping', name: 'Shopping', kind: 'spending', color: '#f43f5e', sortOrder: 80 },
+  { slug: 'travel', name: 'Travel', kind: 'spending', color: '#008300', sortOrder: 60 },
+  { slug: 'health', name: 'Health', kind: 'spending', color: '#6250d6', sortOrder: 70 },
+  { slug: 'shopping', name: 'Shopping', kind: 'spending', color: '#0f9b8e', sortOrder: 80 },
   {
     slug: 'personal-care',
     name: 'Personal Care',
     kind: 'spending',
-    color: '#8b5cf6',
+    color: '#7c5cff',
     sortOrder: 90,
   },
-  { slug: 'education', name: 'Education', kind: 'spending', color: '#3b82f6', sortOrder: 91 },
+  { slug: 'education', name: 'Education', kind: 'spending', color: '#8b5a2b', sortOrder: 91 },
 
   { slug: 'transfer', name: 'Transfer', kind: 'transfer', color: '#94a3b8', sortOrder: 100 },
   {

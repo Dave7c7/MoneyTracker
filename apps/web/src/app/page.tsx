@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { Card } from '@/components/card.tsx';
 import { CategoryPill, colorForName } from '@/components/category-pill.tsx';
+import { CategoryDonut } from '@/components/charts/category-donut.tsx';
 import { SpendingByCategoryChart } from '@/components/charts/spending-chart.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount, Money } from '@/components/money.tsx';
@@ -103,6 +104,10 @@ export default async function OverviewPage() {
         </Link>
       </div>
 
+      <Card title="Where the money went" subtitle="Spending by category">
+        <CategoryDonut initial={data.breakdown} months={data.breakdownMonths} />
+      </Card>
+
       {chartCategories.length > 0 ? (
         <Card
           title="Spending by category"
@@ -125,7 +130,7 @@ export default async function OverviewPage() {
         />
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card title="Top categories" subtitle={`${formatMonth(data.month)}`}>
           {monthCategories.length === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400">No spending this month.</p>
@@ -134,10 +139,10 @@ export default async function OverviewPage() {
               {monthCategories.slice(0, 6).map((category) => (
                 <li key={category.categoryId}>
                   <div className="flex items-baseline justify-between gap-3 text-sm">
-                    <span className="truncate text-slate-700 dark:text-slate-200">
+                    <span className="min-w-0 flex-1 truncate text-slate-700 dark:text-slate-200">
                       {category.categoryName}
                     </span>
-                    <span className="tabular font-medium text-slate-900 dark:text-slate-100">
+                    <span className="tabular shrink-0 font-medium text-slate-900 dark:text-slate-100">
                       {formatAmount(category.total)}
                     </span>
                   </div>
@@ -166,10 +171,10 @@ export default async function OverviewPage() {
                   key={merchant.merchantId}
                   className="flex items-center justify-between gap-3 py-2 text-sm"
                 >
-                  <span className="truncate text-slate-700 dark:text-slate-200">
+                  <span className="min-w-0 flex-1 truncate text-slate-700 dark:text-slate-200">
                     {merchant.merchantName}
                   </span>
-                  <span className="tabular font-medium text-slate-900 dark:text-slate-100">
+                  <span className="tabular shrink-0 font-medium text-slate-900 dark:text-slate-100">
                     {formatAmount(merchant.totalMinor)}
                   </span>
                 </li>

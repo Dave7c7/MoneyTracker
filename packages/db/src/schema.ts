@@ -197,6 +197,8 @@ export const transactions = pgTable(
       table.externalId,
     ),
     postedDateIdx: index('transactions_posted_date_idx').on(table.postedDate),
+    // The dashboards read one month of one user at a time.
+    userPostedDateIdx: index('transactions_user_posted_date_idx').on(table.userId, table.postedDate),
     accountIdx: index('transactions_account_idx').on(table.accountId),
     merchantIdx: index('transactions_merchant_idx').on(table.merchantId),
     userIdx: index('transactions_user_idx').on(table.userId),

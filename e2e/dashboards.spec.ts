@@ -24,6 +24,101 @@ test.describe('dashboards', () => {
     }
   });
 
+  test('the donut shows where the month went', async ({ page }) => {
+    await page.goto('/');
+    await expectAppToBoot(page);
+
+    const card = page.locator('section', { hasText: 'Where the money went' }).first();
+    await expect(card).toBeVisible();
+
+    // The donut is drawn, and the legend says what every slice is.
+    await expect(card.locator('.recharts-pie-sector').first()).toBeVisible();
+    const rows = card.locator('ul li button');
+    await expect(rows.first()).toBeVisible();
+    expect(await rows.count()).toBeGreaterThan(1);
+
+    // The centre says the total of the month.
+    const center = card.getByText(/^[A-Z][a-z]{2} \d{4} spending$/).locator('..');
+    await expect(center.getByText(/^\$[\d,]+\.\d\d$/)).toBeVisible();
+
+    // The chart says what it shows, for a screen reader.
+    const label = await card.getByRole('img').getAttribute('aria-label');
+    expect(label).toContain('spending');
+    expect(label).toMatch(/\$[\d,]+\.\d\d/);
+  });
+
+  test('a group opens into its categories and comes back', async ({ page }) => {
+    await page.goto('/');
+    await expectAppToBoot(page);
+
+    const card = page.locator('section', { hasText: 'Where the money went' }).first();
+    const first = card.locator('ul li button').first();
+    const name = ((await first.getAttribute('aria-label')) ?? '').split(',')[0];
+
+    await first.click();
+
+    // The back button appears, and the centre shows the group that was
+    // opened.
+    const back = card.getByRole('button', { name: 'All categories' });
+    await expect(back).toBeVisible();
+    await expect(card.getByText(name ?? '', { exact: true })).toBeVisible();
+
+    await back.click();
+    await expect(back).toHaveCount(0);
+  });
+
+  test('another month resets the donut to the groups', async ({ page }) => {
+    await page.goto('/');
+    await expectAppToBoot(page);
+
+    const card = page.locator('section', { hasText: 'Where the money went' }).first();
+    await card.locator('ul li button').first().click();
+    await expect(card.getByRole('button', { name: 'All categories' })).toBeVisible();
+
+    // Pick another month.
+    const months = await card.locator('select option').allInnerTexts();
+    const other = months[1];
+    await card.locator('select').selectOption({ label: other ?? '' });
+
+    // The drill-down is gone, and the month is the one that was picked.
+    await expect(card.getByRole('button', { name: 'All categories' })).toHaveCount(0);
+    await expect(card.getByText(`${other ?? ''} spending`)).toBeVisible();
+  });
+
+  test('a category takes the user to its transactions', async ({ page }) => {
+    await page.goto('/');
+    await expectAppToBoot(page);
+
+    const card = page.locator('section', { hasText: 'Where the money went' }).first();
+    const first = card.locator('ul li button').first();
+    await first.click();
+
+    // A group with categories opens first; a group without them navigates
+    // straight away.
+    const back = card.getByRole('button', { name: 'All categories' });
+    if (await back.isVisible()) {
+      await card.locator('ul li button').first().click();
+    }
+
+    await page.waitForURL(/\/transactions\?/);
+    const url = new URL(page.url());
+    expect(url.searchParams.get('categoryId')).toBeTruthy();
+    expect(url.searchParams.get('from')).toMatch(/^\d{4}-\d{2}-01$/);
+    expect(url.searchParams.get('to')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  test('the donut fits a narrow phone', async ({ page }) => {
+    await page.goto('/');
+    await expectAppToBoot(page);
+
+    const width = page.viewportSize()?.width ?? 0;
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
+    expect(width).toBeGreaterThan(0);
+  });
+
   test('the overview shows the seeded month at a glance', async ({ page }) => {
     await page.goto('/');
     const main = page.getByRole('main');

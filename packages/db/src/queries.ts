@@ -6,6 +6,9 @@
  */
 
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, or, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
+
+import { plainDateInMonth } from '@moneytracker/core';
 
 import type { Database } from './client.ts';
 import { getEnv } from './env.ts';
@@ -20,6 +23,11 @@ import {
   users,
 } from './schema.ts';
 import { listSplitsByTransaction, type SplitLine } from './splits.ts';
+
+/**
+ * The categories table a second time, to read the parent of a category.
+ */
+const parentCategories = alias(categories, 'parent_categories');
 
 /** Filters accepted by the transaction list. */
 export interface TransactionFilters {
@@ -396,4 +404,80 @@ export async function listAccountsByIds(db: Database, userId: string, ids: strin
     .select()
     .from(accounts)
     .where(and(eq(accounts.userId, userId), inArray(accounts.id, ids)));
+}
+
+/** One category of a month, with the group it belongs to. */
+export interface CategorySpendRow {
+  /** The group the category belongs to. A top level category is its own group. */
+  groupId: string;
+  /** The name of the group. */
+  groupName: string;
+  /** The colour of the group, when it has one. */
+  groupColor: string | null;
+  /** The category itself. */
+  categoryId: string;
+  /** The name of the category. */
+  categoryName: string;
+  /** Signed amount in minor units: negative means money out. */
+  amountMinor: number;
+}
+
+/**
+ * What was spent in a month, by group and by category.
+ *
+ * The group of a category is its parent, or the category itself when it has
+ * no parent. Transfers and income are left out: they are not spending.
+ *
+ * @example
+ * const rows = await getCategorySpendByMonth(db, userId, { month: '2026-10' });
+ */
+export async function getCategorySpendByMonth(
+  db: Database,
+  userId: string,
+  options: { month: string },
+): Promise<CategorySpendRow[]> {
+  const from = plainDateInMonth(options.month, 1);
+  const to = plainDateInMonth(options.month, 31);
+
+  const rows = await db
+    .select({
+      groupId: sql<string>`coalesce(${categories.parentId}, ${categories.id})`,
+      groupName: sql<string>`coalesce(${parentCategories.name}, ${categories.name})`,
+      groupColor: sql<string | null>`coalesce(${parentCategories.color}, ${categories.color})`,
+      categoryId: categories.id,
+      categoryName: categories.name,
+      // Postgres sums of bigint come back as a string; the app works in
+      // numbers, so the sum is read as one here.
+      amountMinor: sql<string>`sum(${transactions.amountMinor})`,
+    })
+    .from(transactions)
+    .innerJoin(categoryAssignments, eq(categoryAssignments.transactionId, transactions.id))
+    .innerJoin(categories, eq(categories.id, categoryAssignments.categoryId))
+    .leftJoin(parentCategories, eq(parentCategories.id, categories.parentId))
+    .where(
+      and(
+        eq(transactions.userId, userId),
+        gte(transactions.postedDate, from),
+        lte(transactions.postedDate, to),
+        eq(transactions.pending, false),
+        inArray(categories.kind, ['spending', 'uncategorized']),
+      ),
+    )
+    .groupBy(
+      sql`coalesce(${categories.parentId}, ${categories.id})`,
+      sql`coalesce(${parentCategories.name}, ${categories.name})`,
+      sql`coalesce(${parentCategories.color}, ${categories.color})`,
+      categories.id,
+      categories.name,
+    )
+    .orderBy(desc(sql`sum(${transactions.amountMinor})`));
+
+  return rows.map((row) => ({
+    groupId: row.groupId,
+    groupName: row.groupName,
+    groupColor: row.groupColor,
+    categoryId: row.categoryId,
+    categoryName: row.categoryName,
+    amountMinor: Number(row.amountMinor),
+  }));
 }

@@ -178,6 +178,30 @@ The rules the code follows:
 
 ---
 
+## Where the money went
+
+The overview opens with a donut of the month's spending, by category group,
+and a legend under it that says the same thing in words.
+
+**A group keeps its colour.** The colour belongs to the category, so changing
+the month or filtering never repaints a slice. The categories inside a group
+use its hue, a little lighter each, so a group and what is inside it are
+clearly the same family. Red is never a category: it is reserved for spending
+that went up and for a budget that was passed.
+
+**Tapping opens, and then it takes you to the list.** Tap a group and the
+donut shows the categories inside it, with the total of that group in the
+middle; tap a category and you land on the transactions of that category, in
+the same month.
+
+**Six slices, and the rest is "Other".** The folded slice is gray, it can be
+opened like any other, and it shows the groups that were folded into it.
+
+**Every number is in the legend.** The chart is the picture; the legend is
+the truth, it works with a keyboard, and a screen reader reads the same thing.
+
+---
+
 ## Categorization
 
 The app is built around the idea that you can see why a transaction was

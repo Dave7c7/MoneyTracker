@@ -378,6 +378,252 @@ function startOfNextMonth(month: MonthKey): number {
   return Date.UTC(Number(yearPart), Number(monthPart), 1);
 }
 
+/** The largest number of slices a donut shows, the folded one included. */
+export const DEFAULT_MAX_SLICES = 6;
+
+/** One row of the category breakdown: a category inside a group. */
+export interface CategoryBreakdownRow {
+  /** The group the category belongs to. */
+  groupId: string;
+  /** The category itself. */
+  categoryId: string;
+  /** Signed amount in minor units: negative means money out. */
+  amountMinor: number;
+}
+
+/** One slice of the donut. */
+export interface CategorySlice {
+  /** The category of the slice. Null for the folded "Other" slice. */
+  categoryId: string | null;
+  /** The name shown in the legend. */
+  name: string;
+  /** The amount of the slice, in minor units, always positive. */
+  amountMinor: number;
+  /** Share of the level, 0 to 100. The slices of a level add up to 100. */
+  percent: number;
+  /** The group whose colour the slice uses. */
+  colorKey: string;
+  /** The categories inside the slice, for the drill-down. */
+  children?: CategorySlice[];
+}
+
+/** A month's spending, broken down by group. */
+export interface CategoryBreakdown {
+  /** What the level adds up to, in minor units. */
+  totalMinor: number;
+  /** The slices, largest first. */
+  slices: CategorySlice[];
+}
+
+/** Options for the breakdown. */
+export interface CategoryBreakdownOptions {
+  /** How many slices the level shows, the folded one included. Defaults to 6. */
+  maxSlices?: number;
+  /** The names of the groups and the categories, by id. */
+  names?: Readonly<Record<string, string>>;
+  /** The name of the folded slice. Defaults to "Other". */
+  otherName?: string;
+}
+
+/**
+ * Breaks a month of spending down by group, and by the categories inside it.
+ *
+ * A group is a top level category: "Food" is a group, "Groceries" is one of
+ * its categories. The breakdown has two levels: the groups, and the
+ * categories inside the group that was opened.
+ *
+ * A refund reduces the total of its category. A category that was refunded
+ * more than it spent ends up below zero, and then it is not a slice at all:
+ * it is shown as zero and left out of the donut.
+ *
+ * The percentages are rounded so the visible numbers add up to exactly 100:
+ * every slice gets the whole percent it earned, and the percent that is left
+ * over goes to the slices that lost the most to the rounding.
+ *
+ * @example
+ * const { slices, totalMinor } = buildCategoryBreakdown(rows, { maxSlices: 6 });
+ */
+export function buildCategoryBreakdown(
+  rows: readonly CategoryBreakdownRow[],
+  options: CategoryBreakdownOptions = {},
+): CategoryBreakdown {
+  const maxSlices = Math.max(1, options.maxSlices ?? DEFAULT_MAX_SLICES);
+  const names = options.names ?? {};
+  const otherName = options.otherName ?? 'Other';
+
+  // The amount of every category inside every group. The rows carry the
+  // sign the database stores: negative means money out.
+  const leaves = new Map<string, { groupId: string; categoryId: string; amountMinor: number }>();
+  for (const row of rows) {
+    const key = `${row.groupId}:${row.categoryId}`;
+    const leaf = leaves.get(key);
+    if (leaf) {
+      leaf.amountMinor += row.amountMinor;
+      continue;
+    }
+    leaves.set(key, {
+      groupId: row.groupId,
+      categoryId: row.categoryId,
+      amountMinor: row.amountMinor,
+    });
+  }
+
+  // Only money that left the account is spending, so a category that was
+  // refunded more than it spent ends up below zero and is not a slice.
+  const spendable = [...leaves.values()]
+    .map((leaf) => ({ ...leaf, amountMinor: -leaf.amountMinor }))
+    .filter((leaf) => leaf.amountMinor > 0);
+
+  // The groups, with the categories inside them.
+  const groups = new Map<string, CategoryGroup>();
+  for (const leaf of spendable) {
+    const group = groups.get(leaf.groupId);
+    if (group) {
+      group.amountMinor += leaf.amountMinor;
+      group.children.push({ categoryId: leaf.categoryId, amountMinor: leaf.amountMinor });
+      continue;
+    }
+    groups.set(leaf.groupId, {
+      groupId: leaf.groupId,
+      amountMinor: leaf.amountMinor,
+      children: [{ categoryId: leaf.categoryId, amountMinor: leaf.amountMinor }],
+    });
+  }
+
+  // The groups, largest first. The name breaks the tie, so the same data
+  // always gives the same order.
+  const ordered = [...groups.values()].sort(
+    (a, b) =>
+      b.amountMinor - a.amountMinor ||
+      (names[a.groupId] ?? '').localeCompare(names[b.groupId] ?? '') ||
+      a.groupId.localeCompare(b.groupId),
+  );
+  const totalMinor = ordered.reduce((sum, group) => sum + group.amountMinor, 0);
+
+  // The groups that fit, and the ones that are folded into "Other".
+  const kept = ordered.length <= maxSlices ? ordered : ordered.slice(0, maxSlices - 1);
+  const folded = ordered.length <= maxSlices ? [] : ordered.slice(maxSlices - 1);
+
+  const otherAmount = folded.reduce((sum, group) => sum + group.amountMinor, 0);
+
+  // The level that is on screen: the groups that fit, and the folded slice.
+  const level: BreakdownEntry[] = [
+    ...kept.map((group) => groupEntry(group, names)),
+    ...(folded.length > 0
+      ? [
+          {
+            id: 'other',
+            name: otherName,
+            amountMinor: otherAmount,
+            colorKey: 'other',
+            children: folded.map((group) => groupEntry(group, names)),
+          },
+        ]
+      : []),
+  ];
+
+  return { totalMinor, slices: buildLevel(level, totalMinor) };
+}
+
+/** A group, with the categories inside it. */
+interface CategoryGroup {
+  groupId: string;
+  amountMinor: number;
+  children: { categoryId: string; amountMinor: number }[];
+}
+
+/** One thing on a level: a group, a category, or the folded slice. */
+interface BreakdownEntry {
+  /** The category of the entry. "other" for the folded slice. */
+  id: string;
+  /** The name shown in the legend. */
+  name: string;
+  /** The amount of the entry, in minor units. */
+  amountMinor: number;
+  /** The group whose colour the entry uses. */
+  colorKey: string;
+  /** What is inside the entry. */
+  children: BreakdownEntry[];
+}
+
+/** A group, with the categories inside it. */
+function groupEntry(group: CategoryGroup, names: Readonly<Record<string, string>>): BreakdownEntry {
+  return {
+    id: group.groupId,
+    name: names[group.groupId] ?? 'Uncategorized',
+    amountMinor: group.amountMinor,
+    colorKey: group.groupId,
+    children: group.children.map((child) => ({
+      id: child.categoryId,
+      name: names[child.categoryId] ?? 'Uncategorized',
+      amountMinor: child.amountMinor,
+      // A category uses the colour of the group it belongs to.
+      colorKey: group.groupId,
+      children: [],
+    })),
+  };
+}
+
+/**
+ * Builds one level of the breakdown.
+ *
+ * Every level is built the same way: the slices are largest first, and each
+ * one gets the share of the level that it earned. The slices of a level add
+ * up to exactly 100.
+ */
+function buildLevel(entries: readonly BreakdownEntry[], levelTotal: number): CategorySlice[] {
+  const sorted = [...entries].sort((a, b) => {
+    // The folded slice is the tail of the level, so it comes last.
+    if (a.id === 'other') return 1;
+    if (b.id === 'other') return -1;
+    return (
+      b.amountMinor - a.amountMinor || a.name.localeCompare(b.name) || a.id.localeCompare(b.id)
+    );
+  });
+  const shares = percentages(
+    sorted.map((entry) => entry.amountMinor),
+    levelTotal,
+  );
+
+  return sorted.map((entry, index) => ({
+    categoryId: entry.id === 'other' ? null : entry.id,
+    name: entry.name,
+    amountMinor: entry.amountMinor,
+    percent: shares[index] ?? 0,
+    colorKey: entry.colorKey,
+    children:
+      entry.children.length > 0 ? buildLevel(entry.children, entry.amountMinor) : undefined,
+  }));
+}
+
+/**
+ * The share of every amount, rounded so the shares add up to exactly 100.
+ *
+ * The rounding is done with integers: every amount is scaled by a hundred,
+ * the whole percent is the floor, and the rest goes to the amounts that lost
+ * the most.
+ */
+function percentages(amounts: readonly number[], total: number): number[] {
+  if (total <= 0) return amounts.map(() => 0);
+
+  const scaled = amounts.map((amount) => amount * 100);
+  const floors = scaled.map((value) => Math.floor(value / total));
+  const remainders = scaled.map((value) => value % total);
+  let left = 100 - floors.reduce((sum, value) => sum + value, 0);
+
+  const order = remainders
+    .map((remainder, index) => ({ remainder, index }))
+    .sort((a, b) => b.remainder - a.remainder || a.index - b.index);
+
+  const result = [...floors];
+  for (const { index } of order) {
+    if (left <= 0) break;
+    result[index] = (result[index] ?? 0) + 1;
+    left -= 1;
+  }
+  return result;
+}
+
 function addSpend(
   spendByCategory: Map<string, Map<number, number>>,
   categoryId: string,
