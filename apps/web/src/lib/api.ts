@@ -69,6 +69,49 @@ export const splitBodySchema = z.object({
     .max(50),
 });
 
+/** The body of a decision about a recurring charge. */
+export const recurringStatusSchema = z.object({
+  status: z.enum(['detected', 'confirmed', 'dismissed']),
+});
+
+/** The body of a bill the user adds by hand. */
+export const manualRecurringSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  amountMinor: z.number().int().positive().max(1_000_000_000),
+  currency: z.string().trim().length(3).default('USD'),
+  cadence: z.enum(['weekly', 'monthly', 'annual']),
+  /** The day of the month the charge lands, 1 to 31. */
+  dayOfMonth: z.number().int().min(1).max(31),
+  /** The month of the year, for an annual bill. 1 to 12. */
+  monthOfYear: z.number().int().min(1).max(12).nullable().optional(),
+  accountId: z.string().uuid().nullable().optional(),
+  categoryId: z.string().uuid().nullable().optional(),
+});
+
+/** The body of a budget. */
+export const budgetBodySchema = z.object({
+  categoryId: categoryId,
+  amountMinor: z.number().int().positive().max(1_000_000_000),
+  rollover: z.boolean().optional(),
+});
+
+/** The body of a savings goal. */
+export const goalBodySchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  targetMinor: z.number().int().positive().max(1_000_000_000),
+  savedMinor: z.number().int().min(0).max(1_000_000_000).optional(),
+  accountId: z.string().uuid().nullable().optional(),
+  /** A plain date, YYYY-MM-DD. */
+  deadline: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .nullable()
+    .optional(),
+});
+
+/** The body of a change to a savings goal. */
+export const goalUpdateSchema = goalBodySchema.partial();
+
 /**
  * Reads and validates a JSON body.
  *

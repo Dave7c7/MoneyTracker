@@ -310,6 +310,74 @@ export function groupSmallCategories(
   return [...head, { categoryId: 'other', categoryName: label, monthly }];
 }
 
+/** A balance snapshot the net worth series needs. */
+export interface BalanceSnapshot {
+  accountId: string;
+  asOf: Date;
+  balanceMinor: number;
+}
+
+/** Net worth at the end of one month. */
+export interface NetWorthPoint {
+  month: MonthKey;
+  /** What the accounts hold, not counting what is owed. */
+  assetsMinor: number;
+  /** What is owed. Negative, because a card balance is money owed. */
+  liabilitiesMinor: number;
+  /** Assets and liabilities together. */
+  netMinor: number;
+}
+
+/**
+ * Net worth over time, from the balance snapshots.
+ *
+ * Net worth is never summed from transactions: it comes from the snapshots
+ * the accounts reported. A month uses the last snapshot of every account up
+ * to the end of that month, so a month with no snapshot still shows what was
+ * known at the time.
+ *
+ * @example
+ * netWorthSeries(snapshots, { months: ['2026-01'], isLiability: () => false });
+ */
+export function netWorthSeries(
+  snapshots: readonly BalanceSnapshot[],
+  options: { months: readonly MonthKey[]; isLiability: (accountId: string) => boolean },
+): NetWorthPoint[] {
+  const sorted = [...snapshots].sort((a, b) => a.asOf.getTime() - b.asOf.getTime());
+  const latest = new Map<string, number>();
+  let cursor = 0;
+
+  return options.months.map((month) => {
+    const monthEnd = startOfNextMonth(month);
+    while (cursor < sorted.length) {
+      const snapshot = sorted[cursor];
+      if (!snapshot || snapshot.asOf.getTime() >= monthEnd) break;
+      latest.set(snapshot.accountId, snapshot.balanceMinor);
+      cursor += 1;
+    }
+
+    let assetsMinor = 0;
+    let liabilitiesMinor = 0;
+    for (const [accountId, balanceMinor] of latest) {
+      if (options.isLiability(accountId)) liabilitiesMinor += balanceMinor;
+      else assetsMinor += balanceMinor;
+    }
+
+    return {
+      month,
+      assetsMinor,
+      liabilitiesMinor,
+      netMinor: assetsMinor + liabilitiesMinor,
+    };
+  });
+}
+
+/** The first instant of the month after the given one. */
+function startOfNextMonth(month: MonthKey): number {
+  const [yearPart, monthPart] = month.split('-');
+  return Date.UTC(Number(yearPart), Number(monthPart), 1);
+}
+
 function addSpend(
   spendByCategory: Map<string, Map<number, number>>,
   categoryId: string,

@@ -68,9 +68,11 @@ test.describe('dashboards', () => {
     const main = page.getByRole('main');
 
     await expect(page.getByRole('heading', { name: 'Accounts', level: 2 })).toBeVisible();
-    await expect(main.getByText('Net worth')).toBeVisible();
+    await expect(main.getByText('Net worth', { exact: true })).toBeVisible();
     await expect(main.getByText('Rewards Credit Card ••5510')).toBeVisible();
     await expect(main.getByText('$24,746.68')).toBeVisible();
+    // The net worth over time, drawn from the balance snapshots.
+    await expect(main.getByRole('heading', { name: 'Net worth over time' })).toBeVisible();
   });
 });
 

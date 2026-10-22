@@ -92,6 +92,12 @@ splits reconcile exactly.
 - Net worth: account balance snapshots over time, assets vs. liabilities
 - Savings goals: target, deadline, manual or account-linked progress (tracking only, no money movement)
 
+**Done so far:** the detector (same merchant, three or more charges, amounts
+within ten percent, a regular cadence), the subscriptions screen with the
+monthly and yearly cost, the next 30 days, a price-change flag and the
+confirm/dismiss decision, bills added by hand, budgets per category with
+rollover, net worth over time from the balance snapshots, and savings goals.
+
 **Done when:** detection correctly flags the recurring items in the mock data and ignores one-offs; budget totals and net worth reconcile with fixtures.
 
 ## Phase 5: Live bank connection

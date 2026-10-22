@@ -14,7 +14,10 @@ import { expect, type Page } from '@playwright/test';
 import {
   createDatabase,
   getLocalUser,
+  removeBudgets,
   removeImportedRows,
+  removeRecurringItems as removeRecurringItemsInApp,
+  removeSavingsGoals,
   removeSplits as removeSplitsInApp,
 } from '../packages/db/src/index.ts';
 
@@ -57,6 +60,47 @@ export async function removeSplits(): Promise<void> {
   try {
     const user = await getLocalUser(db);
     if (user) await removeSplitsInApp(db, user.id);
+  } finally {
+    await pool.end();
+  }
+}
+
+/**
+ * Removes the recurring charges, so the database is the way it was found.
+ *
+ * @example
+ * await removeRecurringItems();
+ */
+export async function removeRecurringItems(): Promise<void> {
+  const url = databaseUrl();
+  if (!url) return;
+
+  const { db, pool } = createDatabase(url);
+  try {
+    const user = await getLocalUser(db);
+    if (user) await removeRecurringItemsInApp(db, user.id);
+  } finally {
+    await pool.end();
+  }
+}
+
+/**
+ * Removes the budgets and the goals, so the database is the way it was found.
+ *
+ * @example
+ * await removePlans();
+ */
+export async function removePlans(): Promise<void> {
+  const url = databaseUrl();
+  if (!url) return;
+
+  const { db, pool } = createDatabase(url);
+  try {
+    const user = await getLocalUser(db);
+    if (user) {
+      await removeBudgets(db, user.id);
+      await removeSavingsGoals(db, user.id);
+    }
   } finally {
     await pool.end();
   }

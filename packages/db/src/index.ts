@@ -16,4 +16,7 @@ export * from './transfers.ts';
 export * from './splits.ts';
 export * from './queries.ts';
 export * from './imports.ts';
+export * from './recurring.ts';
+export * from './budgets.ts';
+export * from './goals.ts';
 export * from './sync.ts';

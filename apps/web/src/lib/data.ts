@@ -8,26 +8,37 @@
 
 import {
   addMonths,
+  budgetStatus,
   cashFlowByMonth,
+  goalProgress,
   groupSmallCategories,
   monthKey,
   monthOverMonth,
   monthRange,
+  netWorthSeries,
+  recurringTotals,
   spendingByCategory,
+  toPlainDate,
   topMerchants,
+  upcomingRecurring,
   type DashboardTransaction,
 } from '@moneytracker/core';
 import {
   countNeedsReview,
   listAccounts,
   listBalances,
+  listBudgets,
   listCategories,
   listDashboardTransactions,
   listImportProfiles,
+  listRecurringItems,
   listReviewGroups,
   listRules,
+  listSavingsGoals,
   listTransactions,
+  detectRecurringItems,
   getLocalUser,
+  toBudgets,
   type TransactionRow,
 } from '@moneytracker/db';
 
@@ -221,12 +232,28 @@ export async function getAccountsData() {
     .filter((account) => account.isLiability)
     .reduce((sum, account) => sum + (account.balanceMinor ?? 0), 0);
 
+  const liabilityIds = new Set(
+    accounts.filter((account) => account.isLiability).map((account) => account.id),
+  );
+  const netWorth = netWorthSeries(
+    balances.map((balance) => ({
+      accountId: balance.accountId,
+      asOf: balance.asOf,
+      balanceMinor: balance.balanceMinor,
+    })),
+    {
+      months: recentMonths(12),
+      isLiability: (accountId) => liabilityIds.has(accountId),
+    },
+  );
+
   return {
     accounts: summaries,
     netWorthMinor: assetsMinor + liabilitiesMinor,
     assetsMinor,
     liabilitiesMinor,
     balances,
+    netWorth,
   };
 }
 
@@ -248,6 +275,122 @@ export async function getImportData() {
       accountType: profile.accountType,
       currency: profile.currency,
     })),
+  };
+}
+
+/** Data for the subscriptions and bills screen. */
+export async function getSubscriptionsData() {
+  const { db } = getDatabase();
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  // The detector runs when the screen opens: a subscription that was missed
+  // last week shows up now, and nothing is lost while it waits.
+  await detectRecurringItems(db, userId);
+  const items = await listRecurringItems(db, userId);
+
+  const timeZone = getEnv().APP_TIMEZONE;
+  const today = toPlainDate(new Date());
+  const active = items.filter((item) => item.status !== 'dismissed');
+  const totals = recurringTotals(
+    active.map((item) => ({
+      amountMinor: item.amountMinor,
+      cadence: item.cadence,
+    })),
+  );
+  const upcoming = upcomingRecurring(active, { from: today, days: 30 });
+
+  return {
+    today,
+    timeZone,
+    items,
+    monthlyMinor: totals.monthlyMinor,
+    annualMinor: totals.annualMinor,
+    upcoming,
+    detected: items.filter((item) => item.status === 'detected').length,
+    confirmed: items.filter((item) => item.status === 'confirmed').length,
+  };
+}
+
+/** Data for the budgets screen. */
+export async function getBudgetsData(month = currentMonth()) {
+  const { db } = getDatabase();
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const timeZone = getEnv().APP_TIMEZONE;
+  const [rows, categories, allRows] = await Promise.all([
+    listBudgets(db, userId),
+    listCategories(db, userId),
+    listDashboardTransactions(db, userId),
+  ]);
+
+  const transactions = allRows.flatMap(toDashboardTransactions);
+  const status = budgetStatus(transactions, toBudgets(rows), { month, timeZone });
+
+  return {
+    month,
+    timeZone,
+    status,
+    budgets: rows,
+    categories: categories
+      .filter((category) => category.kind === 'spending')
+      .map((category) => ({ id: category.id, name: category.name })),
+  };
+}
+
+/** Data for the savings goals screen. */
+export async function getGoalsData() {
+  const { db } = getDatabase();
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const [goals, accounts] = await Promise.all([
+    listSavingsGoals(db, userId),
+    listAccounts(db, userId),
+  ]);
+  const today = toPlainDate(new Date());
+
+  return {
+    today,
+    goals: goals.map((goal) => toGoalView(goal, today)),
+    accounts: accounts.map((account) => ({ id: account.id, name: account.name })),
+  };
+}
+
+/**
+ * A goal as the screen sees it, with the progress worked out.
+ *
+ * The page and the API build the same shape, so a screen that reloads shows
+ * the same thing as the one the server rendered.
+ */
+export function toGoalView(
+  goal: {
+    id: string;
+    name: string;
+    targetMinor: number;
+    savedMinor: number;
+    accountId: string | null;
+    accountName: string | null;
+    deadline: string | null;
+    accountBalanceMinor: number | null;
+  },
+  today: string,
+) {
+  const progress = goalProgress(goal, { today, accountBalanceMinor: goal.accountBalanceMinor });
+  return {
+    id: goal.id,
+    name: goal.name,
+    targetMinor: goal.targetMinor,
+    savedMinor: progress.savedMinor,
+    accountId: goal.accountId,
+    accountName: goal.accountName,
+    deadline: goal.deadline,
+    percentComplete: progress.percentComplete,
+    remainingMinor: progress.remainingMinor,
+    reached: progress.reached,
+    daysLeft: progress.daysLeft,
+    neededPerMonthMinor: progress.neededPerMonthMinor,
   };
 }
 

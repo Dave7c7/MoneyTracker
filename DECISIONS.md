@@ -68,3 +68,10 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-22 | The development server allows the private networks in `allowedDevOrigins` | Next.js refuses development requests from hosts it was not told about, so a phone got the page without the scripts: the numbers arrived and every chart stayed blank.
 2026-10-22 | The app is published on the network only when `BIND_ADDRESS` says so | The default stays on localhost; a phone on the same network is an explicit opt-in, not a default.
 2026-10-22 | The end-to-end tests check that the app booted and that a chart drew a bar | A page without scripts and a chart without bars both look like a working page, so the tests have to look at the pixels.
+2026-10-22 | A recurring charge needs three charges of the same merchant, within ten percent, on a regular cadence | The rules ask for three occurrences and a regular rhythm; the amount window keeps a shop that one day charges twice out of it.
+2026-10-22 | A price change is a step, not a wobble | The newer charges have to agree with each other, so a utility bill that differs every month is a bill and not a price increase.
+2026-10-22 | The detector runs when the subscriptions screen opens | A subscription that was missed last week shows up now, and nothing is lost while it waits.
+2026-10-22 | A dismissed recurring charge is never detected again | The user's decision is final, exactly like a manual categorization.
+2026-10-22 | A budget rollover carries one month of what was left over | Carrying every empty month would multiply the limit; a rollover means last month's leftover.
+2026-10-22 | A savings goal tracks progress and never moves money | Moving money is out of scope; the goal says what has to be saved each month to reach the target.
+2026-10-22 | The plan screens live next to the overview, not in the phone tab bar | Five tabs fit a 360 pixel phone; subscriptions, budgets and goals are checked now and then.

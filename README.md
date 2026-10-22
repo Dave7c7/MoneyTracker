@@ -289,6 +289,42 @@ gives the transaction back to the pipeline.
 
 ---
 
+## Subscriptions and bills
+
+The app finds what it can, and the user decides what is real.
+
+**A recurring charge is a rhythm.** The same merchant, three or more charges,
+amounts within ten percent, and a regular cadence: weekly, monthly or
+annual. Everything else is a one-off, and a merchant whose amounts are all
+over the place is not a subscription either.
+
+**A price change is a step, not a wobble.** When the older charges and the
+newer ones sit at different levels, and the newer ones agree with each other,
+the price went up and the app says so. A utility bill that is a little
+different every month is a bill, not a price change.
+
+**Your decision is final.** A confirmed charge is kept, a dismissed one is
+never brought back, and a bill the app has not found can be added by hand
+with the day it lands.
+
+**The app says what it costs.** The monthly and yearly cost of everything
+recurring, and what is due in the next 30 days.
+
+---
+
+## Budgets and goals
+
+**A budget is a limit you set.** One amount per category per month. The app
+shows what was spent against it, what is left, and when the limit is passed.
+Money that was not spent can roll over into the next month, if you want it to.
+
+**A goal is tracking only.** The app never moves money. A goal has a target
+and a deadline, and its progress is either what you say you set aside or the
+balance of an account you link it to. When there is a deadline, the app says
+what has to be saved each month to get there.
+
+---
+
 ## Configuration
 
 Every setting is an environment variable, validated at startup with Zod. Copy
@@ -304,7 +340,7 @@ with a missing or malformed value.
 | `ADAPTER_ID` | `mock` | Which data source to read from |
 | `REVIEW_CONFIDENCE_THRESHOLD` | `0.8` | Assignments below this go to the review inbox |
 | `DEFAULT_USER_EMAIL` / `DEFAULT_USER_NAME` | `you@example.com` / `Me` | The local user |
-| `ENCRYPTION_KEY` | – | 32-byte key for encrypting stored credentials (Phase 5) |
+| `ENCRYPTION_KEY` | – | 32-byte key (hex) for encrypting stored provider credentials, required once a live connection is added |
 | `AI_CATEGORIZER_ENABLED` | `false` | Optional AI categorizer, off by default |
 
 Bank-provided categories are capped at 0.7 confidence, so with the default

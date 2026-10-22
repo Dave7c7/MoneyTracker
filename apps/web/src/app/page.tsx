@@ -223,6 +223,47 @@ export default async function OverviewPage() {
         </ul>
       </Card>
 
+      <Card title="Your plan" subtitle="What you spend on, what you limit, what you save for">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+          {[
+            {
+              href: '/subscriptions',
+              title: 'Subscriptions and bills',
+              hint: 'What lands every month, and what it costs',
+            },
+            {
+              href: '/budgets',
+              title: 'Budgets',
+              hint: 'A limit per category, and what is left of it',
+            },
+            {
+              href: '/goals',
+              title: 'Savings goals',
+              hint: 'What you are putting aside, and how far you are',
+            },
+          ].map((entry) => (
+            <li key={entry.href}>
+              <Link
+                href={entry.href}
+                className="flex items-center justify-between gap-3 py-2.5 text-sm hover:underline"
+              >
+                <span className="min-w-0">
+                  <span className="block font-medium text-slate-800 dark:text-slate-100">
+                    {entry.title}
+                  </span>
+                  <span className="block text-xs text-slate-500 dark:text-slate-400">
+                    {entry.hint}
+                  </span>
+                </span>
+                <span aria-hidden="true" className="shrink-0 text-slate-400">
+                  ›
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Card>
+
       <Card
         title="Recent transactions"
         action={

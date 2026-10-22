@@ -21,6 +21,9 @@ const links = [
 const secondaryLinks = [
   { href: '/import', label: 'Import', icon: ImportIcon },
   { href: '/accounts', label: 'Accounts', icon: AccountsIcon },
+  { href: '/subscriptions', label: 'Subscriptions', icon: SubscriptionsIcon },
+  { href: '/budgets', label: 'Budgets', icon: BudgetsIcon },
+  { href: '/goals', label: 'Goals', icon: GoalsIcon },
   { href: '/rules', label: 'Rules', icon: RulesIcon },
 ] as const;
 
@@ -245,6 +248,58 @@ function RulesIcon() {
     >
       <path d="M4 6h10M4 12h16M4 18h7" />
       <circle cx="17" cy="6" r="2" />
+    </svg>
+  );
+}
+
+function SubscriptionsIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    >
+      <path d="M4 9a8 8 0 0 1 16 0" />
+      <path d="M4 9v5h3l2 6h6l2-6h3V9" />
+      <path d="M12 4v5" />
+    </svg>
+  );
+}
+
+function BudgetsIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    >
+      <path d="M4 19a9 9 0 1 1 16 0" />
+      <path d="M12 19l4-6" />
+    </svg>
+  );
+}
+
+function GoalsIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    >
+      <path d="M5 21V4" />
+      <path d="M5 5h11l-2 4 2 4H5" />
     </svg>
   );
 }

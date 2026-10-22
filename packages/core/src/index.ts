@@ -18,3 +18,6 @@ export * from './transfers.ts';
 export * from './dashboards.ts';
 export * from './csv.ts';
 export * from './splits.ts';
+export * from './recurring.ts';
+export * from './budgets.ts';
+export * from './goals.ts';

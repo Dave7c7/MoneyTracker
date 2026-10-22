@@ -1,4 +1,5 @@
 import { Card } from '@/components/card.tsx';
+import { NetWorthChart } from '@/components/charts/net-worth-chart.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount } from '@/components/money.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
@@ -81,6 +82,16 @@ export default async function AccountsPage() {
           </Card>
         ))}
       </div>
+
+      <Card title="Net worth over time" subtitle="From the balance snapshots">
+        {data.netWorth.length > 0 ? (
+          <NetWorthChart points={data.netWorth} currency="USD" />
+        ) : (
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            No balance snapshots yet. They arrive with the next sync.
+          </p>
+        )}
+      </Card>
 
       <Card title="Balance history" subtitle="Month-end snapshots">
         <div className="overflow-x-auto">

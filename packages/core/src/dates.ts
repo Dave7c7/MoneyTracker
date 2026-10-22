@@ -146,3 +146,72 @@ export function formatMonthLabel(month: MonthKey, locale = 'en-US'): string {
     timeZone: 'UTC',
   }).format(date);
 }
+
+/**
+ * Adds days to a plain date.
+ *
+ * @example
+ * addDaysToPlainDate('2026-01-30', 3); // "2026-02-02"
+ */
+export function addDaysToPlainDate(date: PlainDate, days: number): PlainDate {
+  const instant = parsePlainDate(date);
+  return toPlainDate(new Date(instant.getTime() + days * 86_400_000));
+}
+
+/**
+ * Adds months to a plain date, keeping the day of the month.
+ *
+ * A day that does not exist in the target month is clamped to the last day of
+ * that month, so the 31st of January becomes the 28th of February.
+ *
+ * @example
+ * addMonthsToPlainDate('2026-01-31', 1); // "2026-02-28"
+ */
+export function addMonthsToPlainDate(date: PlainDate, months: number): PlainDate {
+  const [yearPart, monthPart, dayPart] = date.split('-');
+  const year = Number(yearPart);
+  const monthIndex = Number(monthPart) - 1;
+  const day = Number(dayPart);
+  const absolute = year * 12 + monthIndex + months;
+  const targetYear = Math.floor(absolute / 12);
+  const targetMonth = (absolute % 12) + 1;
+  const lastDay = new Date(Date.UTC(targetYear, targetMonth, 0)).getUTCDate();
+  const clampedDay = Math.min(day, lastDay);
+  return `${String(targetYear).padStart(4, '0')}-${String(targetMonth).padStart(2, '0')}-${String(clampedDay).padStart(2, '0')}`;
+}
+
+/**
+ * Builds a plain date in a month, clamping the day to the length of that month.
+ *
+ * The 31st of a short month becomes the 28th or the 29th, so a bill that
+ * lands on the 31st still has a date in February.
+ *
+ * @example
+ * plainDateInMonth('2026-02', 31); // "2026-02-28"
+ */
+export function plainDateInMonth(month: MonthKey, day: number): PlainDate {
+  const [yearPart, monthPart] = month.split('-');
+  const year = Number(yearPart);
+  const monthIndex = Number(monthPart);
+  const lastDay = new Date(Date.UTC(year, monthIndex, 0)).getUTCDate();
+  const clampedDay = Math.min(Math.max(1, Math.trunc(day)), lastDay);
+  return `${String(year).padStart(4, '0')}-${String(monthIndex).padStart(2, '0')}-${String(clampedDay).padStart(2, '0')}`;
+}
+
+/**
+ * Adds years to a plain date, keeping the day of the month.
+ *
+ * The 29th of February becomes the 28th of February in a common year.
+ *
+ * @example
+ * addYearsToPlainDate('2024-02-29', 1); // "2025-02-28"
+ */
+export function addYearsToPlainDate(date: PlainDate, years: number): PlainDate {
+  const [yearPart, monthPart, dayPart] = date.split('-');
+  const year = Number(yearPart) + years;
+  const month = Number(monthPart);
+  const day = Number(dayPart);
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const clampedDay = Math.min(day, lastDay);
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(clampedDay).padStart(2, '0')}`;
+}

@@ -300,6 +300,127 @@ export const syncRuns = pgTable(
   }),
 );
 
+/**
+ * A recurring charge: a subscription, a bill, or something the app found that
+ * looks like one.
+ *
+ * The status is the user's decision. A dismissed item is never detected
+ * again, and a confirmed one is never overwritten.
+ */
+export const recurringItems = pgTable(
+  'recurring_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** Stable key of the item: the account and the merchant together. */
+    key: text('key').notNull(),
+    /** The merchant key, when the item was found from transactions. */
+    merchantKey: text('merchant_key'),
+    /** The name shown in the app. */
+    merchantName: text('merchant_name').notNull(),
+    /** The description of the last charge, for a manual bill. */
+    descriptionRaw: text('description_raw'),
+    /** The account the charge lands on, when it is known. */
+    accountId: uuid('account_id').references(() => accounts.id, { onDelete: 'set null' }),
+    categoryId: uuid('category_id').references(() => categories.id, { onDelete: 'set null' }),
+    /** 'weekly' | 'monthly' | 'annual' */
+    cadence: text('cadence').notNull().default('monthly'),
+    /** 'detected' | 'confirmed' | 'dismissed' */
+    status: text('status').notNull().default('detected'),
+    /** The current price, as a positive number of minor units. */
+    amountMinor: bigint('amount_minor', { mode: 'number' }).notNull(),
+    currency: text('currency').notNull().default('USD'),
+    /** How many charges were found. */
+    occurrences: integer('occurrences').notNull().default(0),
+    firstDate: date('first_date'),
+    lastDate: date('last_date'),
+    /** The date the next charge is expected. */
+    nextDate: date('next_date').notNull(),
+    /** True when the price moved by more than five percent. */
+    priceChanged: boolean('price_changed').notNull().default(false),
+    /** The price before the change. */
+    previousAmountMinor: bigint('previous_amount_minor', { mode: 'number' }),
+    /** 0..1 */
+    confidence: real('confidence').notNull().default(0),
+    /** Why the app thinks this is recurring, in words. */
+    reason: text('reason'),
+    /** True for a bill the user added by hand. */
+    isManual: boolean('is_manual').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    uniqueKey: uniqueIndex('recurring_items_user_key_idx').on(table.userId, table.key),
+    userIdx: index('recurring_items_user_idx').on(table.userId),
+    nextDateIdx: index('recurring_items_next_date_idx').on(table.nextDate),
+  }),
+);
+
+/**
+ * A monthly budget for one category.
+ *
+ * The budget is a limit the user set, not a promise: the app shows what has
+ * been spent against it.
+ */
+export const budgets = pgTable(
+  'budgets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    categoryId: uuid('category_id')
+      .notNull()
+      .references(() => categories.id, { onDelete: 'cascade' }),
+    /** The budget for one month, in minor units. */
+    amountMinor: bigint('amount_minor', { mode: 'number' }).notNull(),
+    /** When true, money left over is added to the next month. */
+    rollover: boolean('rollover').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    uniqueCategory: uniqueIndex('budgets_user_category_idx').on(table.userId, table.categoryId),
+    userIdx: index('budgets_user_idx').on(table.userId),
+    // A budget of nothing is not a budget.
+    positiveAmount: check('budgets_amount_positive', sql`${table.amountMinor} > 0`),
+  }),
+);
+
+/**
+ * A savings goal.
+ *
+ * The goal is tracking only: the app never moves money. Progress is either
+ * what the user says they set aside, or the balance of a linked account.
+ */
+export const savingsGoals = pgTable(
+  'savings_goals',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    /** The amount the user wants to reach, in minor units. */
+    targetMinor: bigint('target_minor', { mode: 'number' }).notNull(),
+    /** What the user says they have set aside, in minor units. */
+    savedMinor: bigint('saved_minor', { mode: 'number' }).notNull().default(0),
+    /** The account the progress is read from, when it is linked. */
+    accountId: uuid('account_id').references(() => accounts.id, { onDelete: 'set null' }),
+    /** The day the goal should be reached. */
+    deadline: date('deadline'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index('savings_goals_user_idx').on(table.userId),
+    // A goal of nothing is not a goal.
+    positiveTarget: check('savings_goals_target_positive', sql`${table.targetMinor} > 0`),
+  }),
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   transactions: many(transactions),
