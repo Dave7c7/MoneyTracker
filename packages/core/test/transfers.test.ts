@@ -201,6 +201,7 @@ describe('transfer detection', () => {
   it('does not mistake a bill for a transfer', () => {
     expect(looksLikePayment('PG&E ELECTRIC BILL PAYMENT')).toBe(false);
     expect(looksLikePayment('VENMO PAYMENT 1234 TO JOHN D')).toBe(false);
+    expect(looksLikePayment('T-MOBILE AUTOPAY 855-555-0123')).toBe(false);
   });
 });
 

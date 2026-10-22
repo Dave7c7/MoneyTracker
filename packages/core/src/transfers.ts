@@ -71,8 +71,9 @@ export interface TransferOptions {
  *
  * The words have to be specific. "Payment" on its own is not enough: a utility
  * bill called "ELECTRIC BILL PAYMENT" is spending, and a payment to a person
- * is spending too. Banks that describe a card payment without naming the card
- * are missed, and the user can mark those by hand.
+ * is spending too. "Autopay" is not enough either: a phone bill paid by
+ * autopay is spending. Banks that describe a card payment without naming the
+ * card are missed, and the user can mark those by hand.
  */
 const PAYMENT_HINTS: readonly RegExp[] = [
   /transfer/i,
@@ -80,8 +81,6 @@ const PAYMENT_HINTS: readonly RegExp[] = [
   /debit\s*card/i,
   /thank\s*you/i,
   /payment\s*received/i,
-  /auto\s*pay/i,
-  /autopay/i,
 ];
 
 /**
