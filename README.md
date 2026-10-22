@@ -16,8 +16,8 @@ Works on a phone and a desktop as an installable PWA. Single user first.
 | 1. Mock data and dashboards | Done | Demo dataset, PWA shell, overview/spending/cash-flow/transactions/accounts screens |
 | 2. Categorization, rules, review inbox | Done | Fix a category, write a rule, clear the review inbox, undo anything |
 | 3. Transfers, splits, CSV import | Done | Transfers are linked and kept out of the totals, a charge can be split across categories, and a bank export is imported with a saved mapping profile |
-| 4. Subscriptions, bills, budgets, net worth | Planned | Recurring charge detection and budget tracking |
-| 5. Live bank connection | Planned | A new adapter behind the same interface |
+| 4. Subscriptions, bills, budgets, net worth | Done | Recurring charges are found and confirmed, bills can be added by hand, budgets per category, net worth over time, savings goals |
+| 5. Live bank connection | Started | The connection and its encrypted credential are in place; the provider trial is open, see [PROVIDER-TRIAL.md](PROVIDER-TRIAL.md) |
 | 6. Hardening and extras | Planned | Auth, alerts, backups, export |
 
 The plan and the binding rules live in `PLAN.md`, `AGENTS.md` and the rule
