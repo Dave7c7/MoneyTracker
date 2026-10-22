@@ -42,6 +42,9 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
   output: 'standalone',
   poweredByHeader: false,
+  // The end-to-end tests build into their own directory, so running them
+  // never disturbs a development server that is using the default one.
+  distDir: process.env.NEXT_DIST_DIR ?? '.next',
   async headers() {
     return [
       {

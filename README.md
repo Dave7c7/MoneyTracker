@@ -87,6 +87,11 @@ The end-to-end tests run against a seeded database and check the dashboards at
 three widths: 360px (the narrowest the app supports), 448px (a Pixel 10 Pro
 XL) and desktop.
 
+They build the app and start it on port 3100, in their own build directory, so
+a development server on port 3000 is never disturbed. Set `E2E_PORT` to use
+another port, or `E2E_BASE_URL` to point the tests at a server that is already
+running.
+
 The categorization tests change data, so point them at a scratch database. It
 is reset before every run:
 
@@ -181,9 +186,11 @@ it that way.
 
 **Transfers are found, not guessed.** Two transactions on two of your accounts
 with the same amount, opposite signs, no more than three days apart, and a
-description that reads like a payment, are the two sides of one transfer. A
-credit card payment counts too: the money leaves checking and arrives on the
-card.
+description that names the movement ("transfer", "credit card", "thank you",
+"payment received"), are the two sides of one transfer. A credit card payment
+counts too: the money leaves checking and arrives on the card. A plain
+"payment" or "autopay" is not enough — those are usually ordinary bills — and
+a refund never counts.
 
 **They stay visible.** A transfer keeps its place in the transaction list with
 a `Transfer` badge, and the explanation says which transaction on which

@@ -13,6 +13,7 @@ const config = [
     ignores: [
       '**/node_modules/**',
       '**/.next/**',
+      '**/.next-e2e/**',
       '**/dist/**',
       '**/coverage/**',
       'packages/db/drizzle/**',

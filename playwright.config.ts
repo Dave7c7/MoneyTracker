@@ -5,7 +5,22 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * The suite is deliberately small and stable: it checks that the app starts,
  * that the dashboards render the seeded numbers, and that filtering works.
+ *
+ * The tests run against a production build on their own port, in their own
+ * build directory. A development server watches the repository and reloads
+ * whenever a file changes, which would reload the browser mid-test (and would
+ * disturb a development server that is already running).
  */
+
+/** The port the test server listens on. */
+const port = process.env.E2E_PORT ?? '3100';
+
+/** Where the test build goes. */
+const distDir = '.next-e2e';
+
+/** The address the tests use. */
+const baseUrl = process.env.E2E_BASE_URL ?? `http://localhost:${port}`;
+
 export default defineConfig({
   testDir: './e2e',
   // Every run starts from a clean database, so the tests never depend on
@@ -18,7 +33,7 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],
   use: {
-    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
+    baseURL: baseUrl,
     trace: 'retain-on-failure',
   },
   projects: [
@@ -52,21 +67,25 @@ export default defineConfig({
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
-        command: 'pnpm --filter @moneytracker/web dev',
+        command: 'pnpm build && pnpm start',
         // The health check is used as the readiness probe on purpose: it only
         // asks whether the database is reachable. The pages themselves need the
         // schema, and the schema is created by the global setup, which runs
         // after the server has started.
-        url: 'http://localhost:3000/api/health',
-        reuseExistingServer: true,
-        timeout: 120_000,
-        env: process.env.E2E_DATABASE_URL
-          ? {
-              // The end-to-end tests change data, so they run against a
-              // database of their own. The environment variable wins over the
-              // .env file.
-              DATABASE_URL: process.env.E2E_DATABASE_URL,
-            }
-          : undefined,
+        url: `${baseUrl}/api/health`,
+        reuseExistingServer: false,
+        timeout: 240_000,
+        env: {
+          PORT: port,
+          NEXT_DIST_DIR: distDir,
+          ...(process.env.E2E_DATABASE_URL
+            ? {
+                // The end-to-end tests change data, so they run against a
+                // database of their own. The environment variable wins over the
+                // .env file.
+                DATABASE_URL: process.env.E2E_DATABASE_URL,
+              }
+            : {}),
+        },
       },
 });

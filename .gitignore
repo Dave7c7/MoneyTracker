@@ -28,6 +28,7 @@ blob-report/
 .playwright/
 .screenshots/
 tsconfig.tsbuildinfo
+apps/web/.next-e2e/
 
 # TypeScript incremental build info
 apps/web/tsconfig.tsbuildinfo
