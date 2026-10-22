@@ -18,7 +18,7 @@ Works on a phone and a desktop as an installable PWA. Single user first.
 | 3. Transfers, splits, CSV import | Done | Transfers are linked and kept out of the totals, a charge can be split across categories, and a bank export is imported with a saved mapping profile |
 | 4. Subscriptions, bills, budgets, net worth | Done | Recurring charges are found and confirmed, bills can be added by hand, budgets per category, net worth over time, savings goals |
 | 5. Live bank connection | Done | A read-only SimpleFIN connection: paste a setup token, pick the accounts, and the transactions come in |
-| 6. Hardening and extras | Started | Auth (passkey/password + TOTP), alerts, backups, export, data export (CSV/JSON), full data delete |
+| 6. Hardening and extras | Started | A password to open the app, a session that can be ended, and a way back in from the server |
   
 Rules directory created for agent guidance:
 - `rules/categorization.md` - Categorization rules
@@ -41,7 +41,8 @@ docker compose up             # app on http://localhost:3000
 ```
 
 `docker compose up` starts the database, applies the migrations and starts the
-app with an empty database.
+app with an empty database. **The first visit asks you to choose a password** —
+the app starts closed, so nothing is readable until you do.
 
 To load the demo dataset (13 months of realistic transactions across three
 accounts):
@@ -52,6 +53,20 @@ docker compose --profile demo up
 
 The app is published on `localhost:3000` only. Put a reverse proxy in front of
 it for HTTPS; see [Security](#security) below.
+
+**The container keeps its own data.** Compose gives the database a named volume
+(`db-data`), which lives with the containers rather than with this checkout. The
+development server talks to the database in `.env` instead, so the two do not
+share data. To move one into the other:
+
+```bash
+# the development database into the container
+pg_dump "$DATABASE_URL" --no-owner --no-privileges --clean --if-exists \
+  | docker compose exec -T db psql -U moneytracker -d moneytracker
+
+# and back out again
+docker compose exec -T db pg_dump -U moneytracker moneytracker > backup.sql
+```
 
 ### Without Docker
 
@@ -64,6 +79,10 @@ pnpm db:migrate               # create the schema
 pnpm db:seed                  # optional: load the demo dataset
 pnpm dev                      # http://localhost:3000
 ```
+
+`pnpm dev` is the development loop: it watches the source and reloads, and it
+talks to the database in `.env`. The container is how the app runs for real —
+same code, production build, its own database volume.
 
 ### On your phone
 
@@ -104,6 +123,7 @@ Check with `lsof -nP -iTCP:3000 -sTCP:LISTEN` before you compare the two.
 | `pnpm db:generate` | Generate a migration from the schema |
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:seed` | Load the demo dataset (safe to run twice) |
+| `pnpm db:set-password` | Set the password from the server (asks twice, echoes nothing) |
 | `pnpm db:sync` | Sync every bank connection (put it in cron) |
 | `pnpm db:reset` | Wipe and re-seed a scratch database (refuses a non-test URL) |
 | `pnpm db:studio` | Open Drizzle Studio to browse the data |
@@ -205,6 +225,44 @@ opened like any other, and it shows the groups that were folded into it.
 
 **Every number is in the legend.** The chart is the picture; the legend is
 the truth, it works with a keyboard, and a screen reader reads the same thing.
+
+---
+
+## Signing in
+
+**The app starts closed.** The first visit asks for a password; after that,
+every page and every API route needs it. There is no open registration, so an
+address on the network that finds the app cannot claim it: until you set the
+password, it is a page asking for one.
+
+**One password, stored as a hash.** It is hashed with scrypt, with a random
+salt, so the database never holds the password and two people with the same
+password get different hashes. scrypt is deliberately slow and memory hungry,
+which is what makes guessing expensive.
+
+**The cookie does not contain the token the database knows.** The browser gets
+a random token; the `sessions` table stores only its SHA-256. A copy of the
+database cannot be turned into a working sign-in, and signing out deletes the
+row, so a copied cookie stops working the moment you sign out.
+
+**A wrong password cannot be tried forever.** Five wrong tries in a row pause
+sign-in for fifteen minutes, and a wrong password takes the same time to refuse
+whether the email exists or not.
+
+**Forgotten passwords are recovered on the server.** There is no email to reset
+with; the person who runs the server sets it:
+
+```bash
+pnpm db:set-password                      # asks twice, echoes nothing
+printf '%s' 'new password' | pnpm db:set-password   # from a script
+```
+
+Setting a password signs every session out.
+
+**HTTPS is still your job.** A reverse proxy in front of the app is what makes
+the password travel over TLS. The session cookie is marked `Secure` only when
+the request really arrived over HTTPS, so a phone on a home network works over
+plain HTTP while a proxy on the internet gets the safer cookie.
 
 ---
 

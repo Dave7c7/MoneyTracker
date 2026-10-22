@@ -93,3 +93,8 @@ Format: `YYYY-MM-DD | Decision | Reason (one line)`
 2026-10-22 | The donut has a month of its own, and the rest of the overview keeps the current month | The donut answers one question about one month; the rest of the screen is the month the user is in.
 2026-10-22 | Uncategorized spending is part of the donut | The money left the account, so it is spending, and the total has to match the spending the overview shows.
 2026-10-22 | The month of the breakdown is a range of plain dates, like the transaction list | The donut and the list have to show the same transactions for the same month.
+2026-10-22 | Sign-in is a password, not a magic link | Self-hosted installs often have no mail server, and a link that cannot be sent is a locked door; a password plus a server-side recovery command always works.
+2026-10-22 | Passwords are hashed with scrypt, not a plain hash | scrypt is deliberately slow and memory hungry, so a stolen database is expensive to attack; it ships with node, so no dependency is added.
+2026-10-22 | The cookie holds a random token; the database holds its SHA-256 | A copy of the database cannot be turned into a working session, and signing out really signs out because the row is deleted.
+2026-10-22 | The session cookie is Secure only when the request really is HTTPS | The same build serves a home network over plain HTTP and a proxy over HTTPS; marking it always secure makes the browser drop it and signs the user out silently.
+2026-10-22 | There is no open registration | The app starts closed and the first visit sets the password; after that an address on the network cannot claim an install that is already in use.

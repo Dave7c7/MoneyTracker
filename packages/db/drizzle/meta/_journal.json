@@ -64,6 +64,13 @@
       "when": 1792681655680,
       "tag": "0008_zippy_shriek",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792711174684,
+      "tag": "0009_woozy_gateway",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { EmptyState } from '@/components/empty-state.tsx';
 import { RulesManager } from '@/components/rules-manager.tsx';
+import { requireUser } from '@/lib/auth.ts';
 import { getRulesData } from '@/lib/data.ts';
 
 export const dynamic = 'force-dynamic';
@@ -7,6 +8,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Rules' };
 
 export default async function RulesPage() {
+  await requireUser();
+
   const data = await getRulesData();
 
   if (!data) {

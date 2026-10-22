@@ -144,16 +144,20 @@ credentials are encrypted at rest.
 
 ## Phase 6: Hardening and extras
 
-- **Rules created:**
-  - `rules/categorization.md` - Categorization rules
-  - `rules/security.md` - Security rules  
-  - `rules/data-and-money.md` - Data and money rules
-  - `rules/testing.md` - Testing rules
+**Rules created:**
+- `rules/categorization.md` - Categorization rules
+- `rules/security.md` - Security rules
+- `rules/data-and-money.md` - Data and money rules
+- `rules/testing.md` - Testing rules
 
-- Auth (passkey or password + TOTP), session security, rate limiting
-- Alerts: unusually large charge, new subscription, price increase, low balance (push or email)
-- Backups (documented `pg_dump` routine), data export (CSV/JSON), full data delete
-- Optional: household sharing with per-user visibility
-- Accessibility pass and performance pass on large datasets (50k+ transactions)
+**Done so far:** signing in with a password (scrypt, random salt, constant-time
+check), sessions whose tokens are stored only as a hash, a short hold after
+repeated wrong passwords, signing out that revokes the row, changing the
+password for someone who knows the current one, a recovery command for the
+server, the sign-in screen, and a gate that closes every page and every API
+route until the app is claimed.
+
+**Still to do:** two-factor authentication (TOTP), rate limiting per address,
+alerts, backups and data export.
 
 **Done when:** security checklist in `rules/security.md` passes; a fresh deploy from README works on a clean VPS.

@@ -1,6 +1,7 @@
 import { Card } from '@/components/card.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { GoalsManager } from '@/components/goals-manager.tsx';
+import { requireUser } from '@/lib/auth.ts';
 import { getGoalsData } from '@/lib/data.ts';
 
 export const dynamic = 'force-dynamic';
@@ -8,6 +9,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Goals' };
 
 export default async function GoalsPage() {
+  await requireUser();
+
   const data = await getGoalsData();
 
   if (!data) {

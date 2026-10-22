@@ -2,6 +2,7 @@ import { Card } from '@/components/card.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { TransactionFilters } from '@/components/transaction-filters.tsx';
 import { TransactionList } from '@/components/transaction-list.tsx';
+import { requireUser } from '@/lib/auth.ts';
 import { getTransactionsData } from '@/lib/data.ts';
 import { parseTransactionFilters } from '@/lib/filters.ts';
 
@@ -16,6 +17,8 @@ export default async function TransactionsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  await requireUser();
+
   const params = await searchParams;
   const filters = parseTransactionFilters(params as Record<string, unknown>);
   const data = await getTransactionsData(filters);

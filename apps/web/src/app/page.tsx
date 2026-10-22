@@ -7,12 +7,15 @@ import { SpendingByCategoryChart } from '@/components/charts/spending-chart.tsx'
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount, Money } from '@/components/money.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
+import { requireUser } from '@/lib/auth.ts';
 import { getOverviewData } from '@/lib/data.ts';
 import { formatAccountName, formatMonth, formatPercent, formatShortDate } from '@/lib/format.ts';
 
 export const dynamic = 'force-dynamic';
 
 export default async function OverviewPage() {
+  await requireUser();
+
   const data = await getOverviewData();
 
   if (!data) {

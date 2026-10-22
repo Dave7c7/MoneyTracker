@@ -1,4 +1,5 @@
 import { ImportWizard } from '@/components/import-wizard.tsx';
+import { requireUser } from '@/lib/auth.ts';
 import { getImportData } from '@/lib/data.ts';
 
 export const dynamic = 'force-dynamic';
@@ -6,6 +7,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Import' };
 
 export default async function ImportPage() {
+  await requireUser();
+
   const data = await getImportData();
 
   if (!data) {

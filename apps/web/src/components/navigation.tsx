@@ -40,6 +40,9 @@ function isActive(pathname: string, href: string): boolean {
 export function Navigation({ reviewCount = 0 }: { reviewCount?: number }) {
   const pathname = usePathname();
 
+  // There is nothing to navigate to before signing in.
+  if (pathname === '/login') return null;
+
   return (
     <nav
       aria-label="Primary"

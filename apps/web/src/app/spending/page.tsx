@@ -4,6 +4,7 @@ import { SpendingByCategoryChart } from '@/components/charts/spending-chart.tsx'
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount } from '@/components/money.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
+import { requireUser } from '@/lib/auth.ts';
 import { getSpendingData } from '@/lib/data.ts';
 import { formatMonth, formatPercent } from '@/lib/format.ts';
 
@@ -12,6 +13,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Spending' };
 
 export default async function SpendingPage() {
+  await requireUser();
+
   const data = await getSpendingData();
 
   if (!data) {

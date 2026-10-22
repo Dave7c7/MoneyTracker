@@ -5,8 +5,9 @@ import './globals.css';
 import { AppBootCheck } from '@/components/app-boot-check.tsx';
 import { Navigation } from '@/components/navigation.tsx';
 import { ServiceWorkerRegistration } from '@/components/service-worker-registration.tsx';
-import { countNeedsReview, getLocalUser } from '@moneytracker/db';
+import { countNeedsReview } from '@moneytracker/db';
 
+import { getSessionUserId } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
 
 export const metadata: Metadata = {
@@ -84,9 +85,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               data-boot-warning
               className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100"
             >
-              The scripts of the app did not load, so the charts and the buttons
-              are missing. The numbers below are still correct. Reload the page,
-              and if it keeps happening, open it in a private window.
+              The scripts of the app did not load, so the charts and the buttons are missing. The
+              numbers below are still correct. Reload the page, and if it keeps happening, open it
+              in a private window.
             </p>
             {children}
           </main>
@@ -107,10 +108,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
  */
 async function countReview(): Promise<number> {
   try {
-    const { db } = getDatabase();
-    const user = await getLocalUser(db);
-    if (!user) return 0;
-    return await countNeedsReview(db, user.id);
+    const userId = await getSessionUserId();
+    if (!userId) return 0;
+    return await countNeedsReview(getDatabase().db, userId);
   } catch {
     return 0;
   }

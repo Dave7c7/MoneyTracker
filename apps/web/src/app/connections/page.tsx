@@ -1,6 +1,7 @@
 import { Card } from '@/components/card.tsx';
 import { ConnectionsManager } from '@/components/connections-manager.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
+import { requireUser } from '@/lib/auth.ts';
 import { getConnectionsData } from '@/lib/data.ts';
 
 export const dynamic = 'force-dynamic';
@@ -8,6 +9,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Connections' };
 
 export default async function ConnectionsPage() {
+  await requireUser();
+
   const data = await getConnectionsData();
 
   if (!data) {

@@ -21,4 +21,6 @@ export * from './budgets.ts';
 export * from './goals.ts';
 export * from './connections.ts';
 export * from './credentials.ts';
+export * from './auth.ts';
+export * from './password.ts';
 export * from './sync.ts';

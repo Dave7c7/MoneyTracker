@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+import { E2E_STATE_PATH } from './e2e/auth.ts';
+
 /**
  * End-to-end configuration.
  *
@@ -35,6 +37,9 @@ export default defineConfig({
   use: {
     baseURL: baseUrl,
     trace: 'retain-on-failure',
+    // The global setup sets the password and signs in once; the tests start
+    // from that cookie. The sign-in tests opt out of it.
+    storageState: E2E_STATE_PATH,
   },
   projects: [
     {

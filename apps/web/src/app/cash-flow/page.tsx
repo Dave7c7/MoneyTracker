@@ -3,6 +3,7 @@ import { CashFlowChart } from '@/components/charts/cash-flow-chart.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount, formatSignedAmount } from '@/components/money.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
+import { requireUser } from '@/lib/auth.ts';
 import { getCashFlowData } from '@/lib/data.ts';
 import { formatMonth } from '@/lib/format.ts';
 
@@ -11,6 +12,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Cash flow' };
 
 export default async function CashFlowPage() {
+  await requireUser();
+
   const data = await getCashFlowData();
 
   if (!data) {

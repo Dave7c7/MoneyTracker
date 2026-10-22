@@ -57,8 +57,52 @@ export const users = pgTable('users', {
   displayName: text('display_name').notNull(),
   /** IANA timezone used for monthly buckets. */
   timeZone: text('time_zone').notNull().default('UTC'),
+  /**
+   * The scrypt hash of the password, never the password.
+   *
+   * It is null until the password is set the first time, which is what makes
+   * the app safe before it is claimed.
+   */
+  passwordHash: text('password_hash'),
+  /** Failed attempts since the last success. Reset when signing in works. */
+  failedLoginCount: integer('failed_login_count').notNull().default(0),
+  /** When signing in is allowed again, after too many failed attempts. */
+  lockedUntil: timestamp('locked_until', { withTimezone: true }),
+  /** When the password last signed in. */
+  lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * A signed-in session.
+ *
+ * The cookie holds a random token; the table holds only its SHA-256, so a copy
+ * of the database cannot be turned back into a working cookie.
+ */
+export const sessions = pgTable(
+  'sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** SHA-256 of the token in the cookie, hex. */
+    tokenHash: text('token_hash').notNull(),
+    /** When the session stops being accepted. */
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    /** When the session was last used, for "signed in on" lists. */
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    /** The address that signed in, when the server can see it. */
+    createdIp: text('created_ip'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    uniqueToken: uniqueIndex('sessions_token_hash_idx').on(table.tokenHash),
+    userIdx: index('sessions_user_idx').on(table.userId),
+  }),
+);
 
 export const accounts = pgTable(
   'accounts',

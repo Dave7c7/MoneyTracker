@@ -82,6 +82,8 @@ services:
       DEFAULT_LOCALE: ${DEFAULT_LOCALE:-en-US}
       ADAPTER_ID: ${ADAPTER_ID:-mock}
       REVIEW_CONFIDENCE_THRESHOLD: ${REVIEW_CONFIDENCE_THRESHOLD:-0.8}
+      # Encrypts stored provider credentials. Set it in .env (openssl rand -hex 32).
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
     ports:
       # Bound to localhost on purpose. Use a reverse proxy for public access.
       # To let a phone on the same network reach the app, start it with

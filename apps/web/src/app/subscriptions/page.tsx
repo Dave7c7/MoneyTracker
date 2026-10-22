@@ -3,6 +3,7 @@ import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount } from '@/components/money.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
 import { SubscriptionsManager } from '@/components/subscriptions-manager.tsx';
+import { requireUser } from '@/lib/auth.ts';
 import { getSubscriptionsData } from '@/lib/data.ts';
 
 export const dynamic = 'force-dynamic';
@@ -10,6 +11,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Subscriptions' };
 
 export default async function SubscriptionsPage() {
+  await requireUser();
+
   const data = await getSubscriptionsData();
 
   if (!data) {

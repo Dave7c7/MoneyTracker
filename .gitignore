@@ -27,6 +27,8 @@ playwright-report/
 blob-report/
 .playwright/
 .screenshots/
+# The signed-in cookie the end-to-end setup saves.
+e2e/.auth/
 tsconfig.tsbuildinfo
 apps/web/.next-e2e/
 

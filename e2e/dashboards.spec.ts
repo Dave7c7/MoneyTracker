@@ -37,8 +37,10 @@ test.describe('dashboards', () => {
     await expect(rows.first()).toBeVisible();
     expect(await rows.count()).toBeGreaterThan(1);
 
-    // The centre says the total of the month.
-    await expect(card.locator('div.absolute')).toContainText(/^\$[\d,]+\.\d\d$/);
+    // The centre names the month and says the total, in its own line.
+    const centre = card.locator('div.absolute');
+    await expect(centre).toContainText(/spending/);
+    await expect(centre.locator('p').last()).toHaveText(/^\$[\d,]+\.\d\d$/);
 
     // The chart says what it shows, for a screen reader.
     const label = await card.getByRole('img').getAttribute('aria-label');

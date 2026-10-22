@@ -21,3 +21,4 @@ export * from './splits.ts';
 export * from './recurring.ts';
 export * from './budgets.ts';
 export * from './goals.ts';
+export * from './password.ts';

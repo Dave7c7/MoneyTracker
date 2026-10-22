@@ -2,6 +2,7 @@ import { Card } from '@/components/card.tsx';
 import { BudgetsManager } from '@/components/budgets-manager.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatMonth } from '@/lib/format.ts';
+import { requireUser } from '@/lib/auth.ts';
 import { getBudgetsData } from '@/lib/data.ts';
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +10,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Budgets' };
 
 export default async function BudgetsPage() {
+  await requireUser();
+
   const data = await getBudgetsData();
 
   if (!data) {

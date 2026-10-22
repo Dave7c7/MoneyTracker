@@ -126,6 +126,17 @@ export const linkAccountsSchema = z.object({
   externalIds: z.array(z.string().trim().min(1).max(200)).min(1).max(50),
 });
 
+/** The body of setting the first password. */
+export const passwordBodySchema = z.object({
+  password: z.string().min(1).max(1024),
+});
+
+/** The body of changing the password. */
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1).max(1024),
+  newPassword: z.string().min(1).max(1024),
+});
+
 /**
  * Reads and validates a JSON body.
  *

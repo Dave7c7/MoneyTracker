@@ -40,13 +40,13 @@ import {
   listSavingsGoals,
   listTransactions,
   detectRecurringItems,
-  getLocalUser,
   isEncryptionKey,
   toBudgets,
   type TransactionRow,
 } from '@moneytracker/db';
 
 import { buildCategoryBreakdownView } from './category-breakdown.ts';
+import { getSessionUserId } from './auth.ts';
 import { getDatabase } from './db.ts';
 import { getEnv } from './env.ts';
 
@@ -71,15 +71,13 @@ export interface AccountSummary {
 }
 
 /**
- * Returns the local user id.
+ * Returns the signed-in user id, or null.
  *
- * Phase 6 replaces this with a real session. Everything is already scoped by
- * `user_id`.
+ * The session cookie is the only way in: there is no "first user" shortcut, so
+ * a fresh install shows the sign-in page rather than somebody else's data.
  */
 export async function getUserId(): Promise<string | null> {
-  const { db } = getDatabase();
-  const user = await getLocalUser(db);
-  return user?.id ?? null;
+  return getSessionUserId();
 }
 
 /**

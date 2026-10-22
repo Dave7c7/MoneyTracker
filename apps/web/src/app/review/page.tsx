@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { ReviewInbox } from '@/components/review-inbox.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
+import { requireUser } from '@/lib/auth.ts';
 import { getReviewData } from '@/lib/data.ts';
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +10,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Review' };
 
 export default async function ReviewPage() {
+  await requireUser();
+
   const data = await getReviewData();
 
   if (!data) {

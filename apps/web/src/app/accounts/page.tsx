@@ -3,6 +3,7 @@ import { NetWorthChart } from '@/components/charts/net-worth-chart.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount } from '@/components/money.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
+import { requireUser } from '@/lib/auth.ts';
 import { getAccountsData } from '@/lib/data.ts';
 import { formatAccountName, formatShortDate } from '@/lib/format.ts';
 import Link from 'next/link';
@@ -12,6 +13,8 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Accounts' };
 
 export default async function AccountsPage() {
+  await requireUser();
+
   const data = await getAccountsData();
 
   if (!data) {

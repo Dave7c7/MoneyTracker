@@ -57,6 +57,7 @@ const config = [
       'packages/db/src/seed.ts',
       'packages/db/src/reset.ts',
       'packages/db/src/sync-connections.ts',
+      'packages/db/src/set-password.ts',
       '**/scripts/**/*.mjs',
     ],
     rules: {
