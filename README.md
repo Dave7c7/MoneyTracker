@@ -116,8 +116,9 @@ Check with `lsof -nP -iTCP:3000 -sTCP:LISTEN` before you compare the two.
 |---|---|
 | `pnpm dev` | Start the web app in development mode |
 | `pnpm build` / `pnpm start` | Build and run the production app |
-| `pnpm test` | Run the unit tests (and the database tests when `TEST_DATABASE_URL` is set) |
-| `pnpm e2e` | Run the end-to-end tests (needs `pnpm e2e:install` once) |
+| `pnpm test` | Unit and database tests: creates the scratch database itself |
+| `pnpm db:test:setup` | Create and migrate the test database, and say what it found |
+| `pnpm e2e` | End-to-end tests (needs `pnpm e2e:install` once) |
 | `pnpm lint` / `pnpm typecheck` | Lint and type check everything |
 | `pnpm check` | `test` + `lint` + `typecheck`, the gate before every commit |
 | `pnpm db:generate` | Generate a migration from the schema |
@@ -128,29 +129,50 @@ Check with `lsof -nP -iTCP:3000 -sTCP:LISTEN` before you compare the two.
 | `pnpm db:reset` | Wipe and re-seed a scratch database (refuses a non-test URL) |
 | `pnpm db:studio` | Open Drizzle Studio to browse the data |
 
-The database integration tests need a scratch database:
+### Testing
+
+**`pnpm test` needs nothing but Postgres.** It creates the scratch database
+(`moneytracker_test`), applies the migrations, runs the unit and database tests,
+and releases its lock. There is no variable to set and no `createdb` to
+remember.
 
 ```bash
-TEST_DATABASE_URL=postgresql://moneytracker:moneytracker@localhost:5432/moneytracker_test pnpm test
+pnpm test                     # everything; sets the database up on the way in
+pnpm test --project db        # only the database tests
+pnpm db:test:setup            # just prepare it, and see what it found
 ```
 
-The end-to-end tests run against a seeded database and check the dashboards at
-three widths: 360px (the narrowest the app supports), 448px (a Pixel 10 Pro
-XL) and desktop.
+**Only one run at a time per database.** The database tests empty tables between
+cases, so a second run against the same database would destroy the first one's
+fixtures — and the failures would look like broken code. A Postgres advisory
+lock makes that impossible: the second run stops before the first test with a
+sentence that says which database is busy. A crashed run releases the lock by
+itself, because the lock belongs to a connection.
 
-They build the app and start it on port 3100, in their own build directory, so
-a development server on port 3000 is never disturbed. Set `E2E_PORT` to use
-another port, or `E2E_BASE_URL` to point the tests at a server that is already
-running.
-
-The categorization tests change data, so point them at a scratch database. It
-is reset before every run:
+To run two at once, give the second one its own database; the setup creates it:
 
 ```bash
-createdb moneytracker_e2e
-export E2E_DATABASE_URL=postgresql://moneytracker:moneytracker@localhost:5432/moneytracker_e2e
-pnpm e2e:install   # once, downloads the browser
-pnpm e2e
+TEST_DATABASE_URL=postgresql://moneytracker:moneytracker@localhost:5432/moneytracker_test2 \
+  pnpm test
+```
+
+A database whose name does not end in `_test`, `_test2` or `_e2e` is refused, so
+a stray variable cannot empty the development database.
+
+**The end-to-end tests work the same way.** `pnpm e2e` uses `moneytracker_e2e`,
+creates and migrates it, and resets it before every run. Point
+`E2E_DATABASE_URL` elsewhere if you need to.
+
+They run against the seeded database and check the dashboards at three widths:
+360px (the narrowest the app supports), 448px (a Pixel 10 Pro XL) and desktop.
+They build the app and start it on port 3100, in their own build directory, so
+the container on port 3000 is never disturbed. Set `E2E_PORT` to use another
+port, or `E2E_BASE_URL` to point the tests at a server that is already running.
+
+The first time only, the browser needs downloading:
+
+```bash
+pnpm e2e:install
 ```
 
 To look at the app the way each device sees it:

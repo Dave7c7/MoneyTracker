@@ -58,6 +58,9 @@ const config = [
       'packages/db/src/reset.ts',
       'packages/db/src/sync-connections.ts',
       'packages/db/src/set-password.ts',
+      'packages/db/src/test-setup.ts',
+      // The setups run outside the app and say what they did.
+      'e2e/global-setup.ts',
       '**/scripts/**/*.mjs',
     ],
     rules: {

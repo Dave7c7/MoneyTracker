@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 import { E2E_STATE_PATH } from './e2e/auth.ts';
+import { DEFAULT_E2E_DATABASE_URL } from './packages/db/src/test-database.ts';
 
 /**
  * End-to-end configuration.
@@ -22,6 +23,14 @@ const distDir = '.next-e2e';
 
 /** The address the tests use. */
 const baseUrl = process.env.E2E_BASE_URL ?? `http://localhost:${port}`;
+
+/*
+  The end-to-end tests have their own database, with a default so the suite runs
+  on a fresh machine with nothing to configure. It is created, migrated and
+  reset by the global setup; the name ends in `_e2e` so it can never be the
+  development database.
+*/
+const e2eDatabaseUrl = process.env.E2E_DATABASE_URL?.trim() || DEFAULT_E2E_DATABASE_URL;
 
 export default defineConfig({
   testDir: './e2e',
@@ -73,24 +82,25 @@ export default defineConfig({
     ? undefined
     : {
         command: 'pnpm build && pnpm start',
-        // The health check is used as the readiness probe on purpose: it only
-        // asks whether the database is reachable. The pages themselves need the
-        // schema, and the schema is created by the global setup, which runs
-        // after the server has started.
-        url: `${baseUrl}/api/health`,
+        /*
+          The readiness probe must not need the database.
+
+          The database is created and reset by the global setup, and Playwright
+          starts the web server before it runs the global setup. A probe that
+          asks whether the database is reachable therefore waits for the setup
+          while the setup waits for the server, and the run dies on the timeout
+          with no useful message. This static file only asks whether the server
+          is listening.
+        */
+        url: `${baseUrl}/manifest.webmanifest`,
         reuseExistingServer: false,
         timeout: 240_000,
         env: {
           PORT: port,
           NEXT_DIST_DIR: distDir,
-          ...(process.env.E2E_DATABASE_URL
-            ? {
-                // The end-to-end tests change data, so they run against a
-                // database of their own. The environment variable wins over the
-                // .env file.
-                DATABASE_URL: process.env.E2E_DATABASE_URL,
-              }
-            : {}),
+          // The end-to-end tests change data, so they run against a database of
+          // their own. This wins over the .env file.
+          DATABASE_URL: e2eDatabaseUrl,
         },
       },
 });

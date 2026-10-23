@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/migrate.ts",
     "db:seed": "tsx src/seed.ts",
+    "db:test:setup": "tsx src/test-setup.ts",
     "db:set-password": "tsx src/set-password.ts",
     "db:sync": "tsx src/sync-connections.ts",
     "db:studio": "drizzle-kit studio",
