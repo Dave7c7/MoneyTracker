@@ -115,7 +115,10 @@ test.describe('import', () => {
 
     // The next visit offers it, and choosing it loads its mapping.
     await page.goto('/import');
-    await page.getByRole('button', { name: new RegExp(name) }).first().click();
+    await page
+      .getByRole('button', { name: new RegExp(name) })
+      .first()
+      .click();
     await expect(page.getByLabel('Profile name')).toHaveValue(name);
   });
 });

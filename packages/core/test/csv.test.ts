@@ -274,7 +274,9 @@ describe('parseCsvRows', () => {
       '\n',
     );
 
-    const outcome = parseCsvRows(text, createCsvMapping({ ...mapping, headerRow: 1 }), { minorUnits: 2 });
+    const outcome = parseCsvRows(text, createCsvMapping({ ...mapping, headerRow: 1 }), {
+      minorUnits: 2,
+    });
 
     expect(outcome.rows).toHaveLength(1);
     expect(outcome.rows[0]?.description).toBe('COFFEE');

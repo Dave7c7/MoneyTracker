@@ -1,11 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { expectAppToBoot } from './helpers.ts';
-import {
-  createAlert,
-  createDatabase,
-  getLocalUser,
-} from '../packages/db/src/index.ts';
+import { createAlert, createDatabase, getLocalUser } from '../packages/db/src/index.ts';
 import { alerts } from '../packages/db/src/schema.ts';
 
 /**

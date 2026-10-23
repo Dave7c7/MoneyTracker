@@ -74,7 +74,9 @@ describe('budgetAlert', () => {
     });
 
     expect(alert?.title).toBe('Groceries has reached its budget');
-    expect(alert?.body).toBe('Spent $500.00 of $500.00 this month. There is nothing left in this budget.');
+    expect(alert?.body).toBe(
+      'Spent $500.00 of $500.00 this month. There is nothing left in this budget.',
+    );
     expect(alert?.dedupeKey).toBe('budget:budget-1:2026-10:over');
   });
 

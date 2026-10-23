@@ -65,7 +65,9 @@ test.describe('account', () => {
       main.getByRole('button', { name: 'Download' }).click(),
     ]);
 
-    expect(download.suggestedFilename()).toMatch(/^moneytracker-transactions-\d{4}-\d{2}-\d{2}\.csv$/);
+    expect(download.suggestedFilename()).toMatch(
+      /^moneytracker-transactions-\d{4}-\d{2}-\d{2}\.csv$/,
+    );
 
     const csv = await downloadText(download);
     const lines = csv.trimEnd().split('\r\n');

@@ -9,11 +9,7 @@
 const inputClass =
   'mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 outline-none focus:border-slate-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
 
-export function ExportForm({
-  accounts,
-}: {
-  accounts: { id: string; name: string }[];
-}) {
+export function ExportForm({ accounts }: { accounts: { id: string; name: string }[] }) {
   return (
     <form action="/api/export" method="get" className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">

@@ -205,7 +205,11 @@ describe.skipIf(!testDatabaseUrl)('alerts', () => {
 
     it('speaks up at ninety percent and not again for the same month', async () => {
       await setBudget(50_000);
-      await addTransaction({ amountMinor: -45_500, description: 'Market', categoryId: groceriesId });
+      await addTransaction({
+        amountMinor: -45_500,
+        description: 'Market',
+        categoryId: groceriesId,
+      });
 
       const raised = await evaluate();
       expect(raised).toHaveLength(1);
@@ -216,10 +220,18 @@ describe.skipIf(!testDatabaseUrl)('alerts', () => {
 
     it('says it again, once, when the limit is passed', async () => {
       await setBudget(50_000);
-      await addTransaction({ amountMinor: -45_500, description: 'Market', categoryId: groceriesId });
+      await addTransaction({
+        amountMinor: -45_500,
+        description: 'Market',
+        categoryId: groceriesId,
+      });
       await evaluate();
 
-      await addTransaction({ amountMinor: -10_000, description: 'More market', categoryId: groceriesId });
+      await addTransaction({
+        amountMinor: -10_000,
+        description: 'More market',
+        categoryId: groceriesId,
+      });
       const raised = await evaluate();
 
       expect(raised).toHaveLength(1);
@@ -229,7 +241,11 @@ describe.skipIf(!testDatabaseUrl)('alerts', () => {
 
     it('says nothing while the month is comfortable', async () => {
       await setBudget(50_000);
-      await addTransaction({ amountMinor: -10_000, description: 'Market', categoryId: groceriesId });
+      await addTransaction({
+        amountMinor: -10_000,
+        description: 'Market',
+        categoryId: groceriesId,
+      });
 
       expect(await evaluate()).toHaveLength(0);
     });
@@ -246,7 +262,10 @@ describe.skipIf(!testDatabaseUrl)('alerts', () => {
     });
 
     async function budgetId(): Promise<string> {
-      const rows = await db.select({ id: budgets.id }).from(budgets).where(eq(budgets.userId, userId));
+      const rows = await db
+        .select({ id: budgets.id })
+        .from(budgets)
+        .where(eq(budgets.userId, userId));
       return rows[0]!.id;
     }
   });
@@ -297,7 +316,11 @@ describe.skipIf(!testDatabaseUrl)('alerts', () => {
   });
 
   describe('connections', () => {
-    async function addConnection(input: { status: string; lastError: string | null; updatedAt?: Date }) {
+    async function addConnection(input: {
+      status: string;
+      lastError: string | null;
+      updatedAt?: Date;
+    }) {
       const rows = await db
         .insert(connections)
         .values({

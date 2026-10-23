@@ -42,7 +42,7 @@ export interface CategorizationState {
  *
  * @example
  * toCoreRule(row); // { id, name, priority, ... }
- */export function toCoreRule(row: RuleRow): Rule {
+ */ export function toCoreRule(row: RuleRow): Rule {
   return {
     id: row.id,
     name: row.name,
@@ -70,7 +70,12 @@ export async function loadCategorizationState(
 ): Promise<CategorizationState> {
   const [categoryRows, mappingRows, ruleRows, transactionRows] = await Promise.all([
     db
-      .select({ id: categories.id, name: categories.name, slug: categories.slug, kind: categories.kind })
+      .select({
+        id: categories.id,
+        name: categories.name,
+        slug: categories.slug,
+        kind: categories.kind,
+      })
       .from(categories)
       .where(eq(categories.userId, userId)),
     db

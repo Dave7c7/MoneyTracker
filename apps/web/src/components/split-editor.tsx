@@ -145,9 +145,8 @@ export function SplitEditor({
         Split this transaction
       </p>
       <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-        The whole is{' '}
-        <Money amountMinor={amountMinor} currency={currency} className="font-medium" />. The parts
-        have to add up to it.
+        The whole is <Money amountMinor={amountMinor} currency={currency} className="font-medium" />
+        . The parts have to add up to it.
       </p>
 
       <ul className="mt-2 space-y-2">

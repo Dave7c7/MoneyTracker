@@ -183,9 +183,7 @@ describe('transfer detection', () => {
   });
 
   it('ignores pending transactions', () => {
-    const { pairs, suspected } = detectTransfers([
-      candidate({ postedAt: null }),
-    ]);
+    const { pairs, suspected } = detectTransfers([candidate({ postedAt: null })]);
 
     expect(pairs).toHaveLength(0);
     expect(suspected).toHaveLength(0);

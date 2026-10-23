@@ -284,8 +284,8 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
             Choose a file
           </h2>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-            A CSV export from your bank. The file is read in this browser and sent to the app
-            only when you import it.
+            A CSV export from your bank. The file is read in this browser and sent to the app only
+            when you import it.
           </p>
 
           <details className="mt-3 rounded-xl border border-slate-200 p-3 text-sm dark:border-slate-700">
@@ -701,9 +701,7 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
 
             {preview.accounts.length > 0 && (
               <div className="mt-3">
-                <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                  Accounts
-                </p>
+                <p className="text-xs font-medium text-slate-600 dark:text-slate-300">Accounts</p>
                 <ul className="mt-1 space-y-1">
                   {preview.accounts.map((account) => (
                     <li
@@ -736,8 +734,8 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
 
             {preview.ambiguousDates > 0 && (
               <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
-                {preview.ambiguousDates} dates could be read in two ways. The app reads them as month
-                first.
+                {preview.ambiguousDates} dates could be read in two ways. The app reads them as
+                month first.
               </p>
             )}
 
@@ -748,7 +746,10 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
                 </p>
                 <ul className="mt-1 space-y-0.5">
                   {preview.errors.slice(0, 5).map((error) => (
-                    <li key={error.rowNumber} className="text-xs text-slate-500 dark:text-slate-400">
+                    <li
+                      key={error.rowNumber}
+                      className="text-xs text-slate-500 dark:text-slate-400"
+                    >
                       Row {error.rowNumber}: {error.reason}
                     </li>
                   ))}
@@ -768,7 +769,10 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
                   </thead>
                   <tbody className="text-slate-700 dark:text-slate-200">
                     {preview.sample.map((row, index) => (
-                      <tr key={`${row.date}-${index}`} className="border-t border-slate-100 dark:border-slate-800">
+                      <tr
+                        key={`${row.date}-${index}`}
+                        className="border-t border-slate-100 dark:border-slate-800"
+                      >
                         <td className="py-1 pr-3 whitespace-nowrap">{row.date}</td>
                         <td className="tabular py-1 pr-3 whitespace-nowrap">
                           {formatAmount(row.amountMinor)}

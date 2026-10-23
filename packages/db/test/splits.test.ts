@@ -149,7 +149,10 @@ describe.skipIf(!testDatabaseUrl)('split service', () => {
 
     const outcome = await setTransactionSplit(db, userId, transfer.id, [
       { categoryId: groceriesId, amountMinor: Math.floor(transfer.amountMinor / 2) },
-      { categoryId: gasId, amountMinor: transfer.amountMinor - Math.floor(transfer.amountMinor / 2) },
+      {
+        categoryId: gasId,
+        amountMinor: transfer.amountMinor - Math.floor(transfer.amountMinor / 2),
+      },
     ]);
 
     expect(outcome.ok).toBe(false);

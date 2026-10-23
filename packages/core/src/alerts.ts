@@ -255,8 +255,7 @@ export function webhookRequest(
   alert: Pick<AlertDraft, 'title' | 'body' | 'href'>,
   baseUrl?: string,
 ): { body: string; headers: Record<string, string> } {
-  const link =
-    alert.href && baseUrl ? `${baseUrl.replace(/\/+$/, '')}${alert.href}` : null;
+  const link = alert.href && baseUrl ? `${baseUrl.replace(/\/+$/, '')}${alert.href}` : null;
 
   return {
     body: webhookText(alert, baseUrl),

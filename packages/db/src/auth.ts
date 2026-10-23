@@ -38,13 +38,7 @@ export const LOCK_MINUTES = 15;
  * so they say nothing about whether an address exists.
  */
 export type SignInFailure =
-  | 'no-password'
-  | 'wrong'
-  | 'locked'
-  | 'disabled'
-  | 'totp'
-  | 'totp-invalid'
-  | 'totp-unavailable';
+  'no-password' | 'wrong' | 'locked' | 'disabled' | 'totp' | 'totp-invalid' | 'totp-unavailable';
 
 /** The outcome of trying to sign in. */
 export type SignInResult =

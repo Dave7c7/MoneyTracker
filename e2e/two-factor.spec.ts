@@ -2,11 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { E2E_PASSWORD } from './auth.ts';
 import { expectAppToBoot } from './helpers.ts';
-import {
-  createDatabase,
-  disableTwoFactor,
-  getLocalUser,
-} from '../packages/db/src/index.ts';
+import { createDatabase, disableTwoFactor, getLocalUser } from '../packages/db/src/index.ts';
 import { totpCode } from '../packages/db/src/totp.ts';
 
 /**

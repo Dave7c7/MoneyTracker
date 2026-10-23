@@ -15,7 +15,13 @@ import { gunzipSync } from 'node:zlib';
 import { count, sql } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import { backupFileName, createBackup, listBackups, pruneBackups, restoreBackup } from '../src/backup.ts';
+import {
+  backupFileName,
+  createBackup,
+  listBackups,
+  pruneBackups,
+  restoreBackup,
+} from '../src/backup.ts';
 import { ensureDefaultCategories, ensureLocalUser } from '../src/bootstrap.ts';
 import { createDatabase, type Database } from '../src/client.ts';
 import { loadDotEnv } from '../src/env.ts';

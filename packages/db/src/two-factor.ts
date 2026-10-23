@@ -45,10 +45,7 @@ export const MISSING_KEY_MESSAGE =
   'add it to .env, restart the app, and try again.';
 
 /** Reads the state of two-factor for one account. */
-export async function getTwoFactorStatus(
-  db: Database,
-  userId: string,
-): Promise<TwoFactorStatus> {
+export async function getTwoFactorStatus(db: Database, userId: string): Promise<TwoFactorStatus> {
   const rows = await db
     .select({
       encrypted: users.totpSecretEncrypted,
@@ -141,7 +138,10 @@ export async function confirmTwoFactor(
   const user = rows[0];
 
   if (!user?.encrypted) {
-    return { ok: false, error: 'Start the setup first: there is no secret waiting to be confirmed.' };
+    return {
+      ok: false,
+      error: 'Start the setup first: there is no secret waiting to be confirmed.',
+    };
   }
   if (user.enabledAt) return { ok: false, error: 'Two-factor is already on.' };
 

@@ -34,8 +34,7 @@ export const uploadFormSchema = z.object({
 export async function readUpload(
   request: Request,
 ): Promise<
-  | { ok: true; data: { file: UploadedFile; profileId: string } }
-  | { ok: false; response: Response }
+  { ok: true; data: { file: UploadedFile; profileId: string } } | { ok: false; response: Response }
 > {
   let form: FormData;
   try {
@@ -77,6 +76,9 @@ export async function readUpload(
 
   return {
     ok: true,
-    data: { file: { fileName: file.name || 'export.csv', content }, profileId: profile.data.profileId },
+    data: {
+      file: { fileName: file.name || 'export.csv', content },
+      profileId: profile.data.profileId,
+    },
   };
 }

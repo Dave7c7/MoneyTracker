@@ -37,9 +37,7 @@ export interface SplitLine {
 }
 
 /** What a split did, or why it could not be done. */
-export type SplitOutcome =
-  | { ok: true; lines: SplitLine[] }
-  | { ok: false; reason: string };
+export type SplitOutcome = { ok: true; lines: SplitLine[] } | { ok: false; reason: string };
 
 /**
  * Lists the parts of a split.
@@ -100,10 +98,7 @@ export async function listSplitsByTransaction(
     .from(splitLines)
     .innerJoin(categories, eq(categories.id, splitLines.categoryId))
     .where(
-      and(
-        eq(splitLines.userId, userId),
-        inArray(splitLines.transactionId, [...transactionIds]),
-      ),
+      and(eq(splitLines.userId, userId), inArray(splitLines.transactionId, [...transactionIds])),
     );
 
   for (const row of rows) {

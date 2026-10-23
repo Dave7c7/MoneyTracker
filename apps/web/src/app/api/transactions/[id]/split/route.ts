@@ -44,7 +44,8 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!userId) return NextResponse.json({ error: 'No user configured' }, { status: 503 });
 
   const removed = await clearTransactionSplit(db, userId, id);
-  if (!removed) return NextResponse.json({ error: 'This transaction is not split' }, { status: 404 });
+  if (!removed)
+    return NextResponse.json({ error: 'This transaction is not split' }, { status: 404 });
 
   return NextResponse.json({ removed: true });
 }

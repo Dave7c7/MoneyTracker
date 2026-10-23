@@ -33,13 +33,18 @@ test.describe('transfers', () => {
     await expect(page.getByText('Marked as a transfer', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Transfer', exact: true }).first()).toBeVisible();
     await expect(
-      page.getByRole('button', { name: /Category for/ }).filter({ hasText: 'Transfer' }).first(),
+      page
+        .getByRole('button', { name: /Category for/ })
+        .filter({ hasText: 'Transfer' })
+        .first(),
     ).toBeVisible();
 
     // And it can be taken back.
     await page.getByRole('button', { name: 'Transfer', exact: true }).first().click();
     await expect(page.getByText('No longer a transfer', { exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Mark as transfer', exact: true }).first()).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Mark as transfer', exact: true }).first(),
+    ).toBeVisible();
   });
 
   test('a confirmed transfer does not ask for review', async ({ page }) => {

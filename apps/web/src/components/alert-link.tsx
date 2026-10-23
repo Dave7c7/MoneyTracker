@@ -20,9 +20,7 @@ export function AlertLink({ count }: { count: number }) {
     <Link
       href="/alerts"
       aria-current={active ? 'page' : undefined}
-      aria-label={
-        count > 0 ? `Alerts, ${count} new` : 'Alerts'
-      }
+      aria-label={count > 0 ? `Alerts, ${count} new` : 'Alerts'}
       className={`relative rounded-lg p-1.5 transition-colors ${
         active
           ? 'text-brand-600 dark:text-brand-500'

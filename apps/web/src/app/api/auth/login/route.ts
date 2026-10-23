@@ -67,7 +67,8 @@ export async function POST(request: Request) {
     if (result.reason === 'totp-invalid') {
       return NextResponse.json(
         {
-          error: 'That code is not right. Codes change every thirty seconds; a recovery code works too.',
+          error:
+            'That code is not right. Codes change every thirty seconds; a recovery code works too.',
           totpRequired: true,
         },
         { status: 401 },

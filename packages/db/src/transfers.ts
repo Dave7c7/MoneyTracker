@@ -372,10 +372,7 @@ export async function detachManyFromTransferGroups(
     .select({ id: transactionsTable.id, transferGroupId: transactionsTable.transferGroupId })
     .from(transactionsTable)
     .where(
-      and(
-        eq(transactionsTable.userId, userId),
-        inArray(transactionsTable.id, [...transactionIds]),
-      ),
+      and(eq(transactionsTable.userId, userId), inArray(transactionsTable.id, [...transactionIds])),
     );
 
   const groupIds = [
@@ -387,10 +384,7 @@ export async function detachManyFromTransferGroups(
     .update(transactionsTable)
     .set({ transferGroupId: null, updatedAt: new Date() })
     .where(
-      and(
-        eq(transactionsTable.userId, userId),
-        inArray(transactionsTable.id, [...transactionIds]),
-      ),
+      and(eq(transactionsTable.userId, userId), inArray(transactionsTable.id, [...transactionIds])),
     );
 
   const remaining = await db
@@ -413,7 +407,10 @@ export async function detachManyFromTransferGroups(
  * const groups = await listTransferGroups(db, userId);
  * groups[0].memberCount; // 2
  */
-export async function listTransferGroups(db: Database, userId: string): Promise<TransferGroupRow[]> {
+export async function listTransferGroups(
+  db: Database,
+  userId: string,
+): Promise<TransferGroupRow[]> {
   const rows = await db
     .select({
       id: transferGroups.id,

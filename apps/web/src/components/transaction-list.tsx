@@ -142,57 +142,60 @@ export function TransactionList({
   );
 
   /** Marks a transaction as a transfer, or takes that back. */
-  const toggleTransfer = useCallback(async (row: TransactionListItem) => {
-    const wasTransfer = Boolean(row.transferGroupId);
-    const action = wasTransfer ? 'unmark' : 'mark';
-    const transferCategory = categories.find((category) => category.kind === 'transfer');
+  const toggleTransfer = useCallback(
+    async (row: TransactionListItem) => {
+      const wasTransfer = Boolean(row.transferGroupId);
+      const action = wasTransfer ? 'unmark' : 'mark';
+      const transferCategory = categories.find((category) => category.kind === 'transfer');
 
-    setRows((current) =>
-      current.map((item) =>
-        item.id === row.id
-          ? {
-              ...item,
-              transferGroupId: wasTransfer ? null : 'pending',
-              transferSource: wasTransfer ? null : 'user',
-              ...(action === 'mark' && transferCategory
-                ? {
-                    categoryId: transferCategory.id,
-                    categoryName: transferCategory.name,
-                    assignmentSource: 'user_manual' as const,
-                    confidence: 1,
-                    reason: 'Marked as a transfer by you',
-                  }
-                : {}),
-            }
-          : item,
-      ),
-    );
-
-    try {
-      const response = await fetch(`/api/transactions/${row.id}/transfer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
-      });
-      if (!response.ok) throw new Error('The server refused the change');
-
-      setMessage(action === 'mark' ? 'Marked as a transfer' : 'No longer a transfer');
-      setError(null);
-    } catch (cause) {
       setRows((current) =>
         current.map((item) =>
           item.id === row.id
             ? {
                 ...item,
-                transferGroupId: row.transferGroupId,
-                transferSource: row.transferSource,
+                transferGroupId: wasTransfer ? null : 'pending',
+                transferSource: wasTransfer ? null : 'user',
+                ...(action === 'mark' && transferCategory
+                  ? {
+                      categoryId: transferCategory.id,
+                      categoryName: transferCategory.name,
+                      assignmentSource: 'user_manual' as const,
+                      confidence: 1,
+                      reason: 'Marked as a transfer by you',
+                    }
+                  : {}),
               }
             : item,
         ),
       );
-      setError(cause instanceof Error ? cause.message : 'Could not change the transfer');
-    }
-  }, [categories]);
+
+      try {
+        const response = await fetch(`/api/transactions/${row.id}/transfer`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action }),
+        });
+        if (!response.ok) throw new Error('The server refused the change');
+
+        setMessage(action === 'mark' ? 'Marked as a transfer' : 'No longer a transfer');
+        setError(null);
+      } catch (cause) {
+        setRows((current) =>
+          current.map((item) =>
+            item.id === row.id
+              ? {
+                  ...item,
+                  transferGroupId: row.transferGroupId,
+                  transferSource: row.transferSource,
+                }
+              : item,
+          ),
+        );
+        setError(cause instanceof Error ? cause.message : 'Could not change the transfer');
+      }
+    },
+    [categories],
+  );
 
   /** Creates a rule that covers the whole merchant. */
   const applyToMerchant = useCallback(

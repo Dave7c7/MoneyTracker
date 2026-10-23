@@ -15,7 +15,11 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createCsvMapping, type CsvMapping } from '@moneytracker/core';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 
-import { ensureBankCategoryMappings, ensureDefaultCategories, ensureLocalUser } from '../src/bootstrap.ts';
+import {
+  ensureBankCategoryMappings,
+  ensureDefaultCategories,
+  ensureLocalUser,
+} from '../src/bootstrap.ts';
 import { createDatabase, type Database } from '../src/client.ts';
 import { loadDotEnv } from '../src/env.ts';
 import {
@@ -177,9 +181,7 @@ describe.skipIf(!testDatabaseUrl)('import service', () => {
   it('reports the rows it cannot read and imports the rest', async () => {
     const result = await runImport(db, userId, {
       profile,
-      content: ['Date,Amount,Description', '2026-01-05,-1.00,COFFEE', 'nope,-2.00,BOOK'].join(
-        '\n',
-      ),
+      content: ['Date,Amount,Description', '2026-01-05,-1.00,COFFEE', 'nope,-2.00,BOOK'].join('\n'),
     });
 
     expect(result.transactionsInserted).toBe(1);

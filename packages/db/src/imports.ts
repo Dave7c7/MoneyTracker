@@ -108,14 +108,8 @@ export interface ImportResult {
  * @example
  * const profiles = await listImportProfiles(db, userId);
  */
-export async function listImportProfiles(
-  db: Database,
-  userId: string,
-): Promise<ImportProfile[]> {
-  const rows = await db
-    .select()
-    .from(importProfiles)
-    .where(eq(importProfiles.userId, userId));
+export async function listImportProfiles(db: Database, userId: string): Promise<ImportProfile[]> {
+  const rows = await db.select().from(importProfiles).where(eq(importProfiles.userId, userId));
 
   return rows.map(toProfile);
 }
@@ -382,10 +376,7 @@ async function findExistingTransactions(
     .from(transactions)
     .where(
       and(
-        inArray(
-          transactions.accountId,
-          [...accountIds.values()],
-        ),
+        inArray(transactions.accountId, [...accountIds.values()]),
         inArray(transactions.externalId, externalIds),
       ),
     );

@@ -35,10 +35,7 @@ export interface SplitBalance {
  * splitBalance([{ categoryId: 'a', amountMinor: -6000 }, { categoryId: 'b', amountMinor: -4000 }], -10000);
  * // { balanced: true, differenceMinor: 0, totalMinor: -10000 }
  */
-export function splitBalance(
-  parts: readonly SplitPart[],
-  totalMinor: number,
-): SplitBalance {
+export function splitBalance(parts: readonly SplitPart[], totalMinor: number): SplitBalance {
   const total = parts.length === 0 ? 0 : sumMinorAmounts(parts.map((part) => part.amountMinor));
   return {
     balanced: total === totalMinor,
@@ -53,9 +50,6 @@ export function splitBalance(
  * @example
  * splitRemainder([{ categoryId: 'a', amountMinor: -6000 }], -10000); // -4000
  */
-export function splitRemainder(
-  parts: readonly SplitPart[],
-  totalMinor: number,
-): number {
+export function splitRemainder(parts: readonly SplitPart[], totalMinor: number): number {
   return totalMinor - splitBalance(parts, totalMinor).totalMinor;
 }

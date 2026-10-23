@@ -17,7 +17,7 @@ env:
   E2E_DATABASE_URL: postgresql://moneytracker:moneytracker@localhost:5432/moneytracker_e2e
   ADAPTER_ID: mock
   APP_TIMEZONE: America/Los_Angeles
-  REVIEW_CONFIDENCE_THRESHOLD: "0.8"
+  REVIEW_CONFIDENCE_THRESHOLD: '0.8'
 
 jobs:
   check:

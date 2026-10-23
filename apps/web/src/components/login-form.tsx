@@ -56,9 +56,7 @@ export function LoginForm({
       const response = await fetch(isSetup ? '/api/auth/setup' : '/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          isSetup ? { password } : { email, password, code: code || undefined },
-        ),
+        body: JSON.stringify(isSetup ? { password } : { email, password, code: code || undefined }),
       });
 
       const result = (await response.json()) as { error?: string; totpRequired?: boolean };

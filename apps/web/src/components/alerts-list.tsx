@@ -32,13 +32,7 @@ const KIND_LABELS: Record<string, string> = {
  * list is short on purpose — it is what the app noticed, not a history of
  * everything that ever happened.
  */
-export function AlertsList({
-  alerts,
-  unread,
-}: {
-  alerts: AlertSummary[];
-  unread: number;
-}) {
+export function AlertsList({ alerts, unread }: { alerts: AlertSummary[]; unread: number }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,9 +107,13 @@ export function AlertsList({
             <div className="flex items-baseline justify-between gap-2">
               <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 {KIND_LABELS[alert.kind] ?? alert.kind}
-                {!alert.read && <span className="ml-2 text-amber-600 dark:text-amber-400">New</span>}
+                {!alert.read && (
+                  <span className="ml-2 text-amber-600 dark:text-amber-400">New</span>
+                )}
               </p>
-              <time className="text-[11px] text-slate-400 dark:text-slate-500">{alert.createdAt}</time>
+              <time className="text-[11px] text-slate-400 dark:text-slate-500">
+                {alert.createdAt}
+              </time>
             </div>
 
             <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">

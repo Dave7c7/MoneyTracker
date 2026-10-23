@@ -218,11 +218,23 @@ describe.skipIf(!testDatabaseUrl)('two-factor', () => {
 
     const typed = (codes[0] ?? 'not-a-code').toLowerCase();
     expect(
-      await verifySecondFactor(db, { userId, encryptedSecret: encrypted, code: typed, encryptionKey: KEY, now: NOW }),
+      await verifySecondFactor(db, {
+        userId,
+        encryptedSecret: encrypted,
+        code: typed,
+        encryptionKey: KEY,
+        now: NOW,
+      }),
     ).toEqual({ status: 'ok' });
 
     expect(
-      await verifySecondFactor(db, { userId, encryptedSecret: encrypted, code: typed, encryptionKey: KEY, now: NOW }),
+      await verifySecondFactor(db, {
+        userId,
+        encryptedSecret: encrypted,
+        code: typed,
+        encryptionKey: KEY,
+        now: NOW,
+      }),
     ).toEqual({ status: 'invalid' });
 
     const status = await getTwoFactorStatus(db, userId);
@@ -268,7 +280,11 @@ describe.skipIf(!testDatabaseUrl)('two-factor', () => {
     it('asks for a code after the password, and gives no session yet', async () => {
       await enrol();
 
-      const result = await signIn(db, { email: EMAIL, password: PASSWORD, encryptionKey: KEY }, NOW);
+      const result = await signIn(
+        db,
+        { email: EMAIL, password: PASSWORD, encryptionKey: KEY },
+        NOW,
+      );
       expect(result).toEqual({ ok: false, reason: 'totp' });
     });
 
@@ -339,7 +355,12 @@ describe.skipIf(!testDatabaseUrl)('two-factor', () => {
 
       const result = await signIn(
         db,
-        { email: EMAIL, password: PASSWORD, totpCode: totpCode(secret, NOW), encryptionKey: OTHER_KEY },
+        {
+          email: EMAIL,
+          password: PASSWORD,
+          totpCode: totpCode(secret, NOW),
+          encryptionKey: OTHER_KEY,
+        },
         NOW,
       );
       expect(result).toEqual({ ok: false, reason: 'totp-unavailable' });

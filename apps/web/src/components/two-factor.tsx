@@ -84,7 +84,9 @@ export function TwoFactor({ status }: { status: TwoFactorSummary }) {
     event.preventDefault();
     await run(async () => {
       const result = await send({ action: 'confirm', code });
-      setRecoveryCodes(Array.isArray(result.recoveryCodes) ? (result.recoveryCodes as string[]) : []);
+      setRecoveryCodes(
+        Array.isArray(result.recoveryCodes) ? (result.recoveryCodes as string[]) : [],
+      );
       setSecret(null);
       setUri(null);
       setCode('');
@@ -114,11 +116,7 @@ export function TwoFactor({ status }: { status: TwoFactorSummary }) {
             <li key={recoveryCode}>{recoveryCode}</li>
           ))}
         </ul>
-        <button
-          type="button"
-          onClick={() => setRecoveryCodes(null)}
-          className={buttonClass}
-        >
+        <button type="button" onClick={() => setRecoveryCodes(null)} className={buttonClass}>
           I have written them down
         </button>
       </div>
@@ -183,7 +181,10 @@ export function TwoFactor({ status }: { status: TwoFactorSummary }) {
             : `${status.recoveryCodesLeft} recovery codes are left.`}{' '}
           When they run out, turn two-factor off and on again for a new set.
         </p>
-        <form onSubmit={disable} className="space-y-3 border-t border-slate-100 pt-3 dark:border-slate-800">
+        <form
+          onSubmit={disable}
+          className="space-y-3 border-t border-slate-100 pt-3 dark:border-slate-800"
+        >
           <div>
             <label
               htmlFor="totp-password-off"
@@ -220,11 +221,13 @@ export function TwoFactor({ status }: { status: TwoFactorSummary }) {
         <button
           type="button"
           disabled={busy}
-          onClick={() => void run(async () => {
-            const result = await send({ action: 'start', currentPassword: password });
-            setSecret(String(result.secret));
-            setUri(String(result.uri));
-          })}
+          onClick={() =>
+            void run(async () => {
+              const result = await send({ action: 'start', currentPassword: password });
+              setSecret(String(result.secret));
+              setUri(String(result.uri));
+            })
+          }
           className={quietButtonClass}
         >
           Start again

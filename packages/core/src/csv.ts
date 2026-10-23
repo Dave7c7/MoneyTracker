@@ -16,12 +16,7 @@
 export type CsvDelimiter = 'auto' | ',' | ';' | '\t' | '|';
 
 /** How dates are written in a file. */
-export type CsvDateFormat =
-  | 'auto'
-  | 'iso'
-  | 'mdy'
-  | 'dmy'
-  | 'month_day_year';
+export type CsvDateFormat = 'auto' | 'iso' | 'mdy' | 'dmy' | 'month_day_year';
 
 /** Which sign in a file means "money left the account". */
 export type CsvAmountSign =
@@ -289,9 +284,7 @@ export function parseCsvRows(
     ].filter((column) => column.length > 0),
   );
 
-  const unmappedColumns = columns.filter(
-    (column) => column.length > 0 && !usedColumns.has(column),
-  );
+  const unmappedColumns = columns.filter((column) => column.length > 0 && !usedColumns.has(column));
   const missingColumns = [...usedColumns].filter((column) => !indexByColumn.has(column));
 
   const minorUnits = options.minorUnits;
@@ -313,9 +306,10 @@ export function parseCsvRows(
     if (!parsedDate) {
       errors.push({
         rowNumber,
-        reason: dateCell === null
-          ? `The file has no column named "${mapping.dateColumn}"`
-          : `"${dateCell}" is not a date the app can read`,
+        reason:
+          dateCell === null
+            ? `The file has no column named "${mapping.dateColumn}"`
+            : `"${dateCell}" is not a date the app can read`,
         raw,
       });
       return;
@@ -355,7 +349,7 @@ export function parseCsvRows(
       amountMinor: amount,
       description,
       sourceCategory: mapping.categoryColumn
-        ? (cellAt(raw, indexByColumn, mapping.categoryColumn)?.trim() || null)
+        ? cellAt(raw, indexByColumn, mapping.categoryColumn)?.trim() || null
         : null,
       accountKey,
       occurrence,
@@ -618,7 +612,8 @@ function amountReason(
 }
 
 /** Counts how often a character appears in a line, ignoring quoted parts. */
-function countOutsideQuotes(line: string, char: string): number {  let count = 0;
+function countOutsideQuotes(line: string, char: string): number {
+  let count = 0;
   let inQuotes = false;
 
   for (const current of line) {
