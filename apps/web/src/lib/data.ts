@@ -454,6 +454,29 @@ export async function getTransactionsData(filters: Parameters<typeof listTransac
   };
 }
 
+/**
+ * Data for the export.
+ *
+ * The cap is the same one the dashboards use: an export is a file for one
+ * person's history, not a data warehouse, and 100,000 rows is about a decade
+ * of everything.
+ */
+export async function getExportData(
+  filters: { from?: string; to?: string; accountId?: string } = {},
+) {
+  const { db } = getDatabase();
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const [rows, accounts, categories] = await Promise.all([
+    listTransactions(db, userId, { ...filters, limit: 100_000 }),
+    listAccounts(db, userId),
+    listCategories(db, userId),
+  ]);
+
+  return { rows, accounts, categories };
+}
+
 /** Data for the review inbox. */
 export async function getReviewData() {
   const { db } = getDatabase();

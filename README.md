@@ -126,6 +126,9 @@ Check with `lsof -nP -iTCP:3000 -sTCP:LISTEN` before you compare the two.
 | `pnpm db:seed` | Load the demo dataset (safe to run twice) |
 | `pnpm db:set-password` | Set the password from the server (asks twice, echoes nothing) |
 | `pnpm db:sync` | Sync every bank connection (put it in cron) |
+| `pnpm db:backup` | Write a gzipped backup of the database, keep the newest 14 |
+| `pnpm db:backups` | List the backups in `backups/` |
+| `pnpm db:restore <file> --yes` | Put a backup back, replacing what is there |
 | `pnpm db:reset` | Wipe and re-seed a scratch database (refuses a non-test URL) |
 | `pnpm db:studio` | Open Drizzle Studio to browse the data |
 
@@ -187,11 +190,12 @@ node apps/web/scripts/screenshot.mjs http://localhost:3000
 
 Every push to `main` and every pull request runs `.github/workflows/ci.yml`:
 
-- **check** starts Postgres 16, creates `moneytracker_test`, migrates it, and
-  runs `pnpm check` (tests, lint, typecheck).
-- **e2e** starts after that, creates `moneytracker_e2e`, and runs the Playwright
-  suite against the phone, Pixel and desktop projects. The Playwright report is
-  uploaded as an artifact when a run fails.
+- **check** starts Postgres 16 and runs `pnpm check` (tests, lint, typecheck).
+  The tests create and migrate their own scratch database, so there is nothing
+  to set up first.
+- **e2e** starts after that and runs the Playwright suite against the phone,
+  Pixel and desktop projects; it creates and resets its own database too. The
+  report is uploaded as an artifact when a run fails.
 
 The workflow does the same things as the commands above, so a green run locally
 means a green run in CI.
@@ -546,6 +550,83 @@ own status and its own error, and the error never contains the credential.
 
 ---
 
+## Backups and exports
+
+Two different jobs, and both are yours to run.
+
+### Downloading from the app
+
+The account screen has **Your data**: pick a range, an account and a format.
+
+- **CSV** is one row per transaction, the amount as a decimal, and the columns
+  that explain a category (`category_source`, `category_reason`). A description
+  that a spreadsheet would read as a formula is prefixed with `'`, which Excel
+  and Sheets hide.
+- **JSON** is the copy to keep: the accounts, the categories, the transactions
+  in minor units, and the split lines.
+
+Both are downloads of what the app knows about your money. Rules, connections
+and settings are not in them; those live in the database, below.
+
+### A full backup
+
+`pg_dump` writes the whole database to one gzipped SQL file, with the file
+readable only by its owner (0600, in a 0700 folder).
+
+```bash
+pnpm db:backup                         # backups/moneytracker-2026-10-23-031500.sql.gz
+pnpm db:backup --out /mnt/usb/backups  # somewhere else
+BACKUP_KEEP=30 pnpm db:backup          # keep more than the newest fourteen
+pnpm db:backups                        # what is there
+```
+
+The file holds every transaction and every encrypted bank token, so treat it
+like the database itself. It does **not** hold `ENCRYPTION_KEY` or the other
+settings in `.env`: keep those separately, or the tokens in a restored backup
+cannot be decrypted.
+
+A daily cron line:
+
+```cron
+15 3 * * * cd /srv/moneytracker && BACKUP_KEEP=30 pnpm db:backup >> backup.log 2>&1
+```
+
+Copy one off the machine weekly. A backup on the same disk is a backup of the
+disk, not of the data.
+
+**In the container**, `pg_dump` lives in the database container, and the file
+has to outlive it:
+
+```bash
+docker compose exec -T db pg_dump -U moneytracker --clean --if-exists moneytracker \
+  | gzip > backups/moneytracker-$(date +%Y-%m-%d-%H%M%S).sql.gz
+```
+
+### Restoring
+
+Stop the app first: the dump drops and recreates every table.
+
+```bash
+pnpm db:restore backups/moneytracker-2026-10-23-031500.sql.gz          # says what it would do
+pnpm db:restore backups/moneytracker-2026-10-23-031500.sql.gz --yes    # does it
+```
+
+The restore runs as one transaction with `ON_ERROR_STOP`, so a dump that fails
+halfway leaves the database as it was instead of half-restored. In the
+container:
+
+```bash
+gunzip -c backups/x.sql.gz \
+  | docker compose exec -T db psql -U moneytracker -d moneytracker \
+      --set ON_ERROR_STOP=1 --single-transaction
+```
+
+**Restore one now, before you need it.** A backup nobody has restored is a hope,
+and the test suite takes one and puts it back on every run that has `pg_dump`
+and `psql` installed.
+
+---
+
 ## Configuration
 
 Every setting is an environment variable, validated at startup with Zod. Copy
@@ -590,7 +671,8 @@ Before exposing the app to the internet:
 
 1. Put it behind a reverse proxy with HTTPS (Caddy, nginx, Traefik).
 2. Set a strong `POSTGRES_PASSWORD`.
-3. Back up the database: `docker compose exec db pg_dump -U moneytracker moneytracker > backup.sql`.
+3. Back up the database, and restore one to prove it: `pnpm db:backup`, then
+   see [Backups and exports](#backups-and-exports).
 4. When Phase 5 lands, generate the encryption key with `openssl rand -hex 32`
    and store it in your secret manager, not in the image or the repo.
 

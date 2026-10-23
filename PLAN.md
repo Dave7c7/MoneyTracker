@@ -156,9 +156,10 @@ repeated wrong passwords, a rate limit per address on the password routes,
 signing out that revokes the row, changing the password and the sign-in address
 from the account screen for someone who knows the current password, a recovery
 command for the server, the sign-in screen, and a gate that closes every page
-and every API route until the app is claimed.
+and every API route until the app is claimed. Also: downloads of the
+transactions as CSV or JSON from the account screen, and one command for a
+database backup and one for the restore, with the round trip under test.
 
-**Still to do:** two-factor authentication (TOTP), alerts, backups and data
-export.
+**Still to do:** two-factor authentication (TOTP), alerts.
 
 **Done when:** security checklist in `rules/security.md` passes; a fresh deploy from README works on a clean VPS.

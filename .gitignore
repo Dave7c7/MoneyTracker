@@ -34,3 +34,6 @@ apps/web/.next-e2e/
 
 # TypeScript incremental build info
 apps/web/tsconfig.tsbuildinfo
+
+# Database backups hold everything; they are the operator's to keep.
+backups/

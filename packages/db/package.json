@@ -17,7 +17,10 @@
     "db:studio": "drizzle-kit studio",
     "test:db": "vitest run --dir test",
     "typecheck": "tsc --noEmit",
-    "db:reset": "tsx src/reset.ts"
+    "db:reset": "tsx src/reset.ts",
+    "db:backup": "tsx src/backup-cli.ts create",
+    "db:restore": "tsx src/backup-cli.ts restore",
+    "db:backups": "tsx src/backup-cli.ts list"
   },
   "dependencies": {
     "@moneytracker/adapters": "workspace:*",

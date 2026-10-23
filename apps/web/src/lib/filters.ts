@@ -7,7 +7,8 @@
 
 import { z } from 'zod';
 
-const plainDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected a plain date (YYYY-MM-DD)');
+/** A plain date, YYYY-MM-DD, as the query string writes it. */
+export const plainDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected a plain date (YYYY-MM-DD)');
 
 /** The validated filters the query layer understands. */
 export const transactionFilterSchema = z.object({

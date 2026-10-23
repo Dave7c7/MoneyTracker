@@ -46,13 +46,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Create the test database
-        run: |
-          PGPASSWORD=moneytracker psql -h localhost -U moneytracker -d moneytracker -c "CREATE DATABASE moneytracker_test;"
-      - name: Migrate the databases
-        run: |
-          pnpm db:migrate
-          DATABASE_URL="$TEST_DATABASE_URL" pnpm db:migrate
+      # Nothing to create: `pnpm test` makes and migrates its own database, and
+      # the lock in it stops two runs sharing one.
       - name: Test, lint, typecheck
         run: pnpm check
 
@@ -83,9 +78,6 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Create the end-to-end database
-        run: |
-          PGPASSWORD=moneytracker psql -h localhost -U moneytracker -d moneytracker -c "CREATE DATABASE moneytracker_e2e;"
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
       - name: Run the end-to-end suite

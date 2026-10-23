@@ -1,7 +1,8 @@
-import { getAccount, listSessions, sessionIdForToken } from '@moneytracker/db';
+import { getAccount, listAccounts, listSessions, sessionIdForToken } from '@moneytracker/db';
 
 import { AccountSettings } from '@/components/account-settings.tsx';
 import { Card } from '@/components/card.tsx';
+import { ExportForm } from '@/components/export-form.tsx';
 import { getSessionToken, requireUser } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
 import { getEnv } from '@/lib/env.ts';
@@ -24,6 +25,7 @@ export default async function AccountPage() {
 
   const account = await getAccount(db, userId);
   const sessions = await listSessions(db, userId);
+  const accounts = await listAccounts(db, userId);
   const token = await getSessionToken();
   const currentId = token ? await sessionIdForToken(db, token) : null;
 
@@ -60,6 +62,18 @@ export default async function AccountPage() {
             }))
             .sort((a, b) => Number(b.current) - Number(a.current))}
         />
+      </Card>
+
+      <Card
+        title="Your data"
+        subtitle="Download the transactions, or a copy of the accounts and categories with them."
+      >
+        <ExportForm accounts={accounts.map((row) => ({ id: row.id, name: row.name }))} />
+        <p className="mt-3 border-t border-slate-100 pt-2.5 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+          The download holds this account&apos;s transactions. For a full backup of the database —
+          rules, connections and settings included — run <code>pnpm db:backup</code> on the server;
+          the README has the restore steps.
+        </p>
       </Card>
     </div>
   );

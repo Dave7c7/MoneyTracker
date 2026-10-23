@@ -29,7 +29,10 @@
     "db:sync": "pnpm --filter @moneytracker/db db:sync",
     "db:studio": "pnpm --filter @moneytracker/db db:studio",
     "check": "pnpm test && pnpm lint && pnpm typecheck",
-    "db:reset": "pnpm --filter @moneytracker/db db:reset"
+    "db:reset": "pnpm --filter @moneytracker/db db:reset",
+    "db:backup": "pnpm --filter @moneytracker/db db:backup",
+    "db:restore": "pnpm --filter @moneytracker/db db:restore",
+    "db:backups": "pnpm --filter @moneytracker/db db:backups"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

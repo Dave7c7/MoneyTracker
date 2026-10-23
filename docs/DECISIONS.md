@@ -78,3 +78,23 @@ allow-list, which is a setting to get wrong on a home install.
 
 **Cost:** one process per install. A deployment with several app instances
 would count each instance separately; that is not the shape of this app.
+
+## 2026-10-23 — Exports are a read; backups are a file
+
+The account screen downloads the transactions as CSV (decimal amounts, one row
+each) and as JSON (minor units, accounts, categories and split lines). Neither
+touches the database, so an export can never change what it exports.
+
+The full backup is `pg_dump` through `pnpm db:backup`: one gzipped SQL file,
+named after the minute, written 0600, pruned to the newest fourteen. The
+connection travels in libpq's environment variables rather than the command
+line, because a password in `argv` is a password in `ps`.
+
+A restore drops and recreates the schema, so it runs in one transaction with
+`ON_ERROR_STOP`: a failed restore leaves the old database in place. The test
+suite takes a backup and restores it on every run, because a backup nobody has
+restored is a hope.
+
+**Cost:** `pg_dump` and `psql` have to exist on the machine that runs the
+commands. In the container the README gives the `docker compose exec` form
+instead, which uses the tools in the database container.
