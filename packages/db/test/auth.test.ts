@@ -17,6 +17,7 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { createDatabase, type Database } from '../src/client.ts';
 import { ensureDefaultCategories, ensureLocalUser } from '../src/bootstrap.ts';
 import {
+  changeEmail,
   changePassword,
   hashToken,
   hasPassword,
@@ -24,6 +25,8 @@ import {
   listSessions,
   MAX_FAILED_LOGINS,
   resolveSession,
+  revokeSession,
+  sessionIdForToken,
   setPassword,
   signIn,
   signOut,
@@ -202,6 +205,52 @@ describe.skipIf(!testDatabaseUrl)('signing in', () => {
   it('refuses a password that is too short', async () => {
     await expect(setPassword(db, userId, 'short')).rejects.toThrow(/at least/);
     expect(await hasPassword(db, userId)).toBe(false);
+  });
+
+  it('changes the address, but only for someone who knows the password', async () => {
+    await setPassword(db, userId, PASSWORD);
+
+    const refused = await changeEmail(db, userId, 'not it', 'new@example.com');
+    expect(refused).toEqual({ ok: false, error: 'That is not the current password.' });
+
+    const bad = await changeEmail(db, userId, PASSWORD, 'not an email');
+    expect(bad.ok).toBe(false);
+
+    const changed = await changeEmail(db, userId, PASSWORD, '  New@Example.com ');
+    expect(changed).toEqual({ ok: true, email: 'new@example.com' });
+
+    // The address is what signs in now.
+    expect((await signIn(db, { email: EMAIL, password: PASSWORD })).ok).toBe(false);
+    expect((await signIn(db, { email: 'new@example.com', password: PASSWORD })).ok).toBe(true);
+  });
+
+  it('marks the session the cookie belongs to, and ends the others', async () => {
+    await setPassword(db, userId, PASSWORD);
+    const here = await signIn(db, { email: EMAIL, password: PASSWORD, userAgent: 'phone' });
+    const elsewhere = await signIn(db, { email: EMAIL, password: PASSWORD, userAgent: 'laptop' });
+    if (!here.ok || !elsewhere.ok) throw new Error('expected two sessions');
+
+    expect(await sessionIdForToken(db, here.token)).toBeTruthy();
+    expect(await sessionIdForToken(db, 'made up')).toBeNull();
+
+    await signOutEverywhere(db, userId, here.token);
+    const left = await listSessions(db, userId);
+    expect(left).toHaveLength(1);
+    expect(left[0]?.userAgent).toBe('phone');
+  });
+
+  it('ends one session by id, and only its own', async () => {
+    await setPassword(db, userId, PASSWORD);
+    const first = await signIn(db, { email: EMAIL, password: PASSWORD, userAgent: 'one' });
+    const second = await signIn(db, { email: EMAIL, password: PASSWORD, userAgent: 'two' });
+    if (!first.ok || !second.ok) throw new Error('expected two sessions');
+
+    const target = await sessionIdForToken(db, second.token);
+    expect(target).toBeTruthy();
+
+    expect(await revokeSession(db, userId, target!)).toBe(true);
+    expect(await resolveSession(db, second.token)).toBeNull();
+    expect(await resolveSession(db, first.token)).toBe(userId);
   });
 
   it('knows when a session has run out', () => {

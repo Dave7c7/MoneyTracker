@@ -245,6 +245,118 @@ export async function signOutEverywhere(
 }
 
 /**
+ * The account behind a session, as the settings screen shows it.
+ *
+ * @example
+ * const account = await getAccount(db, userId);
+ */
+export async function getAccount(
+  db: Database,
+  userId: string,
+): Promise<{
+  id: string;
+  email: string;
+  displayName: string;
+  lastLoginAt: Date | null;
+  createdAt: Date;
+} | null> {
+  const rows = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      displayName: users.displayName,
+      lastLoginAt: users.lastLoginAt,
+      createdAt: users.createdAt,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
+/**
+ * Changes the address the app signs in with.
+ *
+ * The current password is required: the address is how someone finds the
+ * account, and only the person with the password should be able to move it.
+ *
+ * @example
+ * await changeEmail(db, userId, 'old password', 'me@example.com');
+ */
+export async function changeEmail(
+  db: Database,
+  userId: string,
+  currentPassword: string,
+  newEmail: string,
+): Promise<{ ok: true; email: string } | { ok: false; error: string }> {
+  const rows = await db
+    .select({ passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  const stored = rows[0]?.passwordHash;
+  if (!stored || !(await verifyPassword(stored, currentPassword))) {
+    return { ok: false, error: 'That is not the current password.' };
+  }
+
+  const email = newEmail.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { ok: false, error: 'That does not look like an email address.' };
+  }
+
+  const taken = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+  if (taken[0] && taken[0].id !== userId) {
+    return { ok: false, error: 'Another account already uses that address.' };
+  }
+
+  await db.update(users).set({ email, updatedAt: new Date() }).where(eq(users.id, userId));
+  return { ok: true, email };
+}
+
+/**
+ * The id of the session a token belongs to.
+ *
+ * The settings screen uses it to say which machine is the one you are looking
+ * at. The token hash never leaves the server.
+ *
+ * @example
+ * const id = await sessionIdForToken(db, tokenFromCookie);
+ */
+export async function sessionIdForToken(db: Database, token: string): Promise<string | null> {
+  if (!token) return null;
+  const rows = await db
+    .select({ id: sessions.id })
+    .from(sessions)
+    .where(eq(sessions.tokenHash, hashToken(token)))
+    .limit(1);
+  return rows[0]?.id ?? null;
+}
+
+/**
+ * Ends one session by its id, as long as it belongs to the user.
+ *
+ * @example
+ * await revokeSession(db, userId, sessionId);
+ */
+export async function revokeSession(
+  db: Database,
+  userId: string,
+  sessionId: string,
+): Promise<boolean> {
+  const rows = await db
+    .delete(sessions)
+    .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId)))
+    .returning({ id: sessions.id });
+  return rows.length > 0;
+}
+
+/**
  * Changes the password, but only for someone who knows the current one.
  *
  * Every other session is ended, because a changed password should get anyone

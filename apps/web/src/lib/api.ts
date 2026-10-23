@@ -137,6 +137,12 @@ export const passwordChangeSchema = z.object({
   newPassword: z.string().min(1).max(1024),
 });
 
+/** The body of changing the address the app signs in with. */
+export const emailChangeSchema = z.object({
+  currentPassword: z.string().min(1).max(1024),
+  email: z.string().trim().min(3).max(254),
+});
+
 /**
  * Reads and validates a JSON body.
  *

@@ -153,9 +153,9 @@ credentials are encrypted at rest.
 **Done so far:** signing in with a password (scrypt, random salt, constant-time
 check), sessions whose tokens are stored only as a hash, a short hold after
 repeated wrong passwords, signing out that revokes the row, changing the
-password for someone who knows the current one, a recovery command for the
-server, the sign-in screen, and a gate that closes every page and every API
-route until the app is claimed.
+password and the sign-in address from the account screen for someone who knows
+the current password, a recovery command for the server, the sign-in screen, and
+a gate that closes every page and every API route until the app is claimed.
 
 **Still to do:** two-factor authentication (TOTP), rate limiting per address,
 alerts, backups and data export.

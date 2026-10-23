@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 import { AppBootCheck } from '@/components/app-boot-check.tsx';
+import { AccountLink } from '@/components/account-link.tsx';
 import { Navigation } from '@/components/navigation.tsx';
 import { ServiceWorkerRegistration } from '@/components/service-worker-registration.tsx';
 import { countNeedsReview } from '@moneytracker/db';
@@ -74,9 +75,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <h1 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100 md:text-2xl">
                 MoneyTracker
               </h1>
-              <p className="hidden text-sm text-slate-500 dark:text-slate-400 md:block">
-                Your money, in the open
-              </p>
+              <div className="flex items-baseline gap-3">
+                <p className="hidden text-sm text-slate-500 dark:text-slate-400 md:block">
+                  Your money, in the open
+                </p>
+                <AccountLink />
+              </div>
             </div>
           </header>
 

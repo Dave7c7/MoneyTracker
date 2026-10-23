@@ -240,6 +240,12 @@ salt, so the database never holds the password and two people with the same
 password get different hashes. scrypt is deliberately slow and memory hungry,
 which is what makes guessing expensive.
 
+**The account screen is where it changes.** The `Account` link in the header
+leads to the address you sign in with, the password, and the machines that are
+signed in. Changing either asks for the current password, because a session left
+open somewhere should not be able to move the account out from under you.
+Changing the password signs every other machine out.
+
 **The cookie does not contain the token the database knows.** The browser gets
 a random token; the `sessions` table stores only its SHA-256. A copy of the
 database cannot be turned into a working sign-in, and signing out deletes the
