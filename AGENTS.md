@@ -20,8 +20,10 @@ Self-hostable personal finance tracker: multi-account transaction aggregation, d
 
 - `docker compose up`: run the full stack
 - `pnpm dev`: dev server
-- `pnpm test`: unit tests (must pass before every commit)
+- `pnpm test`: unit and database tests (must pass before every commit)
 - `pnpm lint && pnpm typecheck`: must be clean before every commit
+- `pnpm check`: everything CI runs — tests, lint, typecheck, Prettier, and the migration guard
+- `pnpm db:check-migrations`: fail if the schema and the generated migrations disagree
 - `pnpm db:migrate`: apply migrations
 - `pnpm seed`: load mock data
 
@@ -37,7 +39,7 @@ Self-hostable personal finance tracker: multi-account transaction aggregation, d
 8. **Never scrape or store raw bank passwords.** Use aggregator tokens or file imports only.
 9. **Tests ship with features.** See `rules/testing.md`.
 10. **Never edit or overwrite** '.env'.It was wiped twice.
-11. **Never hand-write migrations; only pnpm db:generate.**
+11. **Never hand-write migrations; only pnpm db:generate.** CI fails when the schema and the generated migrations disagree.
 12. **Dev uses host Postgres and the container uses its own volume.**
 13. **Docker owns port 3000, and pnpm dev is the fast loop.**
 14. **`pnpm test` sets its own database up.** Never create, migrate or configure the test database by hand; see [The test database](#the-test-database). One run at a time.

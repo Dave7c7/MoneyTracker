@@ -48,7 +48,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Nothing to create: `pnpm test` makes and migrates its own database, and
       # the lock in it stops two runs sharing one.
-      - name: Test, lint, typecheck
+      #
+      # `pnpm check` also runs Prettier and the migration guard, so a schema
+      # edit without its generated migration fails here rather than on the
+      # next fresh database.
+      - name: Test, lint, typecheck, format, migrations
         run: pnpm check
 
   e2e:
