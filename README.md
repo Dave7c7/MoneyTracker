@@ -436,8 +436,13 @@ SimpleFIN at any time.
 scheduler of its own, so the sync is something you run:
 
 ```bash
-pnpm db:sync                    # sync every connection now
-17 7 * * *  cd /app && pnpm sync >> /var/log/moneytracker-sync.log 2>&1
+# from the repository, against the database in .env
+pnpm db:sync
+17 7 * * *  cd /app && pnpm db:sync >> /var/log/moneytracker-sync.log 2>&1
+
+# against the containers (no checkout needed: the image has the source)
+docker compose run --rm migrate pnpm db:sync
+17 7 * * *  cd /srv/moneytracker && docker compose run --rm migrate pnpm db:sync
 ```
 
 **The credential is encrypted before it is stored.** A provider token is a

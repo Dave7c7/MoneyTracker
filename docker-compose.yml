@@ -34,6 +34,10 @@ services:
       - moneytracker
 
   # Applies migrations once, before the app starts.
+  #
+  # `docker compose run --rm migrate pnpm db:sync` reuses the same image to
+  # refresh the bank connections, which is how a scheduler refreshes the data
+  # of a containerised install. It therefore needs the same secrets as the app.
   migrate:
     build:
       context: .
@@ -43,6 +47,10 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-moneytracker}:${POSTGRES_PASSWORD:-moneytracker}@db:5432/${POSTGRES_DB:-moneytracker}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Los_Angeles}
+      DEFAULT_CURRENCY: ${DEFAULT_CURRENCY:-USD}
+      DEFAULT_LOCALE: ${DEFAULT_LOCALE:-en-US}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
     restart: 'no'
     networks:
       - moneytracker
