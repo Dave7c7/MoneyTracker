@@ -428,8 +428,7 @@ export async function deliverAlerts(
   const pending = await db
     .select({
       id: alerts.id,
-      title: alerts.title,
-      body: alerts.body,
+      kind: alerts.kind,
       href: alerts.href,
       notifyAttempts: alerts.notifyAttempts,
     })

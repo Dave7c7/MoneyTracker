@@ -225,34 +225,53 @@ export function recurringDueAlert(input: {
   };
 }
 
+/** What a webhook may say about each kind of alert, with no personal detail. */
+const WEBHOOK_SUMMARIES: Record<AlertKind, string> = {
+  budget: 'A budget needs attention',
+  sync: 'A bank connection stopped syncing',
+  'large-transaction': 'A large transaction was posted',
+  recurring: 'A recurring charge needs attention',
+};
+
+/** A kind this version does not know still gets a sentence, not a blank. */
+const UNKNOWN_WEBHOOK_SUMMARY = 'There is something new in MoneyTracker';
+
 /**
  * The text a webhook receives.
  *
- * One message, the way a person would say it: the title, the sentence and a
- * link back to the app. `ntfy` shows the first line as the notification and
- * accepts the headers below; any script can read the body.
+ * A webhook often ends at a third party — `ntfy.sh` is the usual host — so the
+ * message says what happened without an amount, a merchant, a category or a
+ * connection name. The inbox has the detail; the phone only needs to know
+ * there is something to open.
+ *
+ * `ntfy` shows the first line as the notification and accepts the headers
+ * below; any script can read the body.
  *
  * @example
- * webhookText(alert, 'https://money.example.com');
+ * webhookText({ kind: 'budget', href: '/budgets' }, 'https://money.example.com');
  */
 export function webhookText(
-  alert: Pick<AlertDraft, 'title' | 'body' | 'href'>,
+  alert: { kind: string; href: string | null },
   baseUrl?: string,
 ): string {
+  const summary = WEBHOOK_SUMMARIES[alert.kind as AlertKind] ?? UNKNOWN_WEBHOOK_SUMMARY;
   const link =
     alert.href && baseUrl ? `${baseUrl.replace(/\/+$/, '')}${alert.href}` : (alert.href ?? null);
-  return [alert.title, alert.body, link].filter((line): line is string => Boolean(line)).join('\n');
+  return [summary, link].filter((line): line is string => Boolean(line)).join('\n');
 }
 
 /**
  * The headers and body of the webhook request.
  *
  * `Title`, `Tags` and `Click` are what `ntfy` reads; `Content-Type` is what
- * everything else reads. A service with its own JSON shape (Discord, Slack)
- * needs a relay, and the README says so.
+ * everything else reads. The title is the same summary as the body, for the
+ * same reason: a notification preview is as public as the endpoint.
+ *
+ * A service with its own JSON shape (Discord, Slack) needs a relay, and the
+ * README says so.
  */
 export function webhookRequest(
-  alert: Pick<AlertDraft, 'title' | 'body' | 'href'>,
+  alert: { kind: string; href: string | null },
   baseUrl?: string,
 ): { body: string; headers: Record<string, string> } {
   const link = alert.href && baseUrl ? `${baseUrl.replace(/\/+$/, '')}${alert.href}` : null;
@@ -261,7 +280,7 @@ export function webhookRequest(
     body: webhookText(alert, baseUrl),
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
-      Title: alert.title,
+      Title: WEBHOOK_SUMMARIES[alert.kind as AlertKind] ?? UNKNOWN_WEBHOOK_SUMMARY,
       Tags: 'money',
       ...(link ? { Click: link } : {}),
     },

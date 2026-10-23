@@ -211,33 +211,57 @@ describe('recurringDueAlert', () => {
 });
 
 describe('the webhook message', () => {
-  const alert = {
-    title: 'Groceries is at 91% of its budget',
-    body: 'Spent $455.00 of $500.00 this month.',
-    href: '/budgets',
-  };
-
-  it('reads like a person wrote it, with the link when the address is known', () => {
-    expect(webhookText(alert, 'https://money.example.com/')).toBe(
-      'Groceries is at 91% of its budget\nSpent $455.00 of $500.00 this month.\nhttps://money.example.com/budgets',
+  it('says what happened, and nothing that names or prices it', () => {
+    expect(webhookText({ kind: 'budget', href: '/budgets' }, 'https://money.example.com/')).toBe(
+      'A budget needs attention\nhttps://money.example.com/budgets',
+    );
+    expect(webhookText({ kind: 'sync', href: '/connections' })).toBe(
+      'A bank connection stopped syncing\n/connections',
+    );
+    expect(webhookText({ kind: 'large-transaction', href: '/transactions' })).toBe(
+      'A large transaction was posted\n/transactions',
+    );
+    expect(webhookText({ kind: 'recurring', href: '/subscriptions' })).toBe(
+      'A recurring charge needs attention\n/subscriptions',
     );
   });
 
-  it('leaves the link as a path when there is no base address', () => {
-    expect(webhookText(alert)).toContain('\n/budgets');
+  it('has a sentence for a kind this version does not know', () => {
+    expect(webhookText({ kind: 'future', href: null })).toBe(
+      'There is something new in MoneyTracker',
+    );
+  });
+
+  it('keeps the detail in the inbox, even when the alert carries it', () => {
+    const detailed = {
+      kind: 'large-transaction',
+      title: 'Acme Store: $1,200.00',
+      body: 'A charge of $1,200.00 on 2026-10-20.',
+      href: '/transactions',
+    };
+
+    const request = webhookRequest(detailed, 'https://money.example.com');
+    expect(request.headers.Title).toBe('A large transaction was posted');
+    expect(request.body).toBe(
+      'A large transaction was posted\nhttps://money.example.com/transactions',
+    );
+    expect(request.body).not.toContain('Acme');
+    expect(request.body).not.toContain('$');
   });
 
   it('carries the headers ntfy reads, and a content type everything reads', () => {
-    const request = webhookRequest(alert, 'https://money.example.com');
+    const request = webhookRequest(
+      { kind: 'budget', href: '/budgets' },
+      'https://money.example.com',
+    );
     expect(request.headers['Content-Type']).toBe('text/plain; charset=utf-8');
-    expect(request.headers.Title).toBe(alert.title);
+    expect(request.headers.Title).toBe('A budget needs attention');
     expect(request.headers.Tags).toBe('money');
     expect(request.headers.Click).toBe('https://money.example.com/budgets');
-    expect(request.body).toContain('Spent $455.00');
   });
 
   it('has no click target when the alert has nowhere to go', () => {
-    const request = webhookRequest({ ...alert, href: null }, 'https://money.example.com');
+    const request = webhookRequest({ kind: 'budget', href: null }, 'https://money.example.com');
     expect(request.headers.Click).toBeUndefined();
     expect(request.body).not.toContain('https://money.example.com');
   });

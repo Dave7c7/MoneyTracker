@@ -456,8 +456,11 @@ describe.skipIf(!testDatabaseUrl)('alerts', () => {
       });
 
       expect(result).toEqual({ sent: 1, failed: 0 });
-      expect(sent[0]).toContain('SoFi stopped syncing');
+      // A public relay must not learn who stopped syncing or why.
+      expect(sent[0]).toContain('A bank connection stopped syncing');
       expect(sent[0]).toContain('https://money.example/connections');
+      expect(sent[0]).not.toContain('SoFi');
+      expect(sent[0]).not.toContain('token expired');
 
       const rows = await listAlerts(db, userId);
       expect(rows[0]?.notifiedAt).toEqual(NOW);
