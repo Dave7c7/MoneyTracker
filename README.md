@@ -125,6 +125,7 @@ Check with `lsof -nP -iTCP:3000 -sTCP:LISTEN` before you compare the two.
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:seed` | Load the demo dataset (safe to run twice) |
 | `pnpm db:set-password` | Set the password from the server (asks twice, echoes nothing) |
+| `pnpm db:disable-2fa` | Turn two-factor off from the server, for a lost phone and codes |
 | `pnpm db:sync` | Sync every bank connection (put it in cron) |
 | `pnpm db:backup` | Write a gzipped backup of the database, keep the newest 14 |
 | `pnpm db:backups` | List the backups in `backups/` |
@@ -307,7 +308,15 @@ storing the secret in the open.
 The setup hands out eight recovery codes for the phone that is lost. They are
 shown once, stored only as hashes, and each works one time — a recovery code
 goes in the same field as the six digits. When they run out, turn two-factor
-off and on again for a fresh set.
+off and on again for a fresh set. If the phone and the codes are both gone, the
+server is the way back:
+
+```bash
+pnpm db:disable-2fa    # turns it off and signs every session out
+```
+
+It needs no password and no code: whoever can run commands on the machine can
+read the database anyway.
 
 **Forgotten passwords are recovered on the server.** There is no email to reset
 with; the person who runs the server sets it:
