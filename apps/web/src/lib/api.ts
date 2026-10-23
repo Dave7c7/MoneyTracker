@@ -137,6 +137,22 @@ export const passwordChangeSchema = z.object({
   newPassword: z.string().min(1).max(1024),
 });
 
+/** The body of a change to two-factor sign-in. */
+export const twoFactorSchema = z.discriminatedUnion('action', [
+  z.object({
+    action: z.literal('start'),
+    currentPassword: z.string().min(1).max(1024),
+  }),
+  z.object({
+    action: z.literal('confirm'),
+    code: z.string().trim().min(1).max(64),
+  }),
+  z.object({
+    action: z.literal('disable'),
+    currentPassword: z.string().min(1).max(1024),
+  }),
+]);
+
 /** The body of changing the address the app signs in with. */
 export const emailChangeSchema = z.object({
   currentPassword: z.string().min(1).max(1024),

@@ -12,6 +12,10 @@ import { MIN_PASSWORD_LENGTH } from '@moneytracker/core';
  * twice to set it. After that it asks for the address and the password, with
  * the address already filled in: a single-user install only has to type a
  * password, but the address can be changed.
+ *
+ * When the account has two-factor on, the server answers the right password
+ * with `totpRequired` and no session, and the form asks for the code. The code
+ * field stays on screen after a wrong code, so a second try is one field.
  */
 export function LoginForm({
   mode,
@@ -27,6 +31,8 @@ export function LoginForm({
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
+  const [code, setCode] = useState('');
+  const [needsCode, setNeedsCode] = useState(false);
   const [error, setError] = useState<string | null>(challenge ?? null);
   const [busy, setBusy] = useState(false);
 
@@ -50,11 +56,16 @@ export function LoginForm({
       const response = await fetch(isSetup ? '/api/auth/setup' : '/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(isSetup ? { password } : { email, password }),
+        body: JSON.stringify(
+          isSetup ? { password } : { email, password, code: code || undefined },
+        ),
       });
 
-      const result = (await response.json()) as { error?: string };
+      const result = (await response.json()) as { error?: string; totpRequired?: boolean };
       if (!response.ok) {
+        // The password was right and the account wants a code: ask for it
+        // without making the person type the password again.
+        if (result.totpRequired) setNeedsCode(true);
         setError(result.error ?? 'That did not work.');
         setBusy(false);
         return;
@@ -110,7 +121,7 @@ export function LoginForm({
           name="password"
           type="password"
           autoComplete={isSetup ? 'new-password' : 'current-password'}
-          autoFocus
+          autoFocus={!needsCode}
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
@@ -142,6 +153,34 @@ export function LoginForm({
             onChange={(event) => setConfirmation(event.target.value)}
             className={inputClass}
           />
+        </div>
+      )}
+
+      {needsCode && (
+        <div>
+          <label
+            htmlFor="code"
+            className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+          >
+            Code
+          </label>
+          <input
+            id="code"
+            name="code"
+            type="text"
+            autoComplete="one-time-code"
+            autoCapitalize="characters"
+            spellCheck={false}
+            autoFocus
+            required
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            className={inputClass}
+          />
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            The six digits from your authenticator app. If the phone is gone, one of the recovery
+            codes works here instead.
+          </p>
         </div>
       )}
 

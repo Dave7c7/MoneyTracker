@@ -71,6 +71,13 @@
       "when": 1792711174684,
       "tag": "0009_woozy_gateway",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792754386279,
+      "tag": "0010_easy_texas_twister",
+      "breakpoints": true
     }
   ]
 }

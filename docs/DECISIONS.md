@@ -98,3 +98,25 @@ restored is a hope.
 **Cost:** `pg_dump` and `psql` have to exist on the machine that runs the
 commands. In the container the README gives the `docker compose exec` form
 instead, which uses the tools in the database container.
+
+## 2026-10-23 — Two-factor is TOTP, stored encrypted, with hashed recovery codes
+
+The second factor is a six-digit code from an authenticator app (RFC 6238), not
+an email or an SMS: a self-hosted install may have no mail server, and a phone
+number is a third party in the sign-in path. The algorithm is thirty lines of
+HMAC, so it is written here rather than added as a dependency.
+
+The secret is encrypted with `ENCRYPTION_KEY` before it is stored and the
+recovery codes are stored as SHA-256 hashes. A backup of the database is
+therefore not a way in: without the key the secret is noise, and the codes are
+gone. The cost is that two-factor cannot be turned on until the key is set; the
+screen says so and refuses rather than storing a secret in the open.
+
+A code is accepted for its own thirty-second step and one step either side, and
+the last accepted step is kept on the user, so a code that was seen or used
+cannot be used again. A wrong code counts as a failed sign-in and runs into the
+same five-try pause as a wrong password.
+
+The setup returns eight recovery codes once; only their hashes are kept, and
+each is spent when used. They exist because a phone is lost at the worst time,
+and a self-hosted app has no support desk to call.

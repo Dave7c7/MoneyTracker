@@ -39,6 +39,7 @@ const limits = {
   setup: createRateLimiter({ limit: 5, windowMs: 15 * 60_000 }),
   password: createRateLimiter({ limit: 10, windowMs: 15 * 60_000 }),
   email: createRateLimiter({ limit: 10, windowMs: 15 * 60_000 }),
+  totp: createRateLimiter({ limit: 10, windowMs: 15 * 60_000 }),
 } as const;
 
 /** The routes that have a limit. */

@@ -1,8 +1,15 @@
-import { getAccount, listAccounts, listSessions, sessionIdForToken } from '@moneytracker/db';
+import {
+  getAccount,
+  getTwoFactorStatus,
+  listAccounts,
+  listSessions,
+  sessionIdForToken,
+} from '@moneytracker/db';
 
 import { AccountSettings } from '@/components/account-settings.tsx';
 import { Card } from '@/components/card.tsx';
 import { ExportForm } from '@/components/export-form.tsx';
+import { TwoFactor } from '@/components/two-factor.tsx';
 import { getSessionToken, requireUser } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
 import { getEnv } from '@/lib/env.ts';
@@ -14,7 +21,8 @@ export const metadata = { title: 'Account' };
 /**
  * The account behind the password.
  *
- * The address you sign in with, the password, and where you are signed in.
+ * The address you sign in with, the password, two-factor, and where you are
+ * signed in.
  * There is no email to send a reset link with, so the password is changed here
  * — or with `pnpm db:set-password` on the server.
  */
@@ -24,6 +32,7 @@ export default async function AccountPage() {
   const env = getEnv();
 
   const account = await getAccount(db, userId);
+  const twoFactor = await getTwoFactorStatus(db, userId);
   const sessions = await listSessions(db, userId);
   const accounts = await listAccounts(db, userId);
   const token = await getSessionToken();
@@ -61,6 +70,20 @@ export default async function AccountPage() {
               current: session.id === currentId,
             }))
             .sort((a, b) => Number(b.current) - Number(a.current))}
+        />
+      </Card>
+
+      <Card
+        title="Two-factor sign-in"
+        subtitle="A code from an authenticator app, asked for after the password."
+      >
+        <TwoFactor
+          status={{
+            enabled: twoFactor.enabled,
+            enabledAt: twoFactor.enabledAt ? format(twoFactor.enabledAt) : null,
+            pending: twoFactor.pending,
+            recoveryCodesLeft: twoFactor.recoveryCodesLeft,
+          }}
         />
       </Card>
 

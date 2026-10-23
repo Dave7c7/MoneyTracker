@@ -70,6 +70,20 @@ export const users = pgTable('users', {
   lockedUntil: timestamp('locked_until', { withTimezone: true }),
   /** When the password last signed in. */
   lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+  /**
+   * The shared secret of the authenticator app, encrypted with
+   * `ENCRYPTION_KEY` before it is stored. Null until two-factor is started.
+   */
+  totpSecretEncrypted: text('totp_secret_encrypted'),
+  /** When a code from the app first confirmed the secret; null while off. */
+  totpEnabledAt: timestamp('totp_enabled_at', { withTimezone: true }),
+  /**
+   * The last thirty-second step a code was accepted from.
+   *
+   * A code stays valid for its step, so without this the same digits could be
+   * used twice by someone who watched them go by.
+   */
+  totpLastStep: integer('totp_last_step'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -101,6 +115,31 @@ export const sessions = pgTable(
   (table) => ({
     uniqueToken: uniqueIndex('sessions_token_hash_idx').on(table.tokenHash),
     userIdx: index('sessions_user_idx').on(table.userId),
+  }),
+);
+
+/**
+ * A recovery code for two-factor sign-in.
+ *
+ * The code is shown once, when two-factor is turned on. What is stored is its
+ * SHA-256, so a copy of the database cannot be used to sign in with one.
+ */
+export const recoveryCodes = pgTable(
+  'recovery_codes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** SHA-256 of the code, hex. */
+    codeHash: text('code_hash').notNull(),
+    /** When it was used; null while it still works. */
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index('recovery_codes_user_idx').on(table.userId),
+    uniqueHash: uniqueIndex('recovery_codes_hash_idx').on(table.codeHash),
   }),
 );
 
@@ -540,6 +579,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   transactions: many(transactions),
   categories: many(categories),
   merchants: many(merchants),
+  recoveryCodes: many(recoveryCodes),
 }));
 
 export const accountsRelations = relations(accounts, ({ one, many }) => ({

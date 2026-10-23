@@ -291,6 +291,24 @@ is the guard that survives. Behind a reverse proxy the address comes from
 `X-Forwarded-For`; on a directly exposed server a client can write its own, so
 the account pause is what actually stops a guesser.
 
+**Two-factor is one more code, from your phone.** The account screen can turn
+on a code from an authenticator app (TOTP, the same thing the six-digit codes
+are called). It asks for the current password to start, shows a secret once to
+type or scan, and does not switch on until a code from that secret confirms it.
+After that, signing in asks for the password and then the code; a wrong code
+counts as a wrong try, so guessing codes runs into the same pause as guessing
+passwords.
+
+The secret is encrypted with `ENCRYPTION_KEY` before it is stored, the way
+provider tokens are, so a copy of the database cannot be turned into codes.
+Turning it on needs that key in `.env`; without it the screen says so instead of
+storing the secret in the open.
+
+The setup hands out eight recovery codes for the phone that is lost. They are
+shown once, stored only as hashes, and each works one time — a recovery code
+goes in the same field as the six digits. When they run out, turn two-factor
+off and on again for a fresh set.
+
 **Forgotten passwords are recovered on the server.** There is no email to reset
 with; the person who runs the server sets it:
 

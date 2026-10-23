@@ -24,3 +24,5 @@ export * from './credentials.ts';
 export * from './auth.ts';
 export * from './password.ts';
 export * from './sync.ts';
+export * from './totp.ts';
+export * from './two-factor.ts';

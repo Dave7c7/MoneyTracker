@@ -19,6 +19,7 @@ import { and, eq, gt, lt } from 'drizzle-orm';
 import type { Database } from './client.ts';
 import { hashPassword, passwordProblem, verifyPassword } from './password.ts';
 import { sessions, users } from './schema.ts';
+import { verifySecondFactor } from './two-factor.ts';
 
 /** How long a sign-in lasts. */
 export const SESSION_DAYS = 7;
@@ -29,8 +30,21 @@ export const MAX_FAILED_LOGINS = 5;
 /** How long the hold lasts. */
 export const LOCK_MINUTES = 15;
 
-/** Why signing in did not work. */
-export type SignInFailure = 'no-password' | 'wrong' | 'locked' | 'disabled';
+/**
+ * Why signing in did not work.
+ *
+ * `totp` means the password was right and a code is needed; `totp-invalid`
+ * means the code was wrong. Neither is reachable before the password is right,
+ * so they say nothing about whether an address exists.
+ */
+export type SignInFailure =
+  | 'no-password'
+  | 'wrong'
+  | 'locked'
+  | 'disabled'
+  | 'totp'
+  | 'totp-invalid'
+  | 'totp-unavailable';
 
 /** The outcome of trying to sign in. */
 export type SignInResult =
@@ -73,6 +87,31 @@ export async function hasPassword(db: Database, userId: string): Promise<boolean
 }
 
 /**
+ * Whether a password is the one the account has now.
+ *
+ * Asked before a change that could lock the owner out — turning two-factor on
+ * or off, moving the address — so a session someone left open is not enough.
+ *
+ * @example
+ * if (!(await verifyCurrentPassword(db, userId, password))) return denied();
+ */
+export async function verifyCurrentPassword(
+  db: Database,
+  userId: string,
+  password: string,
+): Promise<boolean> {
+  const rows = await db
+    .select({ passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  const hash = rows[0]?.passwordHash;
+  if (!hash) return false;
+  return verifyPassword(hash, password);
+}
+
+/**
  * Sets (or replaces) the password of a user.
  *
  * Setting it clears a hold and the failed attempts that caused it: whoever
@@ -108,6 +147,10 @@ export async function signIn(
   input: {
     email: string;
     password: string;
+    /** The code from the authenticator app, or a recovery code. */
+    totpCode?: string | null;
+    /** The key that decrypts the stored secret, when two-factor is on. */
+    encryptionKey?: string;
     ipAddress?: string | null;
     userAgent?: string | null;
   },
@@ -119,6 +162,8 @@ export async function signIn(
       passwordHash: users.passwordHash,
       failedLoginCount: users.failedLoginCount,
       lockedUntil: users.lockedUntil,
+      totpSecret: users.totpSecretEncrypted,
+      totpEnabledAt: users.totpEnabledAt,
     })
     .from(users)
     .where(eq(users.email, input.email.trim().toLowerCase()))
@@ -138,6 +183,35 @@ export async function signIn(
   }
 
   if (await verifyPassword(user.passwordHash, input.password)) {
+    /*
+      The password is the first factor; the code is the second. Asking for the
+      code only after the password is right keeps the form from telling a
+      stranger that this account has one.
+    */
+    if (user.totpEnabledAt) {
+      const code = input.totpCode?.trim();
+      if (!code) return { ok: false, reason: 'totp' };
+
+      const second = await verifySecondFactor(db, {
+        userId: user.id,
+        encryptedSecret: user.totpSecret,
+        code,
+        encryptionKey: input.encryptionKey,
+        now,
+      });
+
+      if (second.status === 'unavailable') {
+        return { ok: false, reason: 'totp-unavailable' };
+      }
+      if (second.status === 'invalid') {
+        const failure = await recordFailedAttempt(db, user, now);
+        if (!failure.ok && failure.reason !== 'locked') {
+          return { ...failure, reason: 'totp-invalid' };
+        }
+        return failure;
+      }
+    }
+
     const token = newSessionToken();
     const expiresAt = expiryFrom(now);
 
@@ -161,6 +235,20 @@ export async function signIn(
     return { ok: true, token, expiresAt, userId: user.id };
   }
 
+  return recordFailedAttempt(db, user, now);
+}
+
+/**
+ * Counts a wrong guess and puts the account on hold when they add up.
+ *
+ * A wrong password and a wrong code both count: they are the same person
+ * guessing at the same account.
+ */
+async function recordFailedAttempt(
+  db: Database,
+  user: { id: string; failedLoginCount: number },
+  now: Date,
+): Promise<SignInResult> {
   const failed = user.failedLoginCount + 1;
   const lockedUntil =
     failed >= MAX_FAILED_LOGINS ? new Date(now.getTime() + LOCK_MINUTES * 60 * 1000) : null;

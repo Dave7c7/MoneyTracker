@@ -159,7 +159,9 @@ command for the server, the sign-in screen, and a gate that closes every page
 and every API route until the app is claimed. Also: downloads of the
 transactions as CSV or JSON from the account screen, and one command for a
 database backup and one for the restore, with the round trip under test.
+Two-factor sign-in with an authenticator app: an encrypted secret, a code
+checked after the password, replay refused, and one-time recovery codes.
 
-**Still to do:** two-factor authentication (TOTP), alerts.
+**Still to do:** alerts.
 
 **Done when:** security checklist in `rules/security.md` passes; a fresh deploy from README works on a clean VPS.
