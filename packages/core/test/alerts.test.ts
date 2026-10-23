@@ -199,7 +199,12 @@ describe('recurringDueAlert', () => {
   it('says today and tomorrow rather than counting to one', () => {
     expect(recurringDueAlert({ ...due, daysUntil: 0 }).title).toBe('Netflix is due today');
     expect(recurringDueAlert({ ...due, daysUntil: 1 }).title).toBe('Netflix is due tomorrow');
-    expect(recurringDueAlert({ ...due, daysUntil: -2 }).title).toBe('Netflix is due today');
+  });
+
+  it('says overdue when the date has passed', () => {
+    const alert = recurringDueAlert({ ...due, daysUntil: -2 });
+    expect(alert.title).toBe('Netflix is overdue');
+    expect(alert.body).toBe('$19.99 was expected on 2026-10-26.');
   });
 });
 

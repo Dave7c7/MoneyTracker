@@ -205,17 +205,22 @@ export function recurringDueAlert(input: {
 }): AlertDraft {
   const amount = formatMoney(input.amountMinor, input.currency, input.locale);
   const when =
-    input.daysUntil <= 0
-      ? 'today'
-      : input.daysUntil === 1
-        ? 'tomorrow'
-        : `in ${input.daysUntil} days`;
+    input.daysUntil < 0
+      ? 'is overdue'
+      : input.daysUntil === 0
+        ? 'is due today'
+        : input.daysUntil === 1
+          ? 'is due tomorrow'
+          : `is due in ${input.daysUntil} days`;
 
   return {
     kind: 'recurring',
     dedupeKey: `recurring:${input.itemId}:due:${input.dueDate}`,
-    title: `${input.name} is due ${when}`,
-    body: `${amount} is expected on ${input.dueDate}.`,
+    title: `${input.name} ${when}`,
+    body:
+      input.daysUntil < 0
+        ? `${amount} was expected on ${input.dueDate}.`
+        : `${amount} is expected on ${input.dueDate}.`,
     href: '/subscriptions',
   };
 }
