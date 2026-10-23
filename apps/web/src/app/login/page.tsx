@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+
 import {
   ensureDefaultCategories,
   ensureLocalUser,
@@ -7,6 +9,7 @@ import {
 
 import { Card } from '@/components/card.tsx';
 import { LoginForm } from '@/components/login-form.tsx';
+import { getSessionUserId } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
 import { getEnv } from '@/lib/env.ts';
 
@@ -25,6 +28,10 @@ export const metadata = { title: 'Sign in' };
  * the default categories here, so the first visit is also the first sign-in.
  */
 export default async function LoginPage() {
+  // A live session goes to the money. Asking the database, rather than looking
+  // for the cookie, keeps a stale cookie from bouncing between here and there.
+  if (await getSessionUserId()) redirect('/');
+
   const { db } = getDatabase();
   const env = getEnv();
 
