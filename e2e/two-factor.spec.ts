@@ -52,7 +52,18 @@ test.describe('two-factor sign-in', () => {
     await card.getByRole('button', { name: 'Turn on two-factor' }).click();
 
     // The secret is shown once, to type into the authenticator.
-    const secretText = card.locator('code').first();
+    //
+    // The "off" form has a hint naming ENCRYPTION_KEY in its own <code>, so
+    // wait for the code whose text is a secret rather than the first one on
+    // the card. A failed start leaves the hint and an alert behind, and the
+    // alert's text says why.
+    const secretText = card.locator('code').filter({ hasText: /^[A-Z2-7]{32}$/ });
+    const setupError = card.getByRole('alert');
+    await expect(secretText.or(setupError)).toBeVisible();
+    if (await setupError.isVisible()) {
+      const reason = (await setupError.textContent())?.trim();
+      throw new Error(`Two-factor setup did not start: ${reason}`);
+    }
     await expect(secretText).toHaveText(/^[A-Z2-7]{32}$/);
     const secret = (await secretText.textContent())?.trim() ?? '';
 

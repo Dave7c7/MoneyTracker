@@ -101,6 +101,13 @@ export default defineConfig({
           // The end-to-end tests change data, so they run against a database of
           // their own. This wins over the .env file.
           DATABASE_URL: e2eDatabaseUrl,
+          /*
+            Two-factor encrypts its secret with this. The suite runs against a
+            scratch database that is wiped every run, so a fixed, obviously
+            fake key is enough — and it means CI and a fresh clone work without
+            a `.env` file. Never use this value anywhere else.
+          */
+          ENCRYPTION_KEY: 'deadbeef'.repeat(8),
         },
       },
 });
