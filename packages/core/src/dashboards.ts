@@ -25,6 +25,66 @@ export interface DashboardTransaction {
   categoryKind: CategoryKind;
 }
 
+/** A transaction row with its split lines, as the query layer returns it. */
+export interface TransactionLike {
+  id: string;
+  accountId: string;
+  postedAt: Date | null;
+  currency: string;
+  pending: boolean;
+  merchantId: string | null;
+  merchantName: string | null;
+  amountMinor: number;
+  categoryId: string | null;
+  categoryName: string | null;
+  categoryKind: CategoryKind | null;
+  splitLines: Array<{
+    amountMinor: number;
+    categoryId: string;
+    categoryName: string;
+    categoryKind: CategoryKind;
+  }>;
+}
+
+/**
+ * The dashboard's view of a transaction: one entry per split line, or one for
+ * the whole charge when it was not split.
+ *
+ * @example
+ * rows.flatMap(toDashboardTransactions);
+ */
+export function toDashboardTransactions(row: TransactionLike): DashboardTransaction[] {
+  const base = {
+    id: row.id,
+    accountId: row.accountId,
+    postedAt: row.postedAt,
+    currency: row.currency,
+    pending: row.pending,
+    merchantId: row.merchantId,
+    merchantName: row.merchantName,
+  };
+
+  if (row.splitLines.length > 0) {
+    return row.splitLines.map((line) => ({
+      ...base,
+      amountMinor: line.amountMinor,
+      categoryId: line.categoryId,
+      categoryName: line.categoryName,
+      categoryKind: line.categoryKind,
+    }));
+  }
+
+  return [
+    {
+      ...base,
+      amountMinor: row.amountMinor,
+      categoryId: row.categoryId,
+      categoryName: row.categoryName,
+      categoryKind: row.categoryKind ?? 'uncategorized',
+    },
+  ];
+}
+
 /** Options shared by the monthly aggregations. */
 export interface MonthlyOptions {
   timeZone: string;

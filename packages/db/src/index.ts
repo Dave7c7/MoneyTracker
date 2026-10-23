@@ -26,3 +26,4 @@ export * from './password.ts';
 export * from './sync.ts';
 export * from './totp.ts';
 export * from './two-factor.ts';
+export * from './alerts.ts';

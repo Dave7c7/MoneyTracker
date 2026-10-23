@@ -14,6 +14,7 @@
     "db:test:setup": "tsx src/test-setup.ts",
     "db:set-password": "tsx src/set-password.ts",
     "db:disable-2fa": "tsx src/disable-two-factor.ts",
+    "db:check-alerts": "tsx src/check-alerts.ts",
     "db:sync": "tsx src/sync-connections.ts",
     "db:studio": "drizzle-kit studio",
     "test:db": "vitest run --dir test",

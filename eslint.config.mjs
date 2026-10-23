@@ -59,6 +59,7 @@ const config = [
       'packages/db/src/sync-connections.ts',
       'packages/db/src/set-password.ts',
       'packages/db/src/disable-two-factor.ts',
+      'packages/db/src/check-alerts.ts',
       'packages/db/src/test-setup.ts',
       'packages/db/src/backup-cli.ts',
       // The setups run outside the app and say what they did.

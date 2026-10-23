@@ -13,6 +13,10 @@ import { fileURLToPath } from 'node:url';
 import { config } from 'dotenv';
 import { z } from 'zod';
 
+/** An empty setting means "not set", rather than a broken one. */
+const emptyToUndefined = (value: unknown) =>
+  typeof value === 'string' && value.trim() === '' ? undefined : value;
+
 const envSchema = z.object({
   /** Postgres connection string. */
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
@@ -42,12 +46,29 @@ const envSchema = z.object({
    * as hex.
    */
   ENCRYPTION_KEY: z.preprocess(
-    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    emptyToUndefined,
     z
       .string()
       .regex(/^[0-9a-f]{64}$/i, 'ENCRYPTION_KEY must be 32 bytes written as hex')
       .optional(),
   ),
+  /**
+   * Where an alert is posted, if anywhere.
+   *
+   * A URL that takes a plain-text POST: an ntfy topic, a Home Assistant
+   * webhook, a script of your own. Empty means the inbox is the only place
+   * alerts appear.
+   */
+  ALERT_WEBHOOK_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
+  /**
+   * A charge at or above this many minor units raises an alert.
+   *
+   * Zero turns the rule off. The default is $500 in a dollar install; the
+   * currency is the charge's own.
+   */
+  ALERT_LARGE_TRANSACTION_MINOR: z.coerce.number().int().min(0).default(50_000),
+  /** The app's own address, for the link inside a webhook message. */
+  APP_BASE_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
 });
 
 /** Validated application configuration. */

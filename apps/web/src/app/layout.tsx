@@ -4,9 +4,10 @@ import './globals.css';
 
 import { AppBootCheck } from '@/components/app-boot-check.tsx';
 import { AccountLink } from '@/components/account-link.tsx';
+import { AlertLink } from '@/components/alert-link.tsx';
 import { Navigation } from '@/components/navigation.tsx';
 import { ServiceWorkerRegistration } from '@/components/service-worker-registration.tsx';
-import { countNeedsReview } from '@moneytracker/db';
+import { countNeedsReview, countUnreadAlerts } from '@moneytracker/db';
 
 import { getSessionUserId } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
@@ -45,7 +46,7 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const reviewCount = await countReview();
+  const [reviewCount, alertCount] = await Promise.all([countReview(), countAlerts()]);
 
   return (
     /*
@@ -79,6 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <p className="hidden text-sm text-slate-500 dark:text-slate-400 md:block">
                   Your money, in the open
                 </p>
+                <AlertLink count={alertCount} />
                 <AccountLink />
               </div>
             </div>
@@ -96,13 +98,28 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
           </main>
 
-          <Navigation reviewCount={reviewCount} />
+          <Navigation reviewCount={reviewCount} alertCount={alertCount} />
         </div>
         <ServiceWorkerRegistration />
         <AppBootCheck />
       </body>
     </html>
   );
+}
+
+/**
+ * How many alerts are new.
+ *
+ * A failure here must not take the whole app down, so it falls back to zero.
+ */
+async function countAlerts(): Promise<number> {
+  try {
+    const userId = await getSessionUserId();
+    if (!userId) return 0;
+    return await countUnreadAlerts(getDatabase().db, userId);
+  } catch {
+    return 0;
+  }
 }
 
 /**

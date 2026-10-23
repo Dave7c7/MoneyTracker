@@ -19,6 +19,7 @@ const links = [
 
 /** The sections that only have room in the top bar. */
 const secondaryLinks = [
+  { href: '/alerts', label: 'Alerts', icon: AlertsIcon },
   { href: '/import', label: 'Import', icon: ImportIcon },
   { href: '/accounts', label: 'Accounts', icon: AccountsIcon },
   { href: '/connections', label: 'Connections', icon: ConnectionsIcon },
@@ -37,7 +38,13 @@ function isActive(pathname: string, href: string): boolean {
  *
  * A bottom tab bar on phones (thumb reach) and a top bar on desktop.
  */
-export function Navigation({ reviewCount = 0 }: { reviewCount?: number }) {
+export function Navigation({
+  reviewCount = 0,
+  alertCount = 0,
+}: {
+  reviewCount?: number;
+  alertCount?: number;
+}) {
   const pathname = usePathname();
 
   // There is nothing to navigate to before signing in.
@@ -98,7 +105,14 @@ export function Navigation({ reviewCount = 0 }: { reviewCount?: number }) {
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
                 }`}
               >
-                <Icon />
+                <span className="relative">
+                  <Icon />
+                  {link.href === '/alerts' && alertCount > 0 && (
+                    <span className="absolute -right-2 -top-1 min-w-4 rounded-full bg-amber-500 px-1 text-center text-[9px] font-bold leading-4 text-white">
+                      {alertCount > 99 ? '99+' : alertCount}
+                    </span>
+                  )}
+                </span>
                 <span>{link.label}</span>
               </Link>
             </li>
@@ -324,6 +338,24 @@ function ConnectionsIcon() {
       <path d="M15 17a4 4 0 0 1-4-4" />
       <circle cx="9" cy="7" r="2" />
       <circle cx="15" cy="17" r="2" />
+    </svg>
+  );
+}
+
+function AlertsIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M18 8a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7" />
+      <path d="M10.5 20a2 2 0 0 0 3 0" />
     </svg>
   );
 }

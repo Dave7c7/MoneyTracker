@@ -161,7 +161,10 @@ transactions as CSV or JSON from the account screen, and one command for a
 database backup and one for the restore, with the round trip under test.
 Two-factor sign-in with an authenticator app: an encrypted secret, a code
 checked after the password, replay refused, and one-time recovery codes.
+Alerts for budgets near their limit, connections that stopped syncing, large
+charges and subscriptions that changed price or are due, in an inbox behind a
+bell, with an optional webhook for a phone.
 
-**Still to do:** alerts.
+**Still to do:** nothing in this phase; the last line below is the exit.
 
 **Done when:** security checklist in `rules/security.md` passes; a fresh deploy from README works on a clean VPS.

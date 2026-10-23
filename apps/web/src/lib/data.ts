@@ -18,10 +18,10 @@ import {
   netWorthSeries,
   recurringTotals,
   spendingByCategory,
+  toDashboardTransactions,
   toPlainDate,
   topMerchants,
   upcomingRecurring,
-  type DashboardTransaction,
 } from '@moneytracker/core';
 import {
   countNeedsReview,
@@ -42,7 +42,6 @@ import {
   detectRecurringItems,
   isEncryptionKey,
   toBudgets,
-  type TransactionRow,
 } from '@moneytracker/db';
 
 import { buildCategoryBreakdownView } from './category-breakdown.ts';
@@ -87,37 +86,6 @@ export async function getUserId(): Promise<string | null> {
  * that part and the amount of that part. The parts add up to the whole, so
  * the totals stay the same and the categories become the truth.
  */
-export function toDashboardTransactions(row: TransactionRow): DashboardTransaction[] {
-  const base = {
-    id: row.id,
-    accountId: row.accountId,
-    postedAt: row.postedAt,
-    currency: row.currency,
-    pending: row.pending,
-    merchantId: row.merchantId,
-    merchantName: row.merchantName,
-  };
-
-  if (row.splitLines.length > 0) {
-    return row.splitLines.map((line) => ({
-      ...base,
-      amountMinor: line.amountMinor,
-      categoryId: line.categoryId,
-      categoryName: line.categoryName,
-      categoryKind: line.categoryKind,
-    }));
-  }
-
-  return [
-    {
-      ...base,
-      amountMinor: row.amountMinor,
-      categoryId: row.categoryId,
-      categoryName: row.categoryName,
-      categoryKind: row.categoryKind ?? 'uncategorized',
-    },
-  ];
-}
 
 /** The current month bucket in the user's timezone. */
 export function currentMonth(): string {

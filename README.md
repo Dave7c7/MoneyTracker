@@ -127,6 +127,7 @@ Check with `lsof -nP -iTCP:3000 -sTCP:LISTEN` before you compare the two.
 | `pnpm db:set-password` | Set the password from the server (asks twice, echoes nothing) |
 | `pnpm db:disable-2fa` | Turn two-factor off from the server, for a lost phone and codes |
 | `pnpm db:sync` | Sync every bank connection (put it in cron) |
+| `pnpm db:check-alerts` | Look for alerts and post them to the webhook (put it in cron) |
 | `pnpm db:backup` | Write a gzipped backup of the database, keep the newest 14 |
 | `pnpm db:backups` | List the backups in `backups/` |
 | `pnpm db:restore <file> --yes` | Put a backup back, replacing what is there |
@@ -576,6 +577,50 @@ own status and its own error, and the error never contains the credential.
 [PROVIDER-TRIAL.md](PROVIDER-TRIAL.md).**
 
 ---
+
+## Alerts
+
+**The app says what it noticed.** Four rules, each one explainable:
+
+- a budget is at 90% of its limit, or past it;
+- a bank connection failed its last sync;
+- a charge of at least `ALERT_LARGE_TRANSACTION_MINOR` went out (default $500,
+  `0` turns it off) — transfers and pending charges do not count;
+- a subscription changed price, or is due in the next three days.
+
+They appear behind the bell in the header, and stay there until you mark them
+read. Nothing is deleted by reading it.
+
+**The checker is a command, and cron runs it.** A self-hosted app has no
+scheduler of its own — the same reason `pnpm db:sync` exists:
+
+```bash
+pnpm db:check-alerts
+20 7 * * *  cd /app && pnpm db:check-alerts >> /var/log/moneytracker-alerts.log 2>&1
+
+# against the containers
+docker compose run --rm migrate pnpm db:check-alerts
+20 7 * * *  cd /srv/moneytracker && docker compose run --rm migrate pnpm db:check-alerts
+```
+
+Running it twice is harmless: each alert carries a key built from the fact
+(the budget and the month, the failed attempt, the charge, the price, the due
+date), and the database refuses a second one.
+
+**A webhook is how it reaches your phone.** Set one URL and the same sentence
+is posted as plain text — an [ntfy](https://ntfy.sh) topic is the short path,
+and Home Assistant or a script of your own works too:
+
+```bash
+ALERT_WEBHOOK_URL=https://ntfy.sh/my-money-tracker
+APP_BASE_URL=https://money.example.com   # makes the link in the message open the app
+```
+
+The message body is the title, a sentence and a link; `Title`, `Tags` and
+`Click` headers are set the way ntfy reads them. Discord and Slack want their
+own JSON shape and need a relay — that is deliberate, rather than a setting
+per service. A webhook that answers with an error is retried on the next run
+(up to five attempts), and the alert stays in the inbox either way.
 
 ## Backups and exports
 

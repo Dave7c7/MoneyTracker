@@ -119,6 +119,44 @@ export const sessions = pgTable(
 );
 
 /**
+ * Something the app noticed and wants to say.
+ *
+ * The checker runs on a timer and says the same facts again; `dedupeKey` is
+ * what makes that cheap, because the database refuses a second alert with the
+ * same key. Whether it was read, and whether the webhook took it, are here too,
+ * so a failed delivery is retried instead of lost.
+ */
+export const alerts = pgTable(
+  'alerts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** 'budget' | 'sync' | 'large-transaction' | 'recurring' */
+    kind: text('kind').notNull(),
+    title: text('title').notNull(),
+    body: text('body').notNull(),
+    /** A path in this app, or null when there is nowhere useful to go. */
+    href: text('href'),
+    /** Stable identity of the fact, unique per user. */
+    dedupeKey: text('dedupe_key').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    /** When the person saw it; null while it is still new. */
+    readAt: timestamp('read_at', { withTimezone: true }),
+    /** When the webhook took it; null while there is one to send or a retry due. */
+    notifiedAt: timestamp('notified_at', { withTimezone: true }),
+    notifyAttempts: integer('notify_attempts').notNull().default(0),
+    /** Why the last delivery failed, for the log and the screen. */
+    lastNotifyError: text('last_notify_error'),
+  },
+  (table) => ({
+    uniqueKey: uniqueIndex('alerts_user_dedupe_idx').on(table.userId, table.dedupeKey),
+    userCreatedIdx: index('alerts_user_created_idx').on(table.userId, table.createdAt),
+  }),
+);
+
+/**
  * A recovery code for two-factor sign-in.
  *
  * The code is shown once, when two-factor is turned on. What is stored is its
@@ -580,6 +618,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   categories: many(categories),
   merchants: many(merchants),
   recoveryCodes: many(recoveryCodes),
+  alerts: many(alerts),
 }));
 
 export const accountsRelations = relations(accounts, ({ one, many }) => ({

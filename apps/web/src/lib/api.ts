@@ -137,6 +137,12 @@ export const passwordChangeSchema = z.object({
   newPassword: z.string().min(1).max(1024),
 });
 
+/** The body of a change to an alert's read state. */
+export const alertActionSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('read'), id: z.string().uuid() }),
+  z.object({ action: z.literal('read-all') }),
+]);
+
 /** The body of a change to two-factor sign-in. */
 export const twoFactorSchema = z.discriminatedUnion('action', [
   z.object({

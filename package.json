@@ -27,6 +27,7 @@
     "db:test:setup": "pnpm --filter @moneytracker/db db:test:setup",
     "db:set-password": "pnpm --filter @moneytracker/db db:set-password",
     "db:disable-2fa": "pnpm --filter @moneytracker/db db:disable-2fa",
+    "db:check-alerts": "pnpm --filter @moneytracker/db db:check-alerts",
     "db:sync": "pnpm --filter @moneytracker/db db:sync",
     "db:studio": "pnpm --filter @moneytracker/db db:studio",
     "check": "pnpm test && pnpm lint && pnpm typecheck",

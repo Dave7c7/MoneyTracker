@@ -120,3 +120,29 @@ same five-try pause as a wrong password.
 The setup returns eight recovery codes once; only their hashes are kept, and
 each is spent when used. They exist because a phone is lost at the worst time,
 and a self-hosted app has no support desk to call.
+
+## 2026-10-23 — Alerts are checked by a command, deduplicated by the fact
+
+The app has no scheduler: the sync already needs `cron`, and alerts use the same
+door. `pnpm db:check-alerts` looks at budgets, connections, large charges and
+subscriptions, stores what it finds, and posts the new ones to
+`ALERT_WEBHOOK_URL`. Running it twice is free.
+
+Every alert carries a key built from the fact it describes — the budget, month
+and level; the connection and the moment of the failed attempt; the
+transaction; the subscription and the new price; the subscription and the due
+date. A unique index on `(user_id, dedupe_key)` means the checker does not have
+to remember what it said, and a restarted or replayed run cannot double a
+sentence. A fact that changes (a worse budget, a new failed attempt, another
+price) is a new key, and speaks again.
+
+The webhook is one plain-text POST with the title, the sentence and a link,
+plus the `Title`, `Tags` and `Click` headers ntfy reads. Discord and Slack need
+their own JSON shape; a relay script is a smaller thing to maintain than a
+setting per service, and the alert is in the app either way. Deliveries are
+attempted five times and the error is kept on the row, so a quiet phone is
+visible in the inbox rather than lost.
+
+**Cost:** nobody is told about anything until cron runs, and a webhook URL is
+in `.env` rather than the database — one household, one process, and the token
+stays out of the backups.

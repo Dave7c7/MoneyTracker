@@ -51,6 +51,10 @@ services:
       DEFAULT_CURRENCY: ${DEFAULT_CURRENCY:-USD}
       DEFAULT_LOCALE: ${DEFAULT_LOCALE:-en-US}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      # Read by `docker compose run --rm migrate pnpm db:check-alerts`.
+      ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
+      APP_BASE_URL: ${APP_BASE_URL:-}
+      ALERT_LARGE_TRANSACTION_MINOR: ${ALERT_LARGE_TRANSACTION_MINOR:-50000}
     restart: 'no'
     networks:
       - moneytracker
