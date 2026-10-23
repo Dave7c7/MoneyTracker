@@ -2,7 +2,14 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import { createCsvMapping, detectDelimiter, parseCsv, type CsvMapping } from '@moneytracker/core';
+import {
+  createCsvMapping,
+  detectDelimiter,
+  parseCsv,
+  suggestMapping,
+  type CsvMapping,
+  type KnownExport,
+} from '@moneytracker/core';
 
 import type { ImportPreviewView, ImportProfileView, ImportResultView } from '@/lib/imports.ts';
 
@@ -44,6 +51,8 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
   const [sampleRows, setSampleRows] = useState<string[][]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<string>('');
   const [mapping, setMapping] = useState<CsvMapping>(() => createCsvMapping());
+  /** The bank export the file was recognised as, when it was. */
+  const [recognised, setRecognised] = useState<KnownExport | null>(null);
   const [draft, setDraft] = useState<ProfileDraft>({
     name: '',
     institution: '',
@@ -80,16 +89,36 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
     const rows = parseCsv(text, delimiter);
     const header = (rows[0] ?? []).map((cell) => cell.trim());
 
+    // A recognised bank export brings its own mapping and its own name; an
+    // unknown one is guessed from the column names and corrected by hand.
+    const { mapping: suggested, known } = suggestMapping(header);
+
     setFile(chosen);
     setColumns(header);
     setSampleRows(rows.slice(1, 4).map((row) => row.map((cell) => cell.trim())));
-    setMapping(guessMapping(header));
+    setMapping(suggested);
+    setRecognised(known);
+
+    // A recognised export names itself, so the profile is ready to save.
+    if (known) {
+      setSelectedProfileId('');
+      setProfileId('');
+      setDraft({
+        name: `${known.bank} ${known.kind}`.slice(0, 120),
+        institution: known.bank,
+        accountName: `${known.bank} ${known.kind}`,
+        accountType: known.accountType,
+        currency: 'USD',
+      });
+    }
+
     setStep('mapping');
   }, []);
 
   /** Loads a saved profile into the form. */
   const chooseProfile = useCallback((profile: ImportProfileView | null) => {
     setError(null);
+    setRecognised(null);
     if (!profile) {
       setSelectedProfileId('');
       setProfileId('');
@@ -259,6 +288,40 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
             only when you import it.
           </p>
 
+          <details className="mt-3 rounded-xl border border-slate-200 p-3 text-sm dark:border-slate-700">
+            <summary className="cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
+              Where the SoFi export is
+            </summary>
+            <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-slate-600 dark:text-slate-300">
+              <li>
+                Sign in at <span className="font-medium">sofi.com</span> in a browser. The app does
+                not ask for your SoFi password, and never sees it.
+              </li>
+              <li>
+                Open the account — <span className="font-medium">Banking</span> for checking or
+                savings, <span className="font-medium">Credit Card</span> for the card.
+              </li>
+              <li>
+                Open <span className="font-medium">Documents</span> (or Statements) and export the
+                transactions as <span className="font-medium">CSV</span>.
+              </li>
+              <li>
+                Export one account at a time. SoFi gives two years at most, so older history needs
+                its own export.
+              </li>
+            </ol>
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              A SoFi checking or credit card file is recognised when you choose it: the columns and
+              the sign of each amount are filled in. Any other bank works too — correct the mapping
+              once and it is saved as that bank&apos;s profile.
+            </p>
+            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              To have the transactions arrive on their own instead, connect SoFi once under{' '}
+              <span className="font-medium">Connections</span>: the provider refreshes them daily
+              and the app never holds your bank password.
+            </p>
+          </details>
+
           <label className="mt-3 flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-slate-300 p-6 text-center hover:border-slate-400 dark:border-slate-700">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
               {file ? file.name : 'Choose a CSV file'}
@@ -329,6 +392,18 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
                 Change file
               </button>
             </div>
+
+            {recognised && (
+              <div className="mt-3 rounded-xl border border-emerald-300 bg-emerald-50 p-2.5 text-xs text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100">
+                <p className="font-semibold">
+                  Looks like a {recognised.bank} {recognised.kind} export
+                </p>
+                <p className="mt-0.5">
+                  The columns and the signs are filled in for it. Check the preview before you
+                  import, and correct anything that is wrong: the profile remembers it.
+                </p>
+              </div>
+            )}
 
             <ColumnTable columns={columns} rows={sampleRows} />
 
@@ -850,31 +925,6 @@ function ErrorMessage({ message }: { message: string }) {
 
 const inputClass =
   'w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
-
-/** Guesses a mapping from the names of the columns. */
-function guessMapping(columns: string[]): CsvMapping {
-  const mapping = createCsvMapping();
-
-  const find = (patterns: RegExp[]): string =>
-    columns.find((column) => patterns.some((pattern) => pattern.test(column))) ?? '';
-
-  mapping.dateColumn = find([/^date/i, /posted/i, /transaction date/i]);
-  mapping.amountColumn = find([/^amount/i, /^value/i, /debit/i]);
-  mapping.descriptionColumn = find([/description/i, /memo/i, /payee/i, /details/i, /name/i]);
-  mapping.categoryColumn = find([/category/i, /type/i]) || null;
-  mapping.accountColumn = find([/^account/i, /account name/i]) || null;
-
-  const hasDebit = columns.some((column) => /debit|withdrawal|money out|paid out/i.test(column));
-  const hasCredit = columns.some((column) => /credit|deposit|money in|paid in/i.test(column));
-
-  if (hasDebit && hasCredit && mapping.amountColumn === '') {
-    mapping.amountMode = 'separate';
-    mapping.debitColumn = find([/debit/i, /withdrawal/i, /money out/i, /paid out/i]);
-    mapping.creditColumn = find([/credit/i, /deposit/i, /money in/i, /paid in/i]);
-  }
-
-  return mapping;
-}
 
 /** The request that carries the file and the profile. */
 function formData(file: File, profileId: string): FormData {

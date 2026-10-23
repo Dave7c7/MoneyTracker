@@ -498,11 +498,18 @@ export function parseCsvDate(
 /**
  * Applies the sign convention of a file to an amount.
  *
- * The app stores money out as negative, always.
+ * The app stores money out as negative, always:
+ *
+ * - `signed` and `debit_negative` already say it: out is negative.
+ * - `debit_positive` writes out as a positive number, so every sign flips —
+ *   a payment written as a negative number becomes money coming in.
+ *
+ * @example
+ * applyAmountSign(450, 'debit_positive'); // -450, a charge
+ * applyAmountSign(-25000, 'debit_positive'); // 25000, a payment
  */
 export function applyAmountSign(amountMinor: number, sign: CsvAmountSign): number {
-  if (sign === 'debit_positive') return -Math.abs(amountMinor);
-  if (sign === 'debit_negative') return -Math.abs(amountMinor);
+  if (sign === 'debit_positive') return -amountMinor;
   return amountMinor;
 }
 

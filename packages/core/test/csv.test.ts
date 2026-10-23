@@ -140,6 +140,14 @@ describe('applyAmountSign', () => {
     expect(applyAmountSign(1999, 'debit_positive')).toBe(-1999);
     expect(applyAmountSign(-1999, 'debit_negative')).toBe(-1999);
   });
+
+  it('turns money in positive, so a card payment is not a charge', () => {
+    // A credit card export writes purchases as positive and payments as
+    // negative; both have to land the right way round.
+    expect(applyAmountSign(1299, 'debit_positive')).toBe(-1299);
+    expect(applyAmountSign(-25000, 'debit_positive')).toBe(25000);
+    expect(applyAmountSign(25000, 'debit_negative')).toBe(25000);
+  });
 });
 
 describe('parseCsvRows', () => {

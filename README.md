@@ -360,6 +360,56 @@ connection, so a transfer between two of your accounts is found in a file too.
 
 ---
 
+## Getting the data out of SoFi
+
+**The app never takes your SoFi password.** That is a hard rule of this
+project, and it is also what keeps the app from breaking every time SoFi changes
+a login screen: a bank password behind a scraper is a password in a database
+that cannot be audited. So there are two ways in, and both are features of the
+app.
+
+### 1. The CSV export (free, works today)
+
+1. Sign in at **sofi.com** in a browser. The mobile app does not offer the
+   export.
+2. Open the account: **Banking** for checking or savings, **Credit Card** for
+   the card.
+3. Open **Documents** (or Statements) and export the transactions as **CSV**.
+4. Drop the file on **Import** in this app.
+
+**A SoFi checking or savings export is recognised.** The app sees the columns,
+says *"Looks like a SoFi Checking or savings export"*, and fills in the mapping:
+month-first dates, money out already negative, and `Type` left out because it
+says how the money moved rather than what it was for. The profile is named after
+the bank, so the next export is one tap.
+
+**The credit card export is not in the recognition table.** Its columns vary,
+and a signature loose enough to catch it would claim every other bank's file
+too. The app guesses instead, you correct the sign of the amounts once, and the
+profile remembers it.
+
+**Two years at most, one account at a time.** SoFi caps an export at a two-year
+range, so older history needs its own export. The importer is idempotent: the
+overlap between two exports does not become two sets of rows.
+
+### 2. A connection (automatic, needs the provider)
+
+On **Connections**, paste a SimpleFIN setup token and pick the SoFi accounts.
+The transactions then arrive on a schedule (`pnpm db:sync`, or the container's
+sync endpoint) with no file in between. The provider holds the bank connection;
+this app holds an encrypted, read-only token and never your password.
+
+SimpleFIN's SoFi coverage is worth checking on their side before paying: the
+provider notes in [PROVIDER-TRIAL.md](PROVIDER-TRIAL.md) say it is unconfirmed.
+If SoFi is not covered, the CSV export is the way, and it costs nothing.
+
+**Both routes land in the same place.** Every row goes through the same rules,
+the same merchant memory and the same transfer detection, so a SoFi row imported
+from a file and one that arrives from a provider are indistinguishable
+afterwards.
+
+---
+
 ## Splits
 
 One charge can be more than one thing: a hotel bill that is also dinner, a shop
