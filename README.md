@@ -120,8 +120,9 @@ Check with `lsof -nP -iTCP:3000 -sTCP:LISTEN` before you compare the two.
 | `pnpm db:test:setup` | Create and migrate the test database, and say what it found |
 | `pnpm e2e` | End-to-end tests (needs `pnpm e2e:install` once) |
 | `pnpm lint` / `pnpm typecheck` | Lint and type check everything |
-| `pnpm check` | `test` + `lint` + `typecheck`, the gate before every commit |
+| `pnpm check` | `format:check` + `db:check-migrations` + `test` + `lint` + `typecheck`, the gate before every commit |
 | `pnpm db:generate` | Generate a migration from the schema |
+| `pnpm db:check-migrations` | Fail if the schema and the generated migrations disagree |
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm db:seed` | Load the demo dataset (safe to run twice) |
 | `pnpm db:set-password` | Set the password from the server (asks twice, echoes nothing) |
@@ -607,20 +608,32 @@ Running it twice is harmless: each alert carries a key built from the fact
 (the budget and the month, the failed attempt, the charge, the price, the due
 date), and the database refuses a second one.
 
-**A webhook is how it reaches your phone.** Set one URL and the same sentence
-is posted as plain text — an [ntfy](https://ntfy.sh) topic is the short path,
-and Home Assistant or a script of your own works too:
+**A webhook is how it reaches your phone.** Set one URL and a summary is posted
+as plain text — an [ntfy](https://ntfy.sh) topic is the short path, and Home
+Assistant or a script of your own works too:
 
 ```bash
 ALERT_WEBHOOK_URL=https://ntfy.sh/my-money-tracker
 APP_BASE_URL=https://money.example.com   # makes the link in the message open the app
 ```
 
-The message body is the title, a sentence and a link; `Title`, `Tags` and
-`Click` headers are set the way ntfy reads them. Discord and Slack want their
-own JSON shape and need a relay — that is deliberate, rather than a setting
-per service. A webhook that answers with an error is retried on the next run
-(up to five attempts), and the alert stays in the inbox either way.
+The message says only what kind of thing happened — a budget needs attention, a
+connection stopped syncing, a large transaction was posted — plus a link. It
+carries no amount, merchant, category or connection name, because the endpoint
+may be a third party. The inbox in the app has the detail.
+
+**Use a private topic, or your own server.** A topic on public `ntfy.sh` is
+readable by anyone who learns or guesses its name, so pick a long random one
+and turn on access control (an access token or a protected topic), or
+[self-host ntfy](https://docs.ntfy.sh/install/). The summary keeps the message
+from being a statement of your finances, but it still says that something
+happened; the topic itself is the secret.
+
+`Title`, `Tags` and `Click` headers are set the way ntfy reads them. Discord
+and Slack want their own JSON shape and need a relay — that is deliberate,
+rather than a setting per service. A webhook that answers with an error is
+retried on the next run (up to five attempts), and the alert stays in the inbox
+either way.
 
 ## Backups and exports
 
@@ -656,6 +669,13 @@ The file holds every transaction and every encrypted bank token, so treat it
 like the database itself. It does **not** hold `ENCRYPTION_KEY` or the other
 settings in `.env`: keep those separately, or the tokens in a restored backup
 cannot be decrypted.
+
+**Keep the key apart from the backups.** A dump next to its key is not an
+encrypted copy, it is a plain one with extra steps: anyone who takes the backup
+folder has both halves. Store the key in a password manager or on another
+machine, and keep a second copy of it somewhere safe. Losing the key does not
+lose the transactions, but every bank token in the dump becomes dead, and each
+connection has to be added again.
 
 A daily cron line:
 

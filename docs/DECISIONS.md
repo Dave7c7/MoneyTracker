@@ -136,13 +136,38 @@ to remember what it said, and a restarted or replayed run cannot double a
 sentence. A fact that changes (a worse budget, a new failed attempt, another
 price) is a new key, and speaks again.
 
-The webhook is one plain-text POST with the title, the sentence and a link,
-plus the `Title`, `Tags` and `Click` headers ntfy reads. Discord and Slack need
-their own JSON shape; a relay script is a smaller thing to maintain than a
-setting per service, and the alert is in the app either way. Deliveries are
-attempted five times and the error is kept on the row, so a quiet phone is
-visible in the inbox rather than lost.
+The webhook is one plain-text POST with a summary and a link, plus the
+`Title`, `Tags` and `Click` headers ntfy reads. Discord and Slack need their
+own JSON shape; a relay script is a smaller thing to maintain than a setting
+per service, and the alert is in the app either way. Deliveries are attempted
+five times and the error is kept on the row, so a quiet phone is visible in the
+inbox rather than lost.
 
 **Cost:** nobody is told about anything until cron runs, and a webhook URL is
 in `.env` rather than the database — one household, one process, and the token
 stays out of the backups.
+
+## 2026-10-23 — A webhook gets a summary, not a statement of your finances
+
+The usual webhook is a topic on public `ntfy.sh`, so the message is readable by
+the service and anyone who learns the topic name. Sending "Acme Store: $1,204"
+there would hand a third party the merchant, the amount and the date. The
+webhook therefore carries only the kind of event — a budget needs attention, a
+connection stopped syncing, a large transaction was posted, a recurring charge
+needs attention — and a link into the app. The inbox keeps the full sentence.
+
+**Cost:** the notification is less useful on its own; the person has to open the
+app to see which budget or which charge. A private topic or a self-hosted ntfy
+is still the recommendation, because the topic name is the secret even when the
+message is dull.
+
+## Deferred upgrades
+
+Known and deliberately not done yet. Do them on their own, before the release
+that removes the old behaviour — not in the middle of a feature.
+
+- **Next.js 16: `middleware.ts` is deprecated in favour of `proxy.ts`.** The
+  build warns on every run. The current file only checks the session cookie and
+  the rename does not change behaviour, so it can wait; when it is done, rename
+  the file and export `proxy` instead of `middleware`, then confirm that the
+  login redirect still works and that a stale cookie does not bounce.
