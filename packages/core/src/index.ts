@@ -22,4 +22,5 @@ export * from './recurring.ts';
 export * from './budgets.ts';
 export * from './goals.ts';
 export * from './password.ts';
+export * from './rate-limit.ts';
 export * from './bank-exports.ts';

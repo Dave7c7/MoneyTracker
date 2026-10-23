@@ -5,6 +5,7 @@ import { getLocalUser, hasPassword, setPassword, signIn } from '@moneytracker/db
 import { passwordBodySchema, readJson } from '@/lib/api.ts';
 import { setSessionCookie } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
+import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit.ts';
 
 /**
  * Sets the password the first time.
@@ -14,6 +15,9 @@ import { getDatabase } from '@/lib/db.ts';
  * the network cannot claim an app that is already in use.
  */
 export async function POST(request: Request) {
+  const limited = checkRateLimit('setup', request);
+  if (limited) return limited;
+
   const body = await readJson(request, passwordBodySchema);
   if (!body.ok) return body.response;
 
@@ -56,5 +60,6 @@ export async function POST(request: Request) {
   }
 
   await setSessionCookie(result.token, result.expiresAt, request);
+  clearRateLimit('setup', request);
   return NextResponse.json({ ok: true }, { status: 201 });
 }

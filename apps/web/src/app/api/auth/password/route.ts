@@ -5,6 +5,7 @@ import { changePassword } from '@moneytracker/db';
 import { passwordChangeSchema, readJson } from '@/lib/api.ts';
 import { getSessionToken, getSessionUserId } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
+import { checkRateLimit } from '@/lib/rate-limit.ts';
 
 /**
  * Changes the password.
@@ -15,6 +16,11 @@ import { getDatabase } from '@/lib/db.ts';
 export async function POST(request: Request) {
   const userId = await getSessionUserId();
   if (!userId) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+
+  // Each try costs a hash, and a stolen session should not be able to grind
+  // through guesses at the current password.
+  const limited = checkRateLimit('password', request);
+  if (limited) return limited;
 
   const body = await readJson(request, passwordChangeSchema);
   if (!body.ok) return body.response;

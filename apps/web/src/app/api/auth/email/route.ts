@@ -5,6 +5,7 @@ import { changeEmail } from '@moneytracker/db';
 import { emailChangeSchema, readJson } from '@/lib/api.ts';
 import { getSessionUserId } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
+import { checkRateLimit } from '@/lib/rate-limit.ts';
 
 /**
  * Changes the address the app signs in with.
@@ -16,6 +17,10 @@ import { getDatabase } from '@/lib/db.ts';
 export async function POST(request: Request) {
   const userId = await getSessionUserId();
   if (!userId) return NextResponse.json({ error: 'Sign in first.' }, { status: 401 });
+
+  // Moving the address needs the password, so it is a guessing surface too.
+  const limited = checkRateLimit('email', request);
+  if (limited) return limited;
 
   const body = await readJson(request, emailChangeSchema);
   if (!body.ok) return body.response;

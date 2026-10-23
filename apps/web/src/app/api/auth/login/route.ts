@@ -6,6 +6,7 @@ import { signIn, LOCK_MINUTES, MAX_FAILED_LOGINS } from '@moneytracker/db';
 import { setSessionCookie } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
 import { readJson } from '@/lib/api.ts';
+import { checkRateLimit, clearRateLimit } from '@/lib/rate-limit.ts';
 
 const signInSchema = z.object({
   email: z.string().trim().min(1, 'An email is required.'),
@@ -19,6 +20,11 @@ const signInSchema = z.object({
  * the form cannot be used to find out which addresses exist.
  */
 export async function POST(request: Request) {
+  // Before the hash: a client that has had enough of its tries does not get to
+  // spend the server's.
+  const limited = checkRateLimit('login', request);
+  if (limited) return limited;
+
   const body = await readJson(request, signInSchema);
   if (!body.ok) return body.response;
 
@@ -55,5 +61,8 @@ export async function POST(request: Request) {
   }
 
   await setSessionCookie(result.token, result.expiresAt, request);
+  // The right password starts the count again: a person who mistyped twice and
+  // then got in is not one try away from a block.
+  clearRateLimit('login', request);
   return NextResponse.json({ ok: true });
 }

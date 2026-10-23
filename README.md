@@ -277,6 +277,16 @@ row, so a copied cookie stops working the moment you sign out.
 sign-in for fifteen minutes, and a wrong password takes the same time to refuse
 whether the email exists or not.
 
+**One address cannot hammer it either.** Sign-in, claiming the password,
+changing the password and changing the address are each limited per address:
+twenty tries in five minutes for signing in, five in fifteen minutes for the
+first password, ten in fifteen for the other two. A limit that is reached
+answers `429` with `Retry-After` and a sentence instead of a hash. The count
+lives in the server's memory, so a restart clears it — the pause on the account
+is the guard that survives. Behind a reverse proxy the address comes from
+`X-Forwarded-For`; on a directly exposed server a client can write its own, so
+the account pause is what actually stops a guesser.
+
 **Forgotten passwords are recovered on the server.** There is no email to reset
 with; the person who runs the server sets it:
 

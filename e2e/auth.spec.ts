@@ -47,4 +47,31 @@ test.describe('signing in', () => {
     await expectAppToBoot(page);
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible();
   });
+
+  test('an address that keeps trying is turned away', async ({ request }, testInfo) => {
+    /*
+      Every project runs this test, and the counters live in the server, so each
+      one knocks from its own address. The header is what the app reads as the
+      client address; Next.js passes a client's value through, which is exactly
+      why the lockout on the account is the guard that matters.
+    */
+    const addresses: Record<string, string> = {
+      phone: '203.0.113.41',
+      pixel: '203.0.113.42',
+      desktop: '203.0.113.43',
+    };
+    const headers = { 'x-forwarded-for': addresses[testInfo.project.name] ?? '203.0.113.44' };
+    const data = { password: 'not the password' };
+
+    // The app is already claimed, so the route answers 409; six tries is more
+    // than the five it allows from one address.
+    let last = await request.post('/api/auth/setup', { headers, data });
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      last = await request.post('/api/auth/setup', { headers, data });
+    }
+
+    expect(last.status()).toBe(429);
+    expect(await last.json()).toMatchObject({ error: expect.stringContaining('Too many tries') });
+    expect(last.headers()['retry-after']).toMatch(/^\d+$/);
+  });
 });
