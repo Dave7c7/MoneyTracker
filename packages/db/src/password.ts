@@ -26,8 +26,15 @@ const scrypt = promisify(scryptCallback) as (
   options: { N: number; r: number; p: number; maxmem: number },
 ) => Promise<Buffer>;
 
-/** The cost parameters of a new hash. */
-const PARAMS = { N: 16384, r: 8, p: 1 } as const;
+/**
+ * The cost parameters of a new hash.
+ *
+ * N=65536, r=8, p=1 is OWASP's minimum interactive recommendation as of 2024.
+ * It uses ~64 MB and takes ~50–100 ms on typical server hardware. Existing
+ * hashes with lower N continue to verify; new and changed passwords get the
+ * stronger parameters.
+ */
+const PARAMS = { N: 65536, r: 8, p: 1 } as const;
 
 /** The length of the derived key, in bytes. */
 const KEY_LENGTH = 32;
@@ -46,7 +53,7 @@ export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(SALT_LENGTH);
   const derived = await scrypt(password.normalize('NFKC'), salt, KEY_LENGTH, {
     ...PARAMS,
-    maxmem: 64 * 1024 * 1024,
+    maxmem: 128 * 1024 * 1024,
   });
 
   return [

@@ -40,7 +40,8 @@ describe('password hashing', () => {
 
   it('keeps the parameters with the hash, so they can be raised later', async () => {
     const stored = await hashPassword('a password worth keeping');
-    expect(stored.split('$')[1]).toBe('16384');
+    // The N parameter is stored in the hash so old passwords verify after an upgrade.
+    expect(stored.split('$')[1]).toBe('65536');
   });
 
   it('asks for a long enough password', () => {
