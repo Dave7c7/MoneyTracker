@@ -20,6 +20,7 @@ import {
   createAlert,
   deliverAlerts,
   evaluateAlerts,
+  isInternalUrl,
   listAlerts,
   markAlertRead,
   markAllAlertsRead,
@@ -507,5 +508,44 @@ describe.skipIf(!testDatabaseUrl)('alerts', () => {
       });
       expect(third).toEqual({ sent: 0, failed: 0 });
     });
+  });
+});
+
+describe('SSRF protection', () => {
+  it('rejects localhost and loopback addresses', () => {
+    expect(isInternalUrl('http://localhost/webhook')).toBe(true);
+    expect(isInternalUrl('http://127.0.0.1/webhook')).toBe(true);
+    expect(isInternalUrl('http://[::1]/webhook')).toBe(true);
+  });
+
+  it('rejects private IPv4 ranges', () => {
+    // 10.x.x.x
+    expect(isInternalUrl('http://10.0.0.1/webhook')).toBe(true);
+    expect(isInternalUrl('http://10.255.255.255/webhook')).toBe(true);
+    // 172.16-31.x.x
+    expect(isInternalUrl('http://172.16.0.1/webhook')).toBe(true);
+    expect(isInternalUrl('http://172.31.255.255/webhook')).toBe(true);
+    // 192.168.x.x
+    expect(isInternalUrl('http://192.168.1.1/webhook')).toBe(true);
+    expect(isInternalUrl('http://192.168.0.100/webhook')).toBe(true);
+    // 169.254.x.x (link-local)
+    expect(isInternalUrl('http://169.254.1.1/webhook')).toBe(true);
+  });
+
+  it('rejects cloud metadata endpoints', () => {
+    expect(isInternalUrl('http://169.254.169.254/latest/meta-data/')).toBe(true);
+    expect(isInternalUrl('http://metadata.google.internal/computeMetadata/v1/')).toBe(true);
+  });
+
+  it('allows public URLs', () => {
+    expect(isInternalUrl('https://ntfy.sh/my-topic')).toBe(false);
+    expect(isInternalUrl('https://hooks.slack.com/services/xxx')).toBe(false);
+    expect(isInternalUrl('https://discord.com/api/webhooks/xxx')).toBe(false);
+    expect(isInternalUrl('http://8.8.8.8/webhook')).toBe(false);
+  });
+
+  it('rejects malformed URLs', () => {
+    expect(isInternalUrl('not-a-url')).toBe(true);
+    expect(isInternalUrl('')).toBe(true);
   });
 });
