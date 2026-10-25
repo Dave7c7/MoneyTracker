@@ -171,3 +171,19 @@ that removes the old behaviour — not in the middle of a feature.
   the rename does not change behaviour, so it can wait; when it is done, rename
   the file and export `proxy` instead of `middleware`, then confirm that the
   login redirect still works and that a stale cookie does not bounce.
+
+## 2026-10-25 — CSRF protection via SameSite=Lax, not tokens
+
+The session cookie is `SameSite=Lax`, which prevents cross-origin POST requests
+from carrying the cookie. This stops most CSRF attacks: a malicious page cannot
+submit forms to the app and have them authenticated.
+
+`SameSite=Lax` does not protect against attacks from subdomains of the same
+site (e.g., if an attacker controls `evil.yourdomain.com`). A full CSRF token
+system would cover that case, but it adds complexity (token generation, storage,
+validation on every form) that is disproportionate for a single-user self-hosted
+app where subdomain attacks are unlikely.
+
+**Cost:** an attacker who controls a subdomain could perform authenticated
+actions. In the expected deployment (a home server with no subdomains, or a VPS
+with the app on its own domain), this is not a realistic threat.
