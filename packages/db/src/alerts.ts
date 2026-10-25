@@ -377,11 +377,72 @@ interface SendResult {
   error?: string;
 }
 
+/**
+ * Whether a URL points to localhost or a private/internal network.
+ *
+ * This prevents SSRF attacks where a misconfigured webhook URL could be used
+ * to probe internal services. The check runs before the request is made.
+ *
+ * @internal Exported for testing only.
+ */
+export function isInternalUrl(url: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return true; // Malformed URL is treated as internal (rejected)
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+
+  // localhost and loopback
+  if (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '::1' ||
+    hostname === '[::1]'
+  ) {
+    return true;
+  }
+
+  // IPv4 private ranges: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
+  const ipv4 = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const a = Number(ipv4[1]);
+    const b = Number(ipv4[2]);
+    if (a === 10) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 169 && b === 254) return true; // link-local
+    if (a === 0) return true; // 0.0.0.0/8
+  }
+
+  // IPv6 private ranges (simplified check)
+  if (hostname.startsWith('fe80:') || hostname.startsWith('fc') || hostname.startsWith('fd')) {
+    return true;
+  }
+
+  // Cloud metadata endpoints
+  if (hostname === '169.254.169.254' || hostname === 'metadata.google.internal') {
+    return true;
+  }
+
+  return false;
+}
+
 /** Sends one alert, with a timeout: a hung webhook must not hang the checker. */
 async function postAlert(
   url: string,
   request: { body: string; headers: Record<string, string> },
 ): Promise<SendResult> {
+  // Reject internal URLs to prevent SSRF
+  if (isInternalUrl(url)) {
+    return {
+      ok: false,
+      error: 'The webhook URL points to an internal address, which is not allowed.',
+    };
+  }
+
   try {
     const response = await fetch(url, {
       method: 'POST',
