@@ -163,6 +163,12 @@ export async function confirmTwoFactor(
           sign-in, and the person usually signs in moments later with the very
           code still on their screen; marking it used would turn that into
           "that code is not right" for half a minute.
+
+          Security note: an attacker who observed the confirmation code could
+          use it for immediate sign-in within the ~30s window. This is a narrow
+          attack surface that requires observing the setup screen, and the UX
+          cost of rejecting the visible code outweighs the risk for a self-
+          hosted single-user app.
         */
         totpLastStep: null,
         updatedAt: now,
