@@ -46,6 +46,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The runner's newest pg_dump writes SET transaction_timeout, which this
+      # PostgreSQL 16 server cannot restore. Use matching client and server majors.
+      - name: Install PostgreSQL 16 client tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client-16
+          echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
       # Nothing to create: `pnpm test` makes and migrates its own database, and
       # the lock in it stops two runs sharing one.
       #
