@@ -101,6 +101,8 @@ export default defineConfig({
           // The end-to-end tests change data, so they run against a database of
           // their own. This wins over the .env file.
           DATABASE_URL: e2eDatabaseUrl,
+          // Keep the dashboards in the same month as the fixed demo dataset.
+          E2E_MONTH: '2026-10',
           /*
             Two-factor encrypts its secret with this. The suite runs against a
             scratch database that is wiped every run, so a fixed, obviously

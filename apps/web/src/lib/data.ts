@@ -89,7 +89,13 @@ export async function getUserId(): Promise<string | null> {
 
 /** The current month bucket in the user's timezone. */
 export function currentMonth(): string {
-  return monthKey(new Date(), getEnv().APP_TIMEZONE);
+  /*
+    The end-to-end fixture is deliberately anchored to October 2026. Its test
+    server sets E2E_MONTH so the dashboards read the same month as the data,
+    even when the suite runs after that month has ended. Production never sets
+    this variable and always uses the real date.
+  */
+  return process.env.E2E_MONTH ?? monthKey(new Date(), getEnv().APP_TIMEZONE);
 }
 
 /** The months to show on the dashboards, oldest first. */
