@@ -548,4 +548,13 @@ describe('SSRF protection', () => {
     expect(isInternalUrl('not-a-url')).toBe(true);
     expect(isInternalUrl('')).toBe(true);
   });
+
+  it('rejects IPv6-mapped IPv4 addresses that point to internal networks', () => {
+    // IPv6-mapped IPv4: ::ffff:x.x.x.x
+    expect(isInternalUrl('http://[::ffff:127.0.0.1]/webhook')).toBe(true);
+    expect(isInternalUrl('http://[::ffff:10.0.0.1]/webhook')).toBe(true);
+    expect(isInternalUrl('http://[::ffff:192.168.1.1]/webhook')).toBe(true);
+    expect(isInternalUrl('http://[::ffff:172.16.0.1]/webhook')).toBe(true);
+    expect(isInternalUrl('http://[::ffff:169.254.1.1]/webhook')).toBe(true);
+  });
 });

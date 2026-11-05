@@ -405,6 +405,20 @@ export function isInternalUrl(url: string): boolean {
     return true;
   }
 
+  // IPv6-mapped IPv4 (::ffff:x.x.x.x) - URL parser converts to hex format like [::ffff:7f00:1]
+  // We need to detect and decode these to check the embedded IPv4 address
+  const mappedHex = hostname.match(/^\[::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})\]$/i);
+  if (mappedHex?.[1] && mappedHex?.[2]) {
+    const high = parseInt(mappedHex[1], 16);
+    const a = (high >> 8) & 0xff;
+    const b = high & 0xff;
+    if (a === 10) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 169 && b === 254) return true; // link-local
+    if (a === 0 || a === 127) return true; // 0.0.0.0/8 and loopback
+  }
+
   // IPv4 private ranges: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
   const ipv4 = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
   if (ipv4) {
