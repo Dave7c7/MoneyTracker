@@ -55,7 +55,7 @@ test.describe('alerts', () => {
       await pool.end();
     }
 
-    await page.goto('/');
+    await page.goto('/overview');
     await expectAppToBoot(page);
 
     const bell = page.getByRole('link', { name: 'Alerts, 2 new' });

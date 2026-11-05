@@ -10,14 +10,14 @@ import { expectAppToBoot, expectChartToDraw } from './helpers.ts';
  */
 test.describe('dashboards', () => {
   test('the app takes over the page', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/overview');
     await expectAppToBoot(page);
   });
 
   test('the charts draw their bars', async ({ page }) => {
     // Every page with a chart has to draw it. A chart that is empty looks
     // exactly like a page that is working.
-    for (const path of ['/', '/spending', '/cash-flow']) {
+    for (const path of ['/overview', '/spending', '/cash-flow']) {
       await page.goto(path);
       await expectAppToBoot(page);
       await expectChartToDraw(page);
@@ -25,7 +25,7 @@ test.describe('dashboards', () => {
   });
 
   test('the donut shows where the month went', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/overview');
     await expectAppToBoot(page);
 
     const card = page.locator('section', { hasText: 'Where the money went' }).first();
@@ -49,7 +49,7 @@ test.describe('dashboards', () => {
   });
 
   test('a group opens into its categories and comes back', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/overview');
     await expectAppToBoot(page);
 
     const card = page.locator('section', { hasText: 'Where the money went' }).first();
@@ -69,7 +69,7 @@ test.describe('dashboards', () => {
   });
 
   test('another month resets the donut to the groups', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/overview');
     await expectAppToBoot(page);
 
     const card = page.locator('section', { hasText: 'Where the money went' }).first();
@@ -87,7 +87,7 @@ test.describe('dashboards', () => {
   });
 
   test('a category takes the user to its transactions', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/overview');
     await expectAppToBoot(page);
 
     const card = page.locator('section', { hasText: 'Where the money went' }).first();
@@ -114,7 +114,7 @@ test.describe('dashboards', () => {
   });
 
   test('the donut fits a narrow phone', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/overview');
     await expectAppToBoot(page);
 
     const width = page.viewportSize()?.width ?? 0;
@@ -126,7 +126,7 @@ test.describe('dashboards', () => {
   });
 
   test('the overview shows the seeded month at a glance', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/overview');
     const main = page.getByRole('main');
 
     await expect(page.getByRole('heading', { name: 'MoneyTracker', level: 1 })).toBeVisible();

@@ -6,6 +6,9 @@ transaction in a way you can inspect, correct and explain.
 
 Works on a phone and a desktop as an installable PWA. Single user first.
 
+The public `/` route is the MoneyTracker product landing page. The finance PWA
+remains at `/overview`, behind the existing authentication shell.
+
 ---
 
 ## What is in here
@@ -41,8 +44,9 @@ docker compose up             # app on http://localhost:3000
 ```
 
 `docker compose up` starts the database, applies the migrations and starts the
-app with an empty database. **The first visit asks you to choose a password** —
-the app starts closed, so nothing is readable until you do.
+app with an empty database. **The first visit to `/overview` asks you to choose
+a password** — the finance app starts closed, so none of its data is readable
+until you do.
 
 To load the demo dataset (13 months of realistic transactions across three
 accounts):
@@ -259,7 +263,7 @@ the truth, it works with a keyboard, and a screen reader reads the same thing.
 
 ## Signing in
 
-**The app starts closed.** The first visit asks for a password; after that,
+**The app starts closed.** The first visit to `/overview` asks for a password; after that,
 every page and every API route needs it. There is no open registration, so an
 address on the network that finds the app cannot claim it: until you set the
 password, it is a page asking for one.

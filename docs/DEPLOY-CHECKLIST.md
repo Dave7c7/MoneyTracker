@@ -81,8 +81,9 @@ The app is now on `http://localhost:3000`. **Do not expose this yet.**
 
 ## 4. Set the password
 
-Visit `http://YOUR_SERVER_IP:3000` (or SSH tunnel: `ssh -L 3000:localhost:3000 user@server`)
-and set your password. Until you do, the app is a blank page asking for one.
+Visit `http://YOUR_SERVER_IP:3000` (or SSH tunnel: `ssh -L 3000:localhost:3000 user@server`),
+choose **Open the app**, and set your password at `/overview`. Until you do, the
+finance app is closed and asks for one.
 
 ---
 

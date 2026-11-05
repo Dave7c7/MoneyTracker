@@ -10,7 +10,7 @@ import { usePathname } from 'next/navigation';
  * they are set up once, not checked every day.
  */
 const links = [
-  { href: '/', label: 'Overview', icon: OverviewIcon },
+  { href: '/overview', label: 'Overview', icon: OverviewIcon },
   { href: '/spending', label: 'Spending', icon: SpendingIcon },
   { href: '/cash-flow', label: 'Cash flow', icon: CashFlowIcon },
   { href: '/transactions', label: 'Transactions', icon: TransactionsIcon },
@@ -30,7 +30,7 @@ const secondaryLinks = [
 ] as const;
 
 function isActive(pathname: string, href: string): boolean {
-  return href === '/' ? pathname === '/' : pathname.startsWith(href);
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 /**

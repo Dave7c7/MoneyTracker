@@ -13,7 +13,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('signing in', () => {
   test('the app asks for a password before showing any money', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/overview');
     await expectAppToBoot(page);
 
     await expect(page).toHaveURL(/\/login/);
@@ -43,7 +43,7 @@ test.describe('signing in', () => {
     await page.getByLabel('Password').fill(E2E_PASSWORD);
     await page.getByRole('button', { name: 'Sign in' }).click();
 
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/overview$/);
     await expectAppToBoot(page);
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible();
   });

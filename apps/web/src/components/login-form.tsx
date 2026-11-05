@@ -69,7 +69,7 @@ export function LoginForm({
         return;
       }
 
-      router.replace('/');
+      router.replace('/overview');
       router.refresh();
     } catch {
       setError('The app could not be reached.');

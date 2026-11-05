@@ -187,3 +187,18 @@ app where subdomain attacks are unlikely.
 **Cost:** an attacker who controls a subdomain could perform authenticated
 actions. In the expected deployment (a home server with no subdomains, or a VPS
 with the app on its own domain), this is not a realistic threat.
+
+## 2026-11-04 — A public MoneyTracker landing page in front of the finance app
+
+The root route is a public, MoneyTracker-specific product landing page. The
+existing finance overview moved to `/overview`; route groups give the landing
+page and finance app separate shells without discarding any finance routes or
+authentication.
+
+Three.js is confined to a client-only dynamic hero import. Native CSS, pointer
+events and scroll handlers cover the other effects, so GSAP is not needed. All
+imagery and copy describe MoneyTracker accounts, categorization, cash flow,
+budgets and goals; the page contains no placeholder designer content.
+
+**Cost:** overview links and end-to-end fixtures use `/overview`, and the public
+landing artwork under `/images` bypasses the session gate just like the icons.

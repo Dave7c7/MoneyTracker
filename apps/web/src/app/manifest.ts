@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'MoneyTracker',
     short_name: 'MoneyTracker',
     description: 'Self-hosted personal finance tracker.',
-    start_url: '/',
+    start_url: '/overview',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait-primary',
