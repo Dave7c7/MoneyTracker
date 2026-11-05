@@ -13,7 +13,7 @@ import { expectAppToBoot } from './helpers.ts';
  */
 test.describe('account', () => {
   test('the header leads to the account', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/overview');
     await expectAppToBoot(page);
 
     await page.getByRole('link', { name: 'Account', exact: true }).click();

@@ -30,7 +30,7 @@ export const metadata = { title: 'Sign in' };
 export default async function LoginPage() {
   // A live session goes to the money. Asking the database, rather than looking
   // for the cookie, keeps a stale cookie from bouncing between here and there.
-  if (await getSessionUserId()) redirect('/');
+  if (await getSessionUserId()) redirect('/overview');
 
   const { db } = getDatabase();
   const env = getEnv();

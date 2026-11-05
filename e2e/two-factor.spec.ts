@@ -87,7 +87,7 @@ test.describe('two-factor sign-in', () => {
     await expect(page.getByLabel('Code')).toBeVisible();
     await page.getByLabel('Code').fill(totpCode(secret, Date.now()));
     await page.getByRole('button', { name: 'Sign in' }).click();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/overview$/);
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible();
 
     // A lost phone: a recovery code works in the same field, once.
@@ -99,7 +99,7 @@ test.describe('two-factor sign-in', () => {
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.getByLabel('Code').fill(codes[0] ?? '');
     await page.getByRole('button', { name: 'Sign in' }).click();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/overview$/);
 
     // And off again, with the password.
     await page.goto('/account');

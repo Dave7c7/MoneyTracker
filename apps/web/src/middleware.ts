@@ -10,8 +10,8 @@ import { NextResponse, type NextRequest } from 'next/server';
  *
  * For that reason it does not send a signed-in-looking request away from the
  * sign-in page. A cookie can be stale — a restored database, a wiped sessions
- * table — and redirecting on its presence alone would bounce `/login` to `/`
- * and `/` back to `/login` until the browser gave up. The sign-in page checks
+ * table — and redirecting on its presence alone would bounce `/login` to `/overview`
+ * and `/overview` back to `/login` until the browser gave up. The sign-in page checks
  * the session for real and sends a live one to the money.
  */
 
@@ -20,6 +20,7 @@ const SESSION_COOKIE = 'mt_session';
 
 /** Paths that must work without a session. */
 const PUBLIC_PATHS = [
+  '/',
   '/login',
   '/api/auth/login',
   '/api/auth/setup',
@@ -27,6 +28,7 @@ const PUBLIC_PATHS = [
   '/manifest.webmanifest',
   '/sw.js',
   '/icons',
+  '/images',
 ];
 
 function isPublic(pathname: string): boolean {
