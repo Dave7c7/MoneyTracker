@@ -2,6 +2,7 @@ import { countUnreadAlerts, listAlerts } from '@moneytracker/db';
 
 import { AlertsList } from '@/components/alerts-list.tsx';
 import { Card } from '@/components/card.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { requireUser } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
 import { getEnv } from '@/lib/env.ts';
@@ -37,12 +38,12 @@ export default async function AlertsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">Alerts</h2>
-        <span className="text-sm text-slate-500 dark:text-slate-400">
-          {unread > 0 ? `${unread} new` : 'All read'}
-        </span>
-      </div>
+      <PageHeader
+        eyebrow="Money / Attention"
+        title="Alerts"
+        description="Budget, connection, charge and subscription updates."
+        action={<span className="finance-badge">{unread > 0 ? `${unread} new` : 'All read'}</span>}
+      />
 
       <Card
         title="Worth a look"

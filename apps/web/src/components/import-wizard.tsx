@@ -279,7 +279,7 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
   return (
     <div className="space-y-4">
       {step === 'file' && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <section className="finance-card p-4">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             Choose a file
           </h2>
@@ -354,7 +354,7 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
                         chooseProfile(profile);
                         setStep('mapping');
                       }}
-                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2 text-left text-sm hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600"
+                      className="finance-button finance-button--secondary finance-button--small w-full justify-between text-left"
                     >
                       <span className="truncate text-slate-800 dark:text-slate-100">
                         {profile.name}
@@ -373,7 +373,7 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
 
       {step === 'mapping' && (
         <section className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="finance-card p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -387,14 +387,14 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
               <button
                 type="button"
                 onClick={reset}
-                className="shrink-0 rounded-full px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                className="finance-button finance-button--ghost finance-button--small shrink-0"
               >
                 Change file
               </button>
             </div>
 
             {recognised && (
-              <div className="mt-3 rounded-xl border border-emerald-300 bg-emerald-50 p-2.5 text-xs text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100">
+              <div className="finance-notice finance-notice--success mt-3 text-xs">
                 <p className="font-semibold">
                   Looks like a {recognised.bank} {recognised.kind} export
                 </p>
@@ -416,7 +416,7 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
                     const chosen = profiles.find((profile) => profile.id === event.target.value);
                     chooseProfile(chosen ?? null);
                   }}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  className="finance-input finance-input--small"
                 >
                   <option value="">New profile</option>
                   {profiles.map((profile) => (
@@ -487,7 +487,7 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="finance-card p-4">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               The columns
             </h3>
@@ -664,15 +664,11 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
               type="button"
               onClick={() => void saveAndPreview()}
               disabled={busy}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-slate-900"
+              className="finance-button finance-button--primary"
             >
               {busy ? 'Working...' : 'Save and preview'}
             </button>
-            <button
-              type="button"
-              onClick={reset}
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-            >
+            <button type="button" onClick={reset} className="finance-button finance-button--ghost">
               Start over
             </button>
           </div>
@@ -681,7 +677,7 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
 
       {step === 'preview' && preview && (
         <section className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="finance-card p-4">
             <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               What this file would do
             </h2>
@@ -727,23 +723,21 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
             )}
 
             {preview.missingColumns.length > 0 && (
-              <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+              <p className="finance-notice finance-notice--warning mt-2 text-xs">
                 The file has no column named {preview.missingColumns.join(', ')}.
               </p>
             )}
 
             {preview.ambiguousDates > 0 && (
-              <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+              <p className="finance-notice finance-notice--warning mt-2 text-xs">
                 {preview.ambiguousDates} dates could be read in two ways. The app reads them as
                 month first.
               </p>
             )}
 
             {preview.errors.length > 0 && (
-              <div className="mt-3">
-                <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
-                  Rows that are skipped
-                </p>
+              <div className="finance-notice finance-notice--warning mt-3">
+                <p className="text-xs font-medium">Rows that are skipped</p>
                 <ul className="mt-1 space-y-0.5">
                   {preview.errors.slice(0, 5).map((error) => (
                     <li
@@ -793,14 +787,14 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
               type="button"
               onClick={() => void commit()}
               disabled={busy}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-slate-900"
+              className="finance-button finance-button--primary"
             >
               {busy ? 'Importing...' : `Import ${preview.newRowCount} rows`}
             </button>
             <button
               type="button"
               onClick={() => setStep('mapping')}
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+              className="finance-button finance-button--ghost"
             >
               Change the columns
             </button>
@@ -809,7 +803,7 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
       )}
 
       {step === 'done' && result && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <section className="finance-card p-4">
           <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
             The file is in
           </h2>
@@ -822,17 +816,10 @@ export function ImportWizard({ profiles }: { profiles: ImportProfileView[] }) {
             <Stat label="Need a look" value={String(result.suspectedTransfers)} />
           </dl>
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <a
-              href="/transactions"
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-900"
-            >
+            <a href="/transactions" className="finance-button finance-button--primary">
               See the transactions
             </a>
-            <button
-              type="button"
-              onClick={reset}
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-            >
+            <button type="button" onClick={reset} className="finance-button finance-button--ghost">
               Import another file
             </button>
           </div>
@@ -920,15 +907,10 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 /** Says what went wrong. */
 function ErrorMessage({ message }: { message: string }) {
-  return (
-    <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
-      {message}
-    </p>
-  );
+  return <p className="finance-notice finance-notice--warning">{message}</p>;
 }
 
-const inputClass =
-  'w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const inputClass = 'finance-input finance-input--small';
 
 /** The request that carries the file and the profile. */
 function formData(file: File, profileId: string): FormData {

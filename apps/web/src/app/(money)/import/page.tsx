@@ -1,4 +1,5 @@
 import { ImportWizard } from '@/components/import-wizard.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { requireUser } from '@/lib/auth.ts';
 import { getImportData } from '@/lib/data.ts';
 
@@ -21,13 +22,11 @@ export default async function ImportPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold tracking-tight">Import a file</h2>
-        <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-          Bring in a CSV export from your bank. You tell the app how the file is laid out once, and
-          it remembers it for the next export of the same bank.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Transactions / Import"
+        title="Import a file"
+        description="Map a bank CSV once, then reuse the profile for future exports."
+      />
 
       <ImportWizard profiles={data.profiles} />
     </div>

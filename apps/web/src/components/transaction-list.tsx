@@ -279,7 +279,7 @@ export function TransactionList({
                       <button
                         type="button"
                         onClick={() => setSplittingId(splittingId === row.id ? null : row.id)}
-                        className="rounded-full px-1.5 py-0.5 text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                        className="finance-button finance-button--ghost finance-button--tiny"
                       >
                         {splittingId === row.id ? 'Close' : 'Edit split'}
                       </button>
@@ -295,7 +295,7 @@ export function TransactionList({
                       <button
                         type="button"
                         onClick={() => setSplittingId(splittingId === row.id ? null : row.id)}
-                        className="rounded-full px-1.5 py-0.5 text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                        className="finance-button finance-button--ghost finance-button--tiny"
                       >
                         {splittingId === row.id ? 'Close' : 'Split'}
                       </button>
@@ -327,7 +327,7 @@ export function TransactionList({
                     <button
                       type="button"
                       onClick={() => void toggleTransfer(row)}
-                      className="rounded-full px-1.5 py-0.5 text-[10px] font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                      className="finance-button finance-button--ghost finance-button--tiny"
                     >
                       Mark as transfer
                     </button>
@@ -380,7 +380,7 @@ export function TransactionList({
             )}
 
             {prompt?.transactionId === row.id && (
-              <div className="mt-2 rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm dark:border-brand-900 dark:bg-slate-800">
+              <div className="finance-callout mt-2 text-sm">
                 <p className="font-medium text-slate-800 dark:text-slate-100">
                   Apply to all from {prompt.merchantName}?
                 </p>
@@ -394,7 +394,7 @@ export function TransactionList({
                         onChange={(event) => setMinAmount(event.target.value)}
                         placeholder="From"
                         aria-label="Amount from"
-                        className="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                        className="finance-input finance-input--small min-w-0"
                       />
                       <input
                         inputMode="decimal"
@@ -402,7 +402,7 @@ export function TransactionList({
                         onChange={(event) => setMaxAmount(event.target.value)}
                         placeholder="To"
                         aria-label="Amount to"
-                        className="w-full min-w-0 rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-sm focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                        className="finance-input finance-input--small min-w-0"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -411,14 +411,14 @@ export function TransactionList({
                         onClick={() =>
                           void applyToMerchant(prompt, { min: minAmount, max: maxAmount })
                         }
-                        className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-white dark:text-slate-900"
+                        className="finance-button finance-button--primary finance-button--small"
                       >
                         Apply to matching amounts
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowAmountRange(false)}
-                        className="rounded-full px-3 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400"
+                        className="finance-button finance-button--ghost finance-button--small"
                       >
                         Back
                       </button>
@@ -429,21 +429,21 @@ export function TransactionList({
                     <button
                       type="button"
                       onClick={() => void applyToMerchant(prompt)}
-                      className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-white dark:text-slate-900"
+                      className="finance-button finance-button--primary finance-button--small"
                     >
                       All from this merchant
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowAmountRange(true)}
-                      className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 dark:border-slate-600 dark:text-slate-300"
+                      className="finance-button finance-button--secondary finance-button--small"
                     >
                       Matching an amount
                     </button>
                     <button
                       type="button"
                       onClick={() => setPrompt(null)}
-                      className="rounded-full px-3 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400"
+                      className="finance-button finance-button--ghost finance-button--small"
                     >
                       This one only
                     </button>

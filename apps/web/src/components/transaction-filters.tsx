@@ -70,8 +70,7 @@ export function TransactionFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
-  const inputClass =
-    'w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
+  const inputClass = 'finance-input finance-input--small min-w-0';
 
   return (
     <div className="space-y-3" aria-busy={isPending}>
@@ -151,7 +150,7 @@ export function TransactionFilters({
               router.replace(pathname, { scroll: false });
             })
           }
-          className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-500"
+          className="finance-button finance-button--ghost finance-button--small -ml-2"
         >
           Clear filters
         </button>

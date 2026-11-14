@@ -60,7 +60,7 @@ export function AlertsList({ alerts, unread }: { alerts: AlertSummary[]; unread:
 
   if (alerts.length === 0) {
     return (
-      <p className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600 dark:bg-slate-950 dark:text-slate-300">
+      <p className="finance-callout text-sm text-[var(--finance-muted)]">
         Nothing needs your attention. The checker (<code>pnpm db:check-alerts</code>) looks at
         budgets, connections, charges and subscriptions; when it finds something, it appears here.
       </p>
@@ -78,7 +78,7 @@ export function AlertsList({ alerts, unread }: { alerts: AlertSummary[]; unread:
             type="button"
             disabled={busy}
             onClick={() => void mark({ action: 'read-all' })}
-            className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200"
+            className="finance-button finance-button--secondary finance-button--small"
           >
             Mark all as read
           </button>
@@ -86,10 +86,7 @@ export function AlertsList({ alerts, unread }: { alerts: AlertSummary[]; unread:
       )}
 
       {error && (
-        <p
-          role="alert"
-          className="rounded-xl bg-rose-50 p-2.5 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-200"
-        >
+        <p role="alert" className="finance-notice finance-notice--error">
           {error}
         </p>
       )}
@@ -100,7 +97,7 @@ export function AlertsList({ alerts, unread }: { alerts: AlertSummary[]; unread:
             key={alert.id}
             className={`rounded-xl border p-3 ${
               alert.read
-                ? 'border-slate-200 bg-white opacity-70 dark:border-slate-800 dark:bg-slate-900'
+                ? 'border-[var(--finance-border)] bg-[var(--finance-surface)] opacity-70'
                 : 'border-amber-300 bg-amber-50/60 dark:border-amber-700 dark:bg-amber-950/40'
             }`}
           >
@@ -108,7 +105,9 @@ export function AlertsList({ alerts, unread }: { alerts: AlertSummary[]; unread:
               <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 {KIND_LABELS[alert.kind] ?? alert.kind}
                 {!alert.read && (
-                  <span className="ml-2 text-amber-600 dark:text-amber-400">New</span>
+                  <span className="finance-badge ml-2 border-amber-300 bg-amber-100 text-amber-700 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                    New
+                  </span>
                 )}
               </p>
               <time className="text-[11px] text-slate-400 dark:text-slate-500">
@@ -135,7 +134,7 @@ export function AlertsList({ alerts, unread }: { alerts: AlertSummary[]; unread:
                   type="button"
                   disabled={busy}
                   onClick={() => void mark({ action: 'read', id: alert.id })}
-                  className="text-xs font-medium text-slate-500 underline disabled:opacity-50 dark:text-slate-400"
+                  className="finance-button finance-button--ghost finance-button--small underline"
                 >
                   Mark read
                 </button>

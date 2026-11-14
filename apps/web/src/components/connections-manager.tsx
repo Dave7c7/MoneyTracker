@@ -205,16 +205,8 @@ export function ConnectionsManager({
 
   return (
     <div className="space-y-4">
-      {error && (
-        <p className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100">
-          {error}
-        </p>
-      )}
-      {message && (
-        <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100">
-          {message}
-        </p>
-      )}
+      {error && <p className="finance-notice finance-notice--error">{error}</p>}
+      {message && <p className="finance-notice finance-notice--success">{message}</p>}
 
       {connections.length === 0 && !pending && (
         <p className="text-sm text-slate-500 dark:text-slate-400">No bank is connected yet.</p>
@@ -224,10 +216,7 @@ export function ConnectionsManager({
         <>
           <ul className="space-y-2.5">
             {connections.map((connection) => (
-              <li
-                key={connection.id}
-                className="rounded-2xl border border-slate-200 bg-white p-3.5 dark:border-slate-800 dark:bg-slate-900"
-              >
+              <li key={connection.id} className="finance-card p-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -240,7 +229,7 @@ export function ConnectionsManager({
                     </p>
                   </div>
                   <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                    className={`finance-badge shrink-0 uppercase ${
                       connection.status === 'active'
                         ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300'
                         : connection.status === 'error'
@@ -260,7 +249,7 @@ export function ConnectionsManager({
                 </p>
 
                 {connection.lastError && (
-                  <p className="mt-1.5 text-xs text-rose-600 dark:text-rose-400">
+                  <p className="finance-notice finance-notice--error mt-1.5 text-xs">
                     {connection.lastError}
                   </p>
                 )}
@@ -270,14 +259,14 @@ export function ConnectionsManager({
                     type="button"
                     onClick={() => sync(connection.id)}
                     disabled={busy}
-                    className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+                    className="finance-button finance-button--primary finance-button--small"
                   >
                     Sync now
                   </button>
                   <button
                     type="button"
                     onClick={() => remove(connection.id)}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-600 dark:text-slate-200"
+                    className="finance-button finance-button--secondary finance-button--small"
                   >
                     Remove
                   </button>
@@ -289,7 +278,7 @@ export function ConnectionsManager({
             type="button"
             onClick={syncAll}
             disabled={busy}
-            className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200"
+            className="finance-button finance-button--secondary"
           >
             Sync every connection
           </button>
@@ -312,7 +301,7 @@ export function ConnectionsManager({
             <ul className="space-y-1.5">
               {pending.accounts.map((account) => (
                 <li key={account.externalId}>
-                  <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-900">
+                  <label className="finance-callout flex items-center justify-between gap-3 text-sm">
                     <span className="flex items-center gap-2.5">
                       <input
                         type="checkbox"
@@ -349,14 +338,14 @@ export function ConnectionsManager({
               type="button"
               onClick={keepAccounts}
               disabled={busy || chosen.size === 0}
-              className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+              className="finance-button finance-button--primary finance-button--small"
             >
               {busy ? 'Importing…' : 'Keep these accounts'}
             </button>
             <button
               type="button"
               onClick={() => setPending(null)}
-              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-slate-600 dark:text-slate-200"
+              className="finance-button finance-button--secondary finance-button--small"
             >
               Cancel
             </button>
@@ -374,13 +363,13 @@ export function ConnectionsManager({
           </h3>
 
           {!canConnect ? (
-            <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
+            <p className="finance-notice finance-notice--warning">
               The app has no encryption key yet, so it cannot store a credential. Add one to
               <code className="mx-1">.env</code> and restart it:
               <code className="mt-1 block">openssl rand -hex 32</code>
             </p>
           ) : (
-            <div className="rounded-2xl border border-slate-200 bg-white p-3.5 dark:border-slate-800 dark:bg-slate-900">
+            <div className="finance-card p-3.5">
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Get a setup token from{' '}
                 <a
@@ -401,7 +390,7 @@ export function ConnectionsManager({
                   onChange={(event) => setToken(event.target.value)}
                   rows={3}
                   placeholder="aHR0cHM6Ly9iZXRhLWJyaWRnZS4uLg=="
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 font-mono text-xs break-all dark:border-slate-600 dark:bg-slate-800"
+                  className="finance-input finance-input--small font-mono text-xs break-all"
                 />
               </label>
               <label className="mt-2.5 block text-xs font-medium text-slate-700 dark:text-slate-300">
@@ -409,7 +398,7 @@ export function ConnectionsManager({
                 <select
                   value={historyDays}
                   onChange={(event) => setHistoryDays(Number(event.target.value))}
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
+                  className="finance-input finance-input--small"
                 >
                   {HISTORY_OPTIONS.map((option) => (
                     <option key={option.days} value={option.days}>
@@ -422,7 +411,7 @@ export function ConnectionsManager({
                 type="button"
                 onClick={connect}
                 disabled={busy || token.trim().length === 0}
-                className="mt-3 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+                className="finance-button finance-button--primary finance-button--small mt-3"
               >
                 {busy ? 'Connecting…' : 'Connect the bank'}
               </button>

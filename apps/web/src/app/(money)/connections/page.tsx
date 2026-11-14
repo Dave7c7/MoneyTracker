@@ -1,6 +1,7 @@
 import { Card } from '@/components/card.tsx';
 import { ConnectionsManager } from '@/components/connections-manager.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { requireUser } from '@/lib/auth.ts';
 import { getConnectionsData } from '@/lib/data.ts';
 
@@ -24,12 +25,12 @@ export default async function ConnectionsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">Connections</h2>
-        <span className="text-sm text-slate-500 dark:text-slate-400">
-          {data.connections.length} connected
-        </span>
-      </div>
+      <PageHeader
+        eyebrow="Accounts / Providers"
+        title="Connections"
+        description="Read-only bank connections and sync controls."
+        action={<span className="finance-badge">{data.connections.length} connected</span>}
+      />
 
       <Card
         title="Your banks"
