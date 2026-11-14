@@ -270,6 +270,14 @@ body {
     background-color 160ms ease;
 }
 
+.finance-input--compact {
+  width: auto;
+  min-height: 2.25rem;
+  margin-top: 0;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.75rem;
+}
+
 .finance-input:focus {
   border-color: var(--finance-accent-bright);
   background: var(--finance-surface);
@@ -369,6 +377,24 @@ body {
     background: rgb(69 26 3 / 55%);
     color: #fde68a;
   }
+}
+
+.finance-chart-tooltip {
+  min-width: 10rem;
+  border: 1px solid var(--finance-border-strong);
+  border-radius: 0.875rem;
+  background: color-mix(in srgb, var(--finance-surface) 94%, transparent);
+  box-shadow: 0 18px 44px rgb(0 0 0 / 18%);
+  padding: 0.75rem;
+  backdrop-filter: blur(16px);
+}
+
+.finance-chart-tooltip__title {
+  color: var(--finance-ink);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .finance-badge {

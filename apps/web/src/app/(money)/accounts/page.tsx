@@ -2,6 +2,7 @@ import { Card } from '@/components/card.tsx';
 import { NetWorthChart } from '@/components/charts/net-worth-chart.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount } from '@/components/money.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
 import { requireUser } from '@/lib/auth.ts';
 import { getAccountsData } from '@/lib/data.ts';
@@ -28,15 +29,19 @@ export default async function AccountsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">Accounts</h2>
-        <Link
-          href="/import"
-          className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-500"
-        >
-          Import a file
-        </Link>
-      </div>
+      <PageHeader
+        eyebrow="Accounts / Balances"
+        title="Accounts"
+        description="Every balance and the net worth they add up to, reconciled over time."
+        action={
+          <Link
+            href="/import"
+            className="finance-button finance-button--secondary min-h-9 px-3 text-xs"
+          >
+            Import a file
+          </Link>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-2.5 ph:grid-cols-2 ph:gap-3 sm:grid-cols-3">
         <StatCard
@@ -44,7 +49,7 @@ export default async function AccountsPage() {
           value={formatAmount(data.netWorthMinor)}
           hint="Assets minus liabilities"
           tone="brand"
-          className="ph:col-span-2"
+          className="ph:col-span-2 sm:col-span-1"
         />
         <StatCard label="Assets" value={formatAmount(data.assetsMinor)} hint="Cash and savings" />
         <StatCard
@@ -72,7 +77,7 @@ export default async function AccountsPage() {
               </span>
             </div>
 
-            <p className="tabular mt-3 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
+            <p className="finance-stat-value mt-4">
               {account.balanceMinor === null
                 ? '—'
                 : formatAmount(account.balanceMinor, account.currency)}

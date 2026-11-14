@@ -2,6 +2,7 @@ import { Card } from '@/components/card.tsx';
 import { CashFlowChart } from '@/components/charts/cash-flow-chart.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount, formatSignedAmount } from '@/components/money.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
 import { requireUser } from '@/lib/auth.ts';
 import { getCashFlowData } from '@/lib/data.ts';
@@ -30,12 +31,12 @@ export default async function CashFlowPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-semibold tracking-tight">Cash flow</h2>
-        <span className="text-sm text-slate-500 dark:text-slate-400">
-          {formatMonth(data.month)}
-        </span>
-      </div>
+      <PageHeader
+        eyebrow="Cash flow / Income and spending"
+        title="Cash flow"
+        description="What arrived, what left and what remained, with transfers kept out of the totals."
+        action={<span className="finance-badge">{formatMonth(data.month)}</span>}
+      />
 
       <div className="grid grid-cols-2 gap-2.5 ph:gap-3 lg:grid-cols-4">
         <StatCard

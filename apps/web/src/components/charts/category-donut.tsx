@@ -11,6 +11,7 @@ import { formatMoney, plainDateInMonth, type CategorySlice } from '@moneytracker
 import type { CategoryBreakdownView } from '@/lib/category-breakdown.ts';
 import { formatMonth } from '@/lib/format.ts';
 import { childOpacity, colorForGroup, OTHER_COLOR, withOpacity } from '@/lib/palette.ts';
+import { ChartTooltip } from './chart-ui.tsx';
 
 /**
  * Where the month's money went, as a donut.
@@ -134,7 +135,7 @@ export function CategoryDonut({
           <select
             value={month}
             onChange={(event) => changeMonth(event.target.value)}
-            className="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs dark:border-slate-600 dark:bg-slate-800"
+            className="finance-input finance-input--compact"
           >
             {(months.length > 0 ? months : [month]).map((option) => (
               <option key={option} value={option}>
@@ -193,14 +194,17 @@ export function CategoryDonut({
                     const slice = payload[0]?.payload as CategorySlice | undefined;
                     if (!slice) return null;
                     return (
-                      <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                        <p className="font-semibold text-slate-900 dark:text-slate-100">
-                          {slice.name}
-                        </p>
-                        <p className="tabular text-slate-600 dark:text-slate-300">
-                          {formatMoney(slice.amountMinor, currency, locale)} · {slice.percent}%
-                        </p>
-                      </div>
+                      <ChartTooltip
+                        title={slice.name}
+                        entries={[
+                          {
+                            key: 'spending',
+                            name: 'Spending',
+                            value: `${formatMoney(slice.amountMinor, currency, locale)} · ${slice.percent}%`,
+                            color: payload[0]?.color,
+                          },
+                        ]}
+                      />
                     );
                   }}
                 />
@@ -220,9 +224,7 @@ export function CategoryDonut({
             <p className="max-w-[9rem] text-[11px] font-medium text-slate-500 dark:text-slate-400">
               {levelTitle}
             </p>
-            <p className="tabular mt-0.5 text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-              {formatMoney(levelTotal, currency, locale)}
-            </p>
+            <p className="finance-stat-value mt-1">{formatMoney(levelTotal, currency, locale)}</p>
           </div>
         )}
       </div>
@@ -238,7 +240,7 @@ export function CategoryDonut({
                   type="button"
                   onClick={() => activate(slice)}
                   aria-label={`${slice.name}, ${formatMoney(slice.amountMinor, currency, locale)}, ${slice.percent} percent`}
-                  className="flex min-h-11 w-full items-center gap-3 rounded-lg px-1.5 py-2 text-left hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 dark:hover:bg-slate-800/60"
+                  className="flex min-h-11 w-full items-center gap-3 rounded-lg px-1.5 py-2 text-left hover:bg-[var(--finance-accent-soft)] focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   <span
                     aria-hidden="true"
