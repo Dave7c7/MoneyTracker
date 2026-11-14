@@ -1,5 +1,6 @@
 import { Card } from '@/components/card.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { TransactionFilters } from '@/components/transaction-filters.tsx';
 import { TransactionList } from '@/components/transaction-list.tsx';
 import { requireUser } from '@/lib/auth.ts';
@@ -46,10 +47,12 @@ export default async function TransactionsPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-semibold tracking-tight">Transactions</h2>
-        <span className="text-sm text-slate-500 dark:text-slate-400">{data.rows.length} shown</span>
-      </div>
+      <PageHeader
+        eyebrow="Activity / Every transaction"
+        title="Transactions"
+        description="Search, filter, categorize and explain every movement between your accounts."
+        action={<span className="finance-badge">{data.rows.length} shown</span>}
+      />
 
       <Card>
         <TransactionFilters

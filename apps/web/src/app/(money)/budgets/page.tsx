@@ -1,6 +1,7 @@
 import { Card } from '@/components/card.tsx';
 import { BudgetsManager } from '@/components/budgets-manager.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { formatMonth } from '@/lib/format.ts';
 import { requireUser } from '@/lib/auth.ts';
 import { getBudgetsData } from '@/lib/data.ts';
@@ -25,12 +26,12 @@ export default async function BudgetsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">Budgets</h2>
-        <span className="text-sm text-slate-500 dark:text-slate-400">
-          {formatMonth(data.month)}
-        </span>
-      </div>
+      <PageHeader
+        eyebrow="Plan / Spending limits"
+        title="Budgets"
+        description="Compare category limits with actual spending."
+        action={<span className="finance-badge">{formatMonth(data.month)}</span>}
+      />
 
       <Card title="Budget against actual" subtitle="What was spent in each category this month">
         <BudgetsManager

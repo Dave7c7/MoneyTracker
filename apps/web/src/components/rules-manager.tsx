@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react';
 import { toMinorUnits } from '@moneytracker/core';
 
 import { CategoryMenu, type PickerCategory } from './category-menu.tsx';
+import { EmptyState } from './empty-state.tsx';
 import { UndoToast } from './undo-toast.tsx';
 
 /** A rule as the screen sees it. */
@@ -270,7 +271,7 @@ export function RulesManager({
   return (
     <div className="space-y-3">
       {draft && !editingId && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="finance-card p-4">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">New rule</h3>
 
           <div className="mt-3 space-y-3">
@@ -280,7 +281,7 @@ export function RulesManager({
                 value={draft.name}
                 onChange={(event) => updateDraft({ ...draft, name: event.target.value })}
                 placeholder="Shell → Gas"
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                className="finance-input finance-input--small"
               />
             </label>
 
@@ -306,7 +307,7 @@ export function RulesManager({
                 value={draft.matchMerchant}
                 onChange={(event) => updateDraft({ ...draft, matchMerchant: event.target.value })}
                 placeholder="shell"
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                className="finance-input finance-input--small"
               />
             </label>
 
@@ -320,7 +321,7 @@ export function RulesManager({
                   updateDraft({ ...draft, matchDescriptionPattern: event.target.value })
                 }
                 placeholder="^SHELL"
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                className="finance-input finance-input--small"
               />
             </label>
 
@@ -334,7 +335,7 @@ export function RulesManager({
                   value={draft.minAmount}
                   onChange={(event) => updateDraft({ ...draft, minAmount: event.target.value })}
                   placeholder="0.00"
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="finance-input finance-input--small"
                 />
               </label>
               <label className="block">
@@ -346,7 +347,7 @@ export function RulesManager({
                   value={draft.maxAmount}
                   onChange={(event) => updateDraft({ ...draft, maxAmount: event.target.value })}
                   placeholder="100.00"
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                  className="finance-input finance-input--small"
                 />
               </label>
             </div>
@@ -358,7 +359,7 @@ export function RulesManager({
               <select
                 value={draft.accountId}
                 onChange={(event) => updateDraft({ ...draft, accountId: event.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                className="finance-input finance-input--small"
               >
                 <option value="">Any account</option>
                 {accounts.map((account) => (
@@ -370,7 +371,7 @@ export function RulesManager({
             </label>
 
             {preview && (
-              <p className="rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              <p className="finance-callout text-xs text-[var(--finance-muted)]">
                 Matches {preview.matched} transaction{preview.matched === 1 ? '' : 's'},{' '}
                 {preview.wouldChange} would change
                 {preview.locked > 0 ? `, ${preview.locked} manual edit left alone` : ''}.
@@ -383,7 +384,7 @@ export function RulesManager({
               type="button"
               disabled={busy || !draft.categoryId}
               onClick={() => void saveRule(draft)}
-              className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-slate-900"
+              className="finance-button finance-button--primary"
             >
               Save rule
             </button>
@@ -393,7 +394,7 @@ export function RulesManager({
                 setDraft(null);
                 setPreview(null);
               }}
-              className="rounded-full px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400"
+              className="finance-button finance-button--ghost"
             >
               Cancel
             </button>
@@ -402,21 +403,15 @@ export function RulesManager({
       )}
 
       {ordered.length === 0 && !draft && (
-        <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-700">
-          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">No rules yet</p>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-            Rules are how you tell the app what a merchant is. They always beat the bank&apos;s
-            guess.
-          </p>
-        </div>
+        <EmptyState
+          title="No rules yet"
+          description="Rules are how you tell the app what a merchant is. They always beat the bank's guess."
+        />
       )}
 
       <ul className="space-y-2">
         {ordered.map((rule, index) => (
-          <li
-            key={rule.id}
-            className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-          >
+          <li key={rule.id} className="finance-card p-3">
             {editingId === rule.id ? (
               <RuleEditForm
                 rule={rule}
@@ -478,7 +473,7 @@ export function RulesManager({
                     onClick={() => void moveRule(rule.id, -1)}
                     disabled={index === 0}
                     aria-label={`Move ${rule.name} up`}
-                    className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:text-slate-400 dark:hover:bg-slate-800"
+                    className="finance-button finance-button--ghost finance-button--tiny"
                   >
                     ↑
                   </button>
@@ -487,7 +482,7 @@ export function RulesManager({
                     onClick={() => void moveRule(rule.id, 1)}
                     disabled={index === ordered.length - 1}
                     aria-label={`Move ${rule.name} down`}
-                    className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-30 dark:text-slate-400 dark:hover:bg-slate-800"
+                    className="finance-button finance-button--ghost finance-button--tiny"
                   >
                     ↓
                   </button>
@@ -497,14 +492,14 @@ export function RulesManager({
                       setEditingId(rule.id);
                       setPreview(null);
                     }}
-                    className="rounded-lg px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                    className="finance-button finance-button--ghost finance-button--tiny"
                   >
                     Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => void deleteRule(rule.id)}
-                    className="ml-auto rounded-lg px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                    className="finance-button finance-button--ghost finance-button--tiny ml-auto text-rose-700 dark:text-rose-400"
                   >
                     Delete
                   </button>
@@ -522,7 +517,7 @@ export function RulesManager({
             setDraft(emptyDraft());
             setPreview(null);
           }}
-          className="w-full rounded-2xl border border-dashed border-slate-300 py-3 text-sm font-medium text-slate-600 hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:text-slate-400 dark:hover:text-slate-100"
+          className="finance-button finance-button--secondary w-full border-dashed"
         >
           Add a rule
         </button>
@@ -578,7 +573,7 @@ function RuleEditForm({
           <input
             value={draft.name}
             onChange={(event) => update({ ...draft, name: event.target.value })}
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            className="finance-input finance-input--small"
           />
         </label>
 
@@ -601,7 +596,7 @@ function RuleEditForm({
           <input
             value={draft.matchMerchant}
             onChange={(event) => update({ ...draft, matchMerchant: event.target.value })}
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            className="finance-input finance-input--small"
           />
         </label>
 
@@ -612,7 +607,7 @@ function RuleEditForm({
           <input
             value={draft.matchDescriptionPattern}
             onChange={(event) => update({ ...draft, matchDescriptionPattern: event.target.value })}
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            className="finance-input finance-input--small"
           />
         </label>
 
@@ -625,7 +620,7 @@ function RuleEditForm({
               inputMode="decimal"
               value={draft.minAmount}
               onChange={(event) => update({ ...draft, minAmount: event.target.value })}
-              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              className="finance-input finance-input--small"
             />
           </label>
           <label className="block">
@@ -636,7 +631,7 @@ function RuleEditForm({
               inputMode="decimal"
               value={draft.maxAmount}
               onChange={(event) => update({ ...draft, maxAmount: event.target.value })}
-              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+              className="finance-input finance-input--small"
             />
           </label>
         </div>
@@ -646,7 +641,7 @@ function RuleEditForm({
           <select
             value={draft.accountId}
             onChange={(event) => update({ ...draft, accountId: event.target.value })}
-            className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-brand-500 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            className="finance-input finance-input--small"
           >
             <option value="">Any account</option>
             {accounts.map((account) => (
@@ -663,15 +658,11 @@ function RuleEditForm({
           type="button"
           disabled={busy || !draft.categoryId}
           onClick={() => onSave(draft)}
-          className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-slate-900"
+          className="finance-button finance-button--primary"
         >
           Save
         </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-full px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400"
-        >
+        <button type="button" onClick={onCancel} className="finance-button finance-button--ghost">
           Cancel
         </button>
       </div>

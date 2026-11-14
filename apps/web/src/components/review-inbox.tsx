@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { formatMoney } from '@moneytracker/core';
 
 import { CategoryMenu, type PickerCategory } from './category-menu.tsx';
+import { EmptyState } from './empty-state.tsx';
 import { Money } from './money.tsx';
 import { UndoToast } from './undo-toast.tsx';
 
@@ -209,14 +210,14 @@ export function ReviewInbox({
 
   if (groups.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-700">
-        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">All caught up</p>
-        <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-          {needsReview > 0
+      <EmptyState
+        title="All caught up"
+        description={
+          needsReview > 0
             ? `${needsReview} transactions are still waiting for a decision.`
-            : 'Nothing needs your attention right now.'}
-        </p>
-      </div>
+            : 'Nothing needs your attention right now.'
+        }
+      />
     );
   }
 
@@ -237,7 +238,7 @@ export function ReviewInbox({
       </div>
 
       {selectedGroups.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 p-3 dark:border-brand-900 dark:bg-slate-800">
+        <div className="finance-callout flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
             {selectedGroups.length} selected
           </span>
@@ -253,7 +254,7 @@ export function ReviewInbox({
           <button
             type="button"
             onClick={() => setSelected(new Set())}
-            className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400"
+            className="finance-button finance-button--ghost finance-button--small"
           >
             Clear
           </button>
@@ -267,10 +268,8 @@ export function ReviewInbox({
             ref={(element) => {
               itemRefs.current[index] = element;
             }}
-            className={`rounded-2xl border bg-white p-3 shadow-sm transition-colors dark:bg-slate-900 ${
-              index === focused
-                ? 'border-brand-400 dark:border-brand-500'
-                : 'border-slate-200 dark:border-slate-800'
+            className={`finance-card p-3 transition-colors ${
+              index === focused ? 'border-[var(--finance-accent-bright)]' : ''
             }`}
           >
             <div className="flex items-start gap-3">
@@ -329,7 +328,7 @@ export function ReviewInbox({
                           group.suggestedCategoryName ?? '',
                         )
                       }
-                      className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 dark:bg-white dark:text-slate-900"
+                      className="finance-button finance-button--primary finance-button--small"
                     >
                       Confirm {group.suggestedCategoryName}
                     </button>

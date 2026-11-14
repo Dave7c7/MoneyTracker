@@ -140,7 +140,7 @@ export function SplitEditor({
   }, [minorParts, onSaved, ready, transactionId]);
 
   return (
-    <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
+    <div className="finance-callout mt-2">
       <p className="text-xs font-medium text-slate-700 dark:text-slate-200">
         Split this transaction
       </p>
@@ -162,7 +162,7 @@ export function SplitEditor({
                   ),
                 )
               }
-              className="w-full min-w-0 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-800 sm:flex-1 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              className="finance-input finance-input--small min-w-0 sm:flex-1"
             >
               <option value="">Choose a category</option>
               {spendable.map((category) => (
@@ -185,14 +185,14 @@ export function SplitEditor({
                     ),
                   )
                 }
-                className="tabular w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-right text-sm text-slate-800 sm:w-24 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                className="finance-input finance-input--small tabular text-right sm:w-24"
               />
 
               <button
                 type="button"
                 onClick={() => removePart(index)}
                 aria-label={`Remove part ${index + 1}`}
-                className="shrink-0 rounded-lg px-2 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-200 disabled:opacity-30 dark:text-slate-400 dark:hover:bg-slate-700"
+                className="finance-button finance-button--ghost finance-button--small shrink-0"
                 disabled={parts.length <= 2}
               >
                 Remove
@@ -206,21 +206,21 @@ export function SplitEditor({
         <button
           type="button"
           onClick={addPart}
-          className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-600 dark:text-slate-300"
+          className="finance-button finance-button--secondary finance-button--small"
         >
           Add a part
         </button>
         <button
           type="button"
           onClick={() => splitEvenlyInto(2)}
-          className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-600 dark:text-slate-300"
+          className="finance-button finance-button--secondary finance-button--small"
         >
           Two halves
         </button>
         <button
           type="button"
           onClick={() => splitEvenlyInto(3)}
-          className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-600 dark:border-slate-600 dark:text-slate-300"
+          className="finance-button finance-button--secondary finance-button--small"
         >
           Three parts
         </button>
@@ -236,25 +236,21 @@ export function SplitEditor({
           : `${toAmountText(Math.abs(remainder))} left to split.`}
       </p>
 
-      {error && (
-        <p className="mt-2 rounded-lg border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
-          {error}
-        </p>
-      )}
+      {error && <p className="finance-notice finance-notice--warning mt-2 text-xs">{error}</p>}
 
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => void save()}
           disabled={!ready || busy}
-          className="rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50 dark:bg-white dark:text-slate-900"
+          className="finance-button finance-button--primary finance-button--small"
         >
           {busy ? 'Saving...' : 'Save the split'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-full px-3 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-700"
+          className="finance-button finance-button--ghost finance-button--small"
         >
           Cancel
         </button>

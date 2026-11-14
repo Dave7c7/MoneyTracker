@@ -1,6 +1,7 @@
 import { Card } from '@/components/card.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { GoalsManager } from '@/components/goals-manager.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { requireUser } from '@/lib/auth.ts';
 import { getGoalsData } from '@/lib/data.ts';
 
@@ -24,12 +25,12 @@ export default async function GoalsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">Goals</h2>
-        <span className="text-sm text-slate-500 dark:text-slate-400">
-          {data.goals.length} saving
-        </span>
-      </div>
+      <PageHeader
+        eyebrow="Plan / Saving"
+        title="Goals"
+        description="Track progress toward your savings targets."
+        action={<span className="finance-badge">{data.goals.length} saving</span>}
+      />
 
       <Card title="Savings goals" subtitle="The app keeps track; it never moves money">
         <GoalsManager

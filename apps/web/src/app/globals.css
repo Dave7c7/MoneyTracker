@@ -278,6 +278,13 @@ body {
   font-size: 0.75rem;
 }
 
+.finance-input--small {
+  min-height: 2.375rem;
+  margin-top: 0.25rem;
+  padding: 0.4375rem 0.625rem;
+  font-size: 0.875rem;
+}
+
 .finance-input:focus {
   border-color: var(--finance-accent-bright);
   background: var(--finance-surface);
@@ -335,6 +342,38 @@ body {
 .finance-button--secondary:not(:disabled):hover {
   border-color: var(--finance-accent-bright);
   background: var(--finance-accent-soft);
+}
+
+.finance-button--small {
+  min-height: 2.25rem;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem;
+}
+
+.finance-button--tiny {
+  min-height: 1.75rem;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.6875rem;
+}
+
+.finance-button--ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--finance-muted);
+}
+
+.finance-button--ghost:not(:disabled):hover {
+  background: var(--finance-accent-soft);
+  color: var(--finance-ink);
+}
+
+.finance-callout {
+  border: 1px solid var(--finance-border);
+  border-radius: 0.875rem;
+  background: var(--finance-accent-soft);
+  padding: 0.75rem;
+  color: var(--finance-ink);
 }
 
 .finance-notice {

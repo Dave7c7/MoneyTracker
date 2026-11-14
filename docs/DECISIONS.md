@@ -237,3 +237,20 @@ instead of category-colored labels.
 **Cost:** chart presentation is shared but chart composition stays local.
 Playwright covers every chart route, overflow on all viewports and the actual
 spending tooltip on desktop.
+
+## 2026-11-14 — Finance workflows use the same visual contract
+
+Transactions, review, rules, imports, connections, budgets, goals,
+subscriptions and alerts now use the shared page hierarchy, surfaces, inputs,
+buttons, badges and notices. Compact `finance-input--small`,
+`finance-button--small` and `finance-button--tiny` variants keep dense editing
+rows compact instead of applying login-sized controls everywhere.
+
+This is a presentation migration only. Existing labels, roles, IDs, button
+names, conditional rendering, keyboard shortcuts, API payloads, list ordering
+and toast positioning are unchanged. Specialized category menus, read/unread
+alerts and safe-area-aware undo toasts retain their own behavior and semantics.
+
+**Cost:** a few workflow-specific visual states remain intentionally distinct.
+Playwright covers all workflow behavior plus every page in both color schemes
+at phone, Pixel and desktop widths.

@@ -157,16 +157,8 @@ export function GoalsManager({
 
   return (
     <div className="space-y-4">
-      {error && (
-        <p className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100">
-          {error}
-        </p>
-      )}
-      {message && (
-        <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100">
-          {message}
-        </p>
-      )}
+      {error && <p className="finance-notice finance-notice--error">{error}</p>}
+      {message && <p className="finance-notice finance-notice--success">{message}</p>}
 
       {goals.length === 0 ? (
         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -175,10 +167,7 @@ export function GoalsManager({
       ) : (
         <ul className="space-y-2.5">
           {goals.map((goal) => (
-            <li
-              key={goal.id}
-              className="rounded-2xl border border-slate-200 bg-white p-3.5 dark:border-slate-800 dark:bg-slate-900"
-            >
+            <li key={goal.id} className="finance-card p-3.5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -193,14 +182,14 @@ export function GoalsManager({
                 <button
                   type="button"
                   onClick={() => remove(goal.id)}
-                  className="shrink-0 rounded-lg border border-slate-300 px-2 py-1 text-[11px] font-medium text-slate-600 dark:border-slate-600 dark:text-slate-300"
+                  className="finance-button finance-button--secondary finance-button--small shrink-0"
                 >
                   Remove
                 </button>
               </div>
 
               <div
-                className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+                className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-[var(--finance-accent-soft)]"
                 role="img"
                 aria-label={`${goal.name}: ${goal.percentComplete} percent of the target reached`}
               >
@@ -235,14 +224,14 @@ export function GoalsManager({
         >
           Add a goal
         </h3>
-        <div className="rounded-2xl border border-slate-200 bg-white p-3.5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="finance-callout">
           <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
             Name
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Emergency fund"
-              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
+              className="finance-input finance-input--small"
             />
           </label>
           <div className="mt-2.5 grid grid-cols-2 gap-2.5">
@@ -253,7 +242,7 @@ export function GoalsManager({
                 onChange={(event) => setTarget(event.target.value)}
                 inputMode="decimal"
                 placeholder="5000"
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
+                className="finance-input finance-input--small"
               />
             </label>
             <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
@@ -263,7 +252,7 @@ export function GoalsManager({
                 onChange={(event) => setSaved(event.target.value)}
                 inputMode="decimal"
                 placeholder="0"
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
+                className="finance-input finance-input--small"
               />
             </label>
           </div>
@@ -272,7 +261,7 @@ export function GoalsManager({
             <select
               value={accountId}
               onChange={(event) => setAccountId(event.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
+              className="finance-input finance-input--small"
             >
               <option value="">None, I will type what I saved</option>
               {accounts.map((account) => (
@@ -288,14 +277,14 @@ export function GoalsManager({
               type="date"
               value={deadline}
               onChange={(event) => setDeadline(event.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
+              className="finance-input finance-input--small"
             />
           </label>
           <button
             type="button"
             onClick={create}
             disabled={busy}
-            className="mt-3 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+            className="finance-button finance-button--primary finance-button--small mt-3"
           >
             {busy ? 'Saving…' : 'Add the goal'}
           </button>
@@ -319,12 +308,12 @@ function SavedInput({ goal, onSave }: { goal: GoalView; onSave: (amount: string)
         value={amount}
         onChange={(event) => setAmount(event.target.value)}
         inputMode="decimal"
-        className="w-28 rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-sm dark:border-slate-600 dark:bg-slate-800"
+        className="finance-input finance-input--compact w-28 text-sm"
       />
       <button
         type="button"
         onClick={() => onSave(amount)}
-        className="rounded-lg border border-slate-300 px-2.5 py-1 text-[11px] font-medium text-slate-700 dark:border-slate-600 dark:text-slate-200"
+        className="finance-button finance-button--secondary finance-button--small"
       >
         Save
       </button>
