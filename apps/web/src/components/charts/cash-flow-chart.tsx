@@ -17,6 +17,7 @@ import {
 import { formatMoney } from '@moneytracker/core';
 
 import { formatMonth } from '@/lib/format.ts';
+import { chartAxisTick, chartColors, chartLegendStyle, ChartTooltip } from './chart-ui.tsx';
 
 /** One month of cash flow. */
 export interface CashFlowEntry {
@@ -26,9 +27,7 @@ export interface CashFlowEntry {
   netMinor: number;
 }
 
-/**
- * Income against expenses per month, with the net savings line.
- */
+/** Income against expenses per month, with the net savings line. */
 export function CashFlowChart({
   entries,
   currency,
@@ -53,93 +52,94 @@ export function CashFlowChart({
 
   return (
     <>
-      <div className="h-60 w-full md:h-72" role="img" aria-label="Income and expenses per month">
+      <div className="h-64 w-full md:h-80" role="img" aria-label="Income and expenses per month">
         <ResponsiveContainer
           width="100%"
           height="100%"
           minWidth={280}
           onResize={(width) => setMeasuredWidth(width)}
         >
-          <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              className="stroke-slate-200 dark:stroke-slate-800"
-              vertical={false}
-            />
+          <ComposedChart data={data} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
+            <CartesianGrid stroke="var(--finance-border)" strokeDasharray="3 6" vertical={false} />
             <XAxis
               dataKey="month"
-              tick={{ fontSize: 11 }}
+              tick={chartAxisTick}
+              tickLine={false}
+              axisLine={false}
+              dy={8}
               interval="preserveStartEnd"
-              className="fill-slate-500 dark:fill-slate-400"
             />
             <YAxis
               yAxisId="amount"
-              tick={{ fontSize: 11 }}
+              tick={chartAxisTick}
+              tickLine={false}
+              axisLine={false}
               width={64}
               tickFormatter={(value: number) =>
                 formatMoney(value, currency, locale).replace(/\.00$/, '')
               }
-              className="fill-slate-500 dark:fill-slate-400"
             />
             <YAxis
               yAxisId="net"
               orientation="right"
-              tick={{ fontSize: 11 }}
+              tick={chartAxisTick}
+              tickLine={false}
+              axisLine={false}
               width={64}
               tickFormatter={(value: number) =>
                 formatMoney(value, currency, locale).replace(/\.00$/, '')
               }
-              className="fill-slate-500 dark:fill-slate-400"
             />
             <Tooltip
-              cursor={{ fill: 'rgba(148, 163, 184, 0.12)' }}
+              cursor={{ fill: 'var(--finance-accent-soft)' }}
               content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null;
                 return (
-                  <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                    <p className="mb-1 font-semibold text-slate-900 dark:text-slate-100">{label}</p>
-                    <ul className="space-y-1">
-                      {payload.map((entry) => (
-                        <li key={String(entry.dataKey)} className="flex items-center gap-2">
-                          <span
-                            aria-hidden="true"
-                            className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: entry.color }}
-                          />
-                          <span className="text-slate-600 dark:text-slate-300">{entry.name}</span>
-                          <span className="tabular ml-auto pl-3 font-medium text-slate-900 dark:text-slate-100">
-                            {formatMoney(Number(entry.value), currency, locale)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  <ChartTooltip
+                    title={label}
+                    entries={payload.map((entry) => ({
+                      key: String(entry.dataKey),
+                      name: String(entry.name),
+                      value: formatMoney(Number(entry.value), currency, locale),
+                      color: entry.color,
+                    }))}
+                  />
                 );
               }}
             />
-            <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" iconSize={8} />
+            <Legend
+              wrapperStyle={chartLegendStyle}
+              iconType="circle"
+              iconSize={7}
+              formatter={(value: string) => (
+                <span style={{ color: 'var(--finance-muted)' }}>{value}</span>
+              )}
+            />
             <Bar
               yAxisId="amount"
               dataKey="income"
               name="Income"
-              fill="#22c55e"
-              radius={[3, 3, 0, 0]}
+              fill={chartColors.income}
+              maxBarSize={30}
+              radius={[4, 4, 0, 0]}
             />
             <Bar
               yAxisId="amount"
               dataKey="expenses"
               name="Expenses"
-              fill="#f43f5e"
-              radius={[3, 3, 0, 0]}
+              fill={chartColors.expenses}
+              maxBarSize={30}
+              radius={[4, 4, 0, 0]}
             />
             <Line
               yAxisId="net"
               type="monotone"
               dataKey="net"
               name="Net"
-              stroke="#0ea5e9"
-              strokeWidth={2}
+              stroke={chartColors.net}
+              strokeWidth={2.5}
               dot={false}
+              activeDot={{ r: 4, fill: chartColors.net, stroke: 'var(--finance-surface)' }}
             />
           </ComposedChart>
         </ResponsiveContainer>
@@ -158,29 +158,23 @@ export function CashFlowChart({
       */}
       <noscript>
         {last && (
-          <div className="mt-2 rounded-xl border border-slate-200 p-3 text-sm dark:border-slate-700">
-            <p className="font-medium text-slate-700 dark:text-slate-200">
+          <div className="mt-2 rounded-xl border border-[var(--finance-border)] p-3 text-sm">
+            <p className="font-medium text-[var(--finance-ink)]">
               The chart needs JavaScript. Here is {formatMonth(last.month, locale)}:
             </p>
             <ul className="mt-2 space-y-1">
-              <li className="flex items-center justify-between gap-3">
-                <span className="text-slate-600 dark:text-slate-300">Income</span>
-                <span className="tabular font-medium text-slate-900 dark:text-slate-100">
-                  {formatMoney(last.incomeMinor, currency, locale)}
-                </span>
-              </li>
-              <li className="flex items-center justify-between gap-3">
-                <span className="text-slate-600 dark:text-slate-300">Expenses</span>
-                <span className="tabular font-medium text-slate-900 dark:text-slate-100">
-                  {formatMoney(last.expenseMinor, currency, locale)}
-                </span>
-              </li>
-              <li className="flex items-center justify-between gap-3">
-                <span className="text-slate-600 dark:text-slate-300">Net</span>
-                <span className="tabular font-medium text-slate-900 dark:text-slate-100">
-                  {formatMoney(last.netMinor, currency, locale)}
-                </span>
-              </li>
+              {[
+                ['Income', last.incomeMinor],
+                ['Expenses', last.expenseMinor],
+                ['Net', last.netMinor],
+              ].map(([name, value]) => (
+                <li key={name} className="flex items-center justify-between gap-3">
+                  <span className="text-[var(--finance-muted)]">{name}</span>
+                  <span className="tabular font-medium text-[var(--finance-ink)]">
+                    {formatMoney(Number(value), currency, locale)}
+                  </span>
+                </li>
+              ))}
             </ul>
           </div>
         )}

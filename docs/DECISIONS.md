@@ -219,3 +219,21 @@ framework, theme provider or new dependency is added.
 **Cost:** older finance screens can still contain local Tailwind surface colors
 until the dashboard and workflow refinement phases migrate them. Both color
 schemes and desktop/mobile navigation placement are covered by Playwright.
+
+## 2026-11-14 — Shared finance chart presentation
+
+Dashboard charts keep Recharts and their existing data contracts. Shared axis,
+legend and tooltip primitives in `components/charts/chart-ui.tsx` apply the
+finance typography, borders and surfaces. Cash flow uses green for income, rose
+for expenses and violet for net; net worth uses the accent area/line treatment.
+Category colors still come from stored values and palette helpers, never from
+chart position or theme.
+
+Numeric summaries and table alternatives remain beside the charts. The net
+worth visualization changes from a plain line to an area/line chart without
+changing its points, and spending/cash-flow legends use theme-readable text
+instead of category-colored labels.
+
+**Cost:** chart presentation is shared but chart composition stays local.
+Playwright covers every chart route, overflow on all viewports and the actual
+spending tooltip on desktop.

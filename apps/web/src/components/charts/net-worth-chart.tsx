@@ -1,9 +1,9 @@
 'use client';
 
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -14,6 +14,7 @@ import {
 import { formatMoney } from '@moneytracker/core';
 
 import { formatMonth } from '@/lib/format.ts';
+import { chartAxisTick, chartColors, ChartTooltip } from './chart-ui.tsx';
 
 /** Net worth at the end of one month. */
 export interface NetWorthPoint {
@@ -46,60 +47,82 @@ export function NetWorthChart({
   }));
 
   return (
-    <div className="h-60 w-full md:h-72" role="img" aria-label="Net worth over time">
+    <div className="h-64 w-full md:h-80" role="img" aria-label="Net worth over time">
       <ResponsiveContainer width="100%" height="100%" minWidth={280}>
-        <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <CartesianGrid
-            strokeDasharray="3 3"
-            className="stroke-slate-200 dark:stroke-slate-800"
-            vertical={false}
-          />
+        <AreaChart data={data} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="net-worth-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--finance-accent-bright)" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="var(--finance-accent-bright)" stopOpacity={0.02} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke="var(--finance-border)" strokeDasharray="3 6" vertical={false} />
           <XAxis
             dataKey="month"
-            tick={{ fontSize: 11 }}
+            tick={chartAxisTick}
+            tickLine={false}
+            axisLine={false}
+            dy={8}
             interval="preserveStartEnd"
-            className="fill-slate-500 dark:fill-slate-400"
           />
           <YAxis
-            tick={{ fontSize: 11 }}
+            tick={chartAxisTick}
+            tickLine={false}
+            axisLine={false}
             width={64}
             tickFormatter={(value: number) =>
               formatMoney(value, currency, locale).replace(/\.00$/, '')
             }
-            className="fill-slate-500 dark:fill-slate-400"
           />
-          <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="4 4" />
+          <ReferenceLine y={0} stroke={chartColors.reference} strokeDasharray="4 5" />
           <Tooltip
+            cursor={{ stroke: 'var(--finance-border-strong)', strokeDasharray: '3 4' }}
             content={({ active, payload, label }) => {
               if (!active || !payload?.length) return null;
               const point = payload[0]?.payload as
                 { net: number; assets: number; liabilities: number } | undefined;
               if (!point) return null;
               return (
-                <div className="rounded-xl border border-slate-200 bg-white p-3 text-xs shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                  <p className="mb-1 font-semibold text-slate-900 dark:text-slate-100">{label}</p>
-                  <p className="tabular text-slate-600 dark:text-slate-300">
-                    Net worth {formatMoney(point.net, currency, locale)}
-                  </p>
-                  <p className="tabular text-slate-600 dark:text-slate-300">
-                    Assets {formatMoney(point.assets, currency, locale)}
-                  </p>
-                  <p className="tabular text-slate-600 dark:text-slate-300">
-                    Liabilities {formatMoney(point.liabilities, currency, locale)}
-                  </p>
-                </div>
+                <ChartTooltip
+                  title={label}
+                  entries={[
+                    {
+                      key: 'net',
+                      name: 'Net worth',
+                      value: formatMoney(point.net, currency, locale),
+                      color: 'var(--finance-accent-bright)',
+                    },
+                    {
+                      key: 'assets',
+                      name: 'Assets',
+                      value: formatMoney(point.assets, currency, locale),
+                    },
+                    {
+                      key: 'liabilities',
+                      name: 'Liabilities',
+                      value: formatMoney(point.liabilities, currency, locale),
+                    },
+                  ]}
+                />
               );
             }}
           />
-          <Line
+          <Area
             type="monotone"
             dataKey="net"
             name="Net worth"
-            stroke="#0ea5e9"
-            strokeWidth={2}
+            stroke="var(--finance-accent-bright)"
+            strokeWidth={2.5}
+            fill="url(#net-worth-fill)"
             dot={false}
+            activeDot={{
+              r: 4,
+              fill: 'var(--finance-accent-bright)',
+              stroke: 'var(--finance-surface)',
+              strokeWidth: 2,
+            }}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

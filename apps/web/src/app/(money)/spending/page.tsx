@@ -3,6 +3,7 @@ import { colorForName } from '@/components/category-pill.tsx';
 import { SpendingByCategoryChart } from '@/components/charts/spending-chart.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount } from '@/components/money.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
 import { requireUser } from '@/lib/auth.ts';
 import { getSpendingData } from '@/lib/data.ts';
@@ -40,12 +41,12 @@ export default async function SpendingPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-semibold tracking-tight">Spending</h2>
-        <span className="text-sm text-slate-500 dark:text-slate-400">
-          {formatMonth(data.month)}
-        </span>
-      </div>
+      <PageHeader
+        eyebrow="Spending / Category trends"
+        title="Spending"
+        description="See where the money went, how the mix changed and what drove the month."
+        action={<span className="finance-badge">{formatMonth(data.month)}</span>}
+      />
 
       <div className="grid grid-cols-2 gap-2.5 ph:grid-cols-3 ph:gap-3 lg:grid-cols-3">
         <StatCard label="This month" value={formatAmount(currentTotal)} />
