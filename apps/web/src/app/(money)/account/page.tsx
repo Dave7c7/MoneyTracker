@@ -9,6 +9,7 @@ import {
 import { AccountSettings } from '@/components/account-settings.tsx';
 import { Card } from '@/components/card.tsx';
 import { ExportForm } from '@/components/export-form.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { TwoFactor } from '@/components/two-factor.tsx';
 import { getSessionToken, requireUser } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
@@ -47,12 +48,16 @@ export default async function AccountPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">Account</h2>
-        <span className="text-sm text-slate-500 dark:text-slate-400">
-          {sessions.length} {sessions.length === 1 ? 'machine' : 'machines'}
-        </span>
-      </div>
+      <PageHeader
+        eyebrow="Personal settings"
+        title="Account"
+        description="Your sign-in, security and data, all in one place."
+        action={
+          <span className="finance-badge">
+            {sessions.length} {sessions.length === 1 ? 'machine' : 'machines'}
+          </span>
+        }
+      />
 
       <Card
         title="Signing in"

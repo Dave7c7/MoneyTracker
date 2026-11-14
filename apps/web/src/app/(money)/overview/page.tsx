@@ -6,6 +6,7 @@ import { CategoryDonut } from '@/components/charts/category-donut.tsx';
 import { SpendingByCategoryChart } from '@/components/charts/spending-chart.tsx';
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount, Money } from '@/components/money.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
 import { requireUser } from '@/lib/auth.ts';
 import { getOverviewData } from '@/lib/data.ts';
@@ -62,20 +63,24 @@ export default async function OverviewPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-tight">{formatMonth(data.month)}</h2>
-        <div className="flex gap-3 text-sm font-medium">
-          <Link
-            href="/rules"
-            className="text-slate-500 hover:text-slate-900 hover:underline dark:text-slate-400 dark:hover:text-slate-100"
-          >
-            Rules
-          </Link>
-          <Link href="/spending" className="text-brand-600 hover:underline dark:text-brand-500">
-            See spending
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Overview / Monthly pulse"
+        title={formatMonth(data.month)}
+        description="Your accounts, spending and savings, reconciled in one place."
+        action={
+          <div className="flex gap-3 text-sm font-medium">
+            <Link
+              href="/rules"
+              className="text-[var(--finance-muted)] hover:text-[var(--finance-ink)] hover:underline"
+            >
+              Rules
+            </Link>
+            <Link href="/spending" className="text-brand-600 hover:underline dark:text-brand-500">
+              See spending
+            </Link>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-2 gap-2.5 ph:gap-3 lg:grid-cols-4">
         <StatCard

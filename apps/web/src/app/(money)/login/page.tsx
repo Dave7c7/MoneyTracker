@@ -9,6 +9,7 @@ import {
 
 import { Card } from '@/components/card.tsx';
 import { LoginForm } from '@/components/login-form.tsx';
+import { PageHeader } from '@/components/page-header.tsx';
 import { getSessionUserId } from '@/lib/auth.ts';
 import { getDatabase } from '@/lib/db.ts';
 import { getEnv } from '@/lib/env.ts';
@@ -49,17 +50,16 @@ export default async function LoginPage() {
   const claimed = user ? await hasPassword(db, user.id) : false;
 
   return (
-    <div className="mx-auto max-w-sm space-y-4 pt-2 md:pt-10">
-      <div className="space-y-1.5">
-        <h2 className="text-lg font-semibold tracking-tight">
-          {claimed ? 'Sign in' : 'Set a password'}
-        </h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          {claimed
+    <div className="mx-auto max-w-sm space-y-5 pt-2 md:pt-10">
+      <PageHeader
+        eyebrow="Private workspace"
+        title={claimed ? 'Sign in' : 'Set a password'}
+        description={
+          claimed
             ? 'Your money is behind this password. It stays on this server.'
-            : 'This app is new. Choose the password that opens it; it never leaves this server.'}
-        </p>
-      </div>
+            : 'This app is new. Choose the password that opens it; it never leaves this server.'
+        }
+      />
 
       <Card
         title={claimed ? 'Your account' : 'The first password'}

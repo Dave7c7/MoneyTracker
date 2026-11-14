@@ -3,14 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-const inputClass =
-  'mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 outline-none focus:border-slate-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
-
-const buttonClass =
-  'w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900';
-
-const quietButtonClass =
-  'rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200';
+const inputClass = 'finance-input';
+const buttonClass = 'finance-button finance-button--primary w-full';
+const quietButtonClass = 'finance-button finance-button--secondary';
 
 /** What the account screen knows about two-factor. */
 export interface TwoFactorSummary {
@@ -274,20 +269,14 @@ export function TwoFactor({ status }: { status: TwoFactorSummary }) {
 function Feedback({ error, message }: { error: string | null; message: string | null }) {
   if (error) {
     return (
-      <p
-        role="alert"
-        className="rounded-xl bg-rose-50 p-2.5 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-200"
-      >
+      <p role="alert" className="finance-notice finance-notice--error">
         {error}
       </p>
     );
   }
   if (message) {
     return (
-      <p
-        role="status"
-        className="rounded-xl bg-emerald-50 p-2.5 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-200"
-      >
+      <p role="status" className="finance-notice finance-notice--success">
         {message}
       </p>
     );

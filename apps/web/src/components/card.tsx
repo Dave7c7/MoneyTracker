@@ -1,6 +1,6 @@
 /**
  * A titled panel. Every dashboard section uses this so spacing and contrast
- * stay consistent.
+ * stay consistent across both color schemes.
  */
 export function Card({
   title,
@@ -17,20 +17,15 @@ export function Card({
   className?: string;
   tone?: 'default' | 'brand';
 }) {
-  const tones = {
-    default: 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900',
-    brand: 'border-slate-900 bg-slate-900 text-white dark:border-slate-800 dark:bg-slate-800',
-  } as const;
-
   return (
-    <section className={`rounded-2xl border p-3.5 shadow-sm sm:p-4 ${tones[tone]} ${className}`}>
+    <section
+      className={`finance-card p-4 sm:p-5 ${tone === 'brand' ? 'finance-card--brand' : ''} ${className}`}
+    >
       {(title || action) && (
-        <div className="mb-2.5 flex items-start justify-between gap-3 sm:mb-3">
-          <div>
-            {title && (
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
-            )}
-            {subtitle && <p className="text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>}
+        <div className="mb-3 flex items-start justify-between gap-3 sm:mb-4">
+          <div className="min-w-0">
+            {title && <h2 className="finance-card-title">{title}</h2>}
+            {subtitle && <p className="finance-card-subtitle mt-1 text-xs">{subtitle}</p>}
           </div>
           {action}
         </div>

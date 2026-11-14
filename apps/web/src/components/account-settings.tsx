@@ -14,8 +14,7 @@ export interface SessionSummary {
   current: boolean;
 }
 
-const inputClass =
-  'mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 outline-none focus:border-slate-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+const inputClass = 'finance-input';
 
 /** A short, human description of a user agent. */
 function describeAgent(userAgent: string | null): string {
@@ -30,26 +29,19 @@ function describeAgent(userAgent: string | null): string {
   return 'A browser';
 }
 
-const buttonClass =
-  'w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900';
+const buttonClass = 'finance-button finance-button--primary w-full';
 
 function Feedback({ error, message }: { error: string | null; message: string | null }) {
   if (error) {
     return (
-      <p
-        role="alert"
-        className="rounded-xl bg-rose-50 p-2.5 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-200"
-      >
+      <p role="alert" className="finance-notice finance-notice--error">
         {error}
       </p>
     );
   }
   if (message) {
     return (
-      <p
-        role="status"
-        className="rounded-xl bg-emerald-50 p-2.5 text-sm text-emerald-700 dark:bg-emerald-950 dark:text-emerald-200"
-      >
+      <p role="status" className="finance-notice finance-notice--success">
         {message}
       </p>
     );
@@ -336,7 +328,7 @@ function Sessions({ sessions, onChanged }: { sessions: SessionSummary[]; onChang
         type="button"
         onClick={endOthers}
         disabled={busy || others === 0}
-        className="rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200"
+        className="finance-button finance-button--secondary"
       >
         {others === 0 ? 'No other machine is signed in' : `Sign out the other ${others}`}
       </button>
@@ -361,7 +353,7 @@ function SignOut() {
       type="button"
       onClick={signOut}
       disabled={busy}
-      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200"
+      className="finance-button finance-button--secondary w-full"
     >
       {busy ? 'Signing out…' : 'Sign out'}
     </button>
