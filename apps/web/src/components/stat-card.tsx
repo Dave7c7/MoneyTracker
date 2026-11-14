@@ -18,46 +18,28 @@ export function StatCard({
   tone?: 'neutral' | 'brand';
   className?: string;
 }) {
+  const brand = tone === 'brand';
+
   return (
-    <Card tone={tone === 'brand' ? 'brand' : 'default'} className={className}>
-      <p
-        className={`text-[11px] font-medium uppercase tracking-wide ${
-          tone === 'brand' ? 'text-slate-300' : 'text-slate-500 dark:text-slate-400'
-        }`}
-      >
-        {label}
-      </p>
-      <p
-        className={`tabular mt-0.5 text-xl font-semibold tracking-tight sm:text-2xl ${
-          tone === 'brand' ? 'text-white' : 'text-slate-900 dark:text-slate-100'
-        }`}
-      >
-        {value}
-      </p>
+    <Card tone={brand ? 'brand' : 'default'} className={className}>
+      <p className="finance-stat-label">{label}</p>
+      <p className="finance-stat-value mt-1.5">{value}</p>
 
       {delta && (
         <p
-          className={`mt-0.5 text-xs font-medium ${
-            tone === 'brand'
-              ? 'text-slate-300'
+          className={`mt-1.5 text-xs font-medium ${
+            brand
+              ? 'finance-stat-meta'
               : delta.positive
-                ? 'text-emerald-600 dark:text-emerald-400'
-                : 'text-rose-600 dark:text-rose-400'
+                ? 'text-emerald-700 dark:text-emerald-400'
+                : 'text-rose-700 dark:text-rose-400'
           }`}
         >
           {delta.direction === 'up' ? '↑' : delta.direction === 'down' ? '↓' : '→'} {delta.value}
         </p>
       )}
 
-      {hint && (
-        <p
-          className={`mt-0.5 text-xs ${
-            tone === 'brand' ? 'text-slate-400' : 'text-slate-500 dark:text-slate-400'
-          }`}
-        >
-          {hint}
-        </p>
-      )}
+      {hint && <p className="finance-stat-meta mt-1.5 text-xs">{hint}</p>}
     </Card>
   );
 }

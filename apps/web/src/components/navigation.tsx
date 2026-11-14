@@ -53,9 +53,9 @@ export function Navigation({
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 md:static md:border-b md:border-t-0 md:bg-transparent md:backdrop-blur-none md:pb-0"
+      className="finance-nav no-print fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 rounded-2xl p-1 md:static md:rounded-xl md:p-1 md:shadow-none"
     >
-      <ul className="mx-auto flex max-w-5xl items-stretch justify-between px-1 md:justify-start md:gap-1 md:px-0">
+      <ul className="finance-scrollbar-none mx-auto flex max-w-full items-stretch justify-between overflow-x-auto md:justify-start md:gap-1">
         {links.map((link) => {
           const active = isActive(pathname, link.href);
           const Icon = link.icon;
@@ -64,10 +64,8 @@ export function Navigation({
               <Link
                 href={link.href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex min-h-14 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium whitespace-nowrap transition-colors md:flex-row md:gap-2 md:py-3 md:text-xs ${
-                  active
-                    ? 'text-brand-600 dark:text-brand-500'
-                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+                className={`finance-nav-link flex min-h-12 flex-col items-center justify-center gap-1 px-1 py-2 text-[11px] font-medium whitespace-nowrap md:flex-row md:gap-2 md:px-3 md:py-2.5 md:text-xs ${
+                  active ? 'finance-nav-link--active' : ''
                 }`}
               >
                 <span className="relative">
@@ -99,10 +97,8 @@ export function Navigation({
               <Link
                 href={link.href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex items-center gap-2 px-3 py-3 text-xs font-medium whitespace-nowrap transition-colors ${
-                  active
-                    ? 'text-brand-600 dark:text-brand-500'
-                    : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+                className={`finance-nav-link flex items-center gap-2 px-3 py-2.5 text-xs font-medium whitespace-nowrap ${
+                  active ? 'finance-nav-link--active' : ''
                 }`}
               >
                 <span className="relative">

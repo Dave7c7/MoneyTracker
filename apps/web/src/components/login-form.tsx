@@ -77,8 +77,7 @@ export function LoginForm({
     }
   }
 
-  const inputClass =
-    'mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 outline-none focus:border-slate-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+  const inputClass = 'finance-input';
 
   return (
     <form onSubmit={submit} className="space-y-3">
@@ -183,10 +182,7 @@ export function LoginForm({
       )}
 
       {error && (
-        <p
-          role="alert"
-          className="rounded-xl bg-rose-50 p-2.5 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-200"
-        >
+        <p role="alert" className="finance-notice finance-notice--error">
           {error}
         </p>
       )}
@@ -194,7 +190,7 @@ export function LoginForm({
       <button
         type="submit"
         disabled={busy}
-        className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+        className="finance-button finance-button--primary w-full"
       >
         {busy
           ? isSetup

@@ -21,10 +21,8 @@ export function AlertLink({ count }: { count: number }) {
       href="/alerts"
       aria-current={active ? 'page' : undefined}
       aria-label={count > 0 ? `Alerts, ${count} new` : 'Alerts'}
-      className={`relative rounded-lg p-1.5 transition-colors ${
-        active
-          ? 'text-brand-600 dark:text-brand-500'
-          : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+      className={`finance-nav-link relative rounded-lg p-2 ${
+        active ? 'finance-nav-link--active' : ''
       }`}
     >
       <svg

@@ -40,7 +40,7 @@ export function Money({
   currency?: string;
   className?: string;
 }) {
-  const tone = amountMinor > 0 ? 'text-emerald-600 dark:text-emerald-400' : '';
+  const tone = amountMinor > 0 ? 'text-emerald-700 dark:text-emerald-400' : '';
   return (
     <span className={`tabular ${tone} ${className}`}>{formatAmount(amountMinor, currency)}</span>
   );

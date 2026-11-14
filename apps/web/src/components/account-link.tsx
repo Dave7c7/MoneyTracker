@@ -20,10 +20,8 @@ export function AccountLink() {
     <Link
       href="/account"
       aria-current={active ? 'page' : undefined}
-      className={`rounded-lg px-2 py-1 text-sm font-medium transition-colors ${
-        active
-          ? 'text-brand-600 dark:text-brand-500'
-          : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
+      className={`finance-nav-link rounded-lg px-2.5 py-2 text-sm font-medium ${
+        active ? 'finance-nav-link--active' : ''
       }`}
     >
       Account

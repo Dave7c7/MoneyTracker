@@ -202,3 +202,20 @@ budgets and goals; the page contains no placeholder designer content.
 
 **Cost:** overview links and end-to-end fixtures use `/overview`, and the public
 landing artwork under `/images` bypasses the session gate just like the icons.
+
+## 2026-11-14 — One product design system with two color schemes
+
+The finance app adopts the landing page's Space Grotesk and IBM Plex Mono
+typography, lime accent, fine borders and layered surfaces. Semantic CSS tokens
+in `globals.css` provide light and dark variants from the OS preference. Shared
+`finance-*` primitives carry the system into cards, statistics, navigation,
+forms and account settings; a `PageHeader` supplies a common heading rhythm.
+
+The finance shell stays data-first. Category colors still come from their
+stored values and palette helpers, semantic success/warning/error colors stay
+distinct, and Three.js remains confined to the marketing hero. No component
+framework, theme provider or new dependency is added.
+
+**Cost:** older finance screens can still contain local Tailwind surface colors
+until the dashboard and workflow refinement phases migrate them. Both color
+schemes and desktop/mobile navigation placement are covered by Playwright.

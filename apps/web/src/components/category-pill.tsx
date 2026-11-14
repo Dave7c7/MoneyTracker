@@ -46,7 +46,7 @@ export function CategoryPill({
     source === 'fallback' || (confidence !== null && confidence !== undefined && confidence < 0.8);
 
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+    <span className="finance-badge">
       <span
         aria-hidden="true"
         className="h-2 w-2 shrink-0 rounded-full"
