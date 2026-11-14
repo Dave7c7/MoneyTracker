@@ -53,7 +53,7 @@ export function Navigation({
   return (
     <nav
       aria-label="Primary"
-      className="finance-nav no-print fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 rounded-2xl p-1 md:static md:rounded-xl md:p-1 md:shadow-none"
+      className="finance-nav no-print fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 order-3 rounded-2xl p-1 md:static md:order-2 md:rounded-xl md:p-1 md:shadow-none"
     >
       <ul className="finance-scrollbar-none mx-auto flex max-w-full items-stretch justify-between overflow-x-auto md:justify-start md:gap-1">
         {links.map((link) => {

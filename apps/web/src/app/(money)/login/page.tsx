@@ -53,7 +53,7 @@ export default async function LoginPage() {
     <div className="mx-auto max-w-sm space-y-5 pt-2 md:pt-10">
       <PageHeader
         eyebrow="Private workspace"
-        title={claimed ? 'Welcome back' : 'Make it yours'}
+        title={claimed ? 'Sign in' : 'Set a password'}
         description={
           claimed
             ? 'Your money is behind this password. It stays on this server.'

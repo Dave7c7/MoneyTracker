@@ -64,7 +64,7 @@ export default async function MoneyLayout({ children }: { children: React.ReactN
       className={`${spaceGrotesk.variable} ${plexMono.variable} finance-shell min-h-screen antialiased`}
     >
       <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col">
-        <header className="no-print px-4 pb-3 pt-[calc(0.875rem+env(safe-area-inset-top))] md:px-0 md:pb-5 md:pt-7">
+        <header className="no-print order-1 px-4 pb-3 pt-[calc(0.875rem+env(safe-area-inset-top))] md:px-0 md:pb-5 md:pt-7">
           <div className="flex items-center justify-between gap-4">
             <h1 className="text-base md:text-xl">
               <Link
@@ -86,9 +86,7 @@ export default async function MoneyLayout({ children }: { children: React.ReactN
           </div>
         </header>
 
-        <Navigation reviewCount={reviewCount} alertCount={alertCount} />
-
-        <main className="flex-1 px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-2 md:px-0 md:pb-12 md:pt-5">
+        <main className="order-2 flex-1 px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-2 md:order-3 md:px-0 md:pb-12 md:pt-5">
           <p data-boot-warning className="finance-notice finance-notice--warning mb-4">
             The scripts of the app did not load, so the charts and the buttons are missing. The
             numbers below are still correct. Reload the page, and if it keeps happening, open it in
@@ -96,6 +94,8 @@ export default async function MoneyLayout({ children }: { children: React.ReactN
           </p>
           {children}
         </main>
+
+        <Navigation reviewCount={reviewCount} alertCount={alertCount} />
       </div>
       <ServiceWorkerRegistration />
       <AppBootCheck />
