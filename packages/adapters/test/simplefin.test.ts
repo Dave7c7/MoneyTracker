@@ -91,14 +91,31 @@ afterAll(async () => {
 
 /** The access URL the fake server is reached with. */
 function accessUrl(): string {
-  return server.url.replace('http://', 'http://demo:token@');
+  const host = new URL(server.url).host;
+  return `https://demo:token@${host}/simplefin`;
 }
 
-describeAdapterContract('simplefin', () => new SimpleFinAdapter({ accessUrl: accessUrl() }));
+/**
+ * Sends an HTTPS test request to the local fake server.
+ *
+ * The adapter refuses plain-http access URLs, including loopback, so tests
+ * keep an HTTPS access URL and only lower it when the request is made.
+ */
+const localFetch: FetchLike = async (input, init) => {
+  const url = new URL(input);
+  url.protocol = 'http:';
+  url.host = new URL(server.url).host;
+  return fetch(url, init);
+};
+
+describeAdapterContract(
+  'simplefin',
+  () => new SimpleFinAdapter({ accessUrl: accessUrl(), fetchImpl: localFetch }),
+);
 
 describe('the SimpleFIN adapter', () => {
   it('reads the accounts of the connection', async () => {
-    const adapter = new SimpleFinAdapter({ accessUrl: accessUrl() });
+    const adapter = new SimpleFinAdapter({ accessUrl: accessUrl(), fetchImpl: localFetch });
     const accounts = await adapter.fetchAccounts();
 
     expect(accounts).toHaveLength(2);
@@ -118,7 +135,7 @@ describe('the SimpleFIN adapter', () => {
   });
 
   it('reads the transactions with their amounts in minor units', async () => {
-    const adapter = new SimpleFinAdapter({ accessUrl: accessUrl() });
+    const adapter = new SimpleFinAdapter({ accessUrl: accessUrl(), fetchImpl: localFetch });
     await adapter.fetchAccounts();
     const transactions = await adapter.fetchTransactions('CON-1:2930002');
 
@@ -136,7 +153,7 @@ describe('the SimpleFIN adapter', () => {
   });
 
   it('reads the balances with their dates', async () => {
-    const adapter = new SimpleFinAdapter({ accessUrl: accessUrl() });
+    const adapter = new SimpleFinAdapter({ accessUrl: accessUrl(), fetchImpl: localFetch });
     const balances = await adapter.fetchBalances();
 
     expect(balances).toHaveLength(2);
@@ -151,6 +168,7 @@ describe('the SimpleFIN adapter', () => {
   it('reads only the accounts the connection is linked to', async () => {
     const adapter = new SimpleFinAdapter({
       accessUrl: accessUrl(),
+      fetchImpl: localFetch,
       accountExternalIds: ['CON-1:2930003'],
     });
     const accounts = await adapter.fetchAccounts();
@@ -160,7 +178,11 @@ describe('the SimpleFIN adapter', () => {
 
   it('asks for the history in slices the API allows', async () => {
     requests = [];
-    const adapter = new SimpleFinAdapter({ accessUrl: accessUrl(), historyDays: 200 });
+    const adapter = new SimpleFinAdapter({
+      accessUrl: accessUrl(),
+      fetchImpl: localFetch,
+      historyDays: 200,
+    });
     await adapter.fetchAccounts();
 
     // 200 days do not fit in one request of 90 days.
@@ -176,6 +198,7 @@ describe('the SimpleFIN adapter', () => {
     requests = [];
     const adapter = new SimpleFinAdapter({
       accessUrl: accessUrl(),
+      fetchImpl: localFetch,
       historyDays: 90,
       since: new Date(Date.now() - 2 * 86_400_000),
     });
@@ -259,6 +282,26 @@ describe('claiming a setup token', () => {
     await expect(claimAccessUrl(token, fetchImpl)).rejects.toThrow(/revoke it/);
   });
 
+  it('says the token expired or was revoked when SimpleFIN returns 404', async () => {
+    const fetchImpl: FetchLike = async () => ({ ok: false, status: 404, text: async () => '' });
+
+    await expect(claimAccessUrl(token, fetchImpl)).rejects.toThrow(/expired|revoked/i);
+    await expect(claimAccessUrl(token, fetchImpl)).rejects.toThrow(/new token/i);
+  });
+
+  it.each(['http://localhost:8080/simplefin', 'http://127.0.0.1:8080/simplefin'])(
+    'refuses an access URL that is not secure: %s',
+    async (accessUrl) => {
+      const fetchImpl: FetchLike = async () => ({
+        ok: true,
+        status: 200,
+        text: async () => accessUrl,
+      });
+
+      await expect(claimAccessUrl(token, fetchImpl)).rejects.toThrow(/usable access URL/);
+    },
+  );
+
   it('refuses a token that is not a token', () => {
     expect(() => decodeSetupToken('not a token')).toThrow(SimpleFinError);
     expect(() => decodeSetupToken('')).toThrow(/empty/);
@@ -268,6 +311,25 @@ describe('claiming a setup token', () => {
     const token = Buffer.from('http://example.com/claim').toString('base64');
     expect(() => decodeSetupToken(token)).toThrow(/secure/);
   });
+
+  it.each(['http://localhost/claim', 'http://127.0.0.1/claim'])(
+    'refuses an insecure loopback setup address: %s',
+    (address) => {
+      const token = Buffer.from(address).toString('base64');
+      expect(() => decodeSetupToken(token)).toThrow(/secure/);
+    },
+  );
+});
+
+describe('a stored access URL', () => {
+  it.each(['http://localhost:8080/simplefin', 'http://127.0.0.1:8080/simplefin'])(
+    'is refused when it is not secure, even on loopback: %s',
+    async (accessUrl) => {
+      const adapter = new SimpleFinAdapter({ accessUrl });
+
+      await expect(adapter.fetchAccounts()).rejects.toThrow(/secure address/);
+    },
+  );
 });
 
 describe('reading an account name', () => {
