@@ -21,8 +21,8 @@ import {
   type NormalizedTransaction,
 } from '@moneytracker/core';
 
-/** How many days one request may ask for. The API refuses more. */
-export const SIMPLEFIN_SLICE_DAYS = 90;
+/** How many days one request may ask for. SimpleFIN recommends 45. */
+export const SIMPLEFIN_SLICE_DAYS = 45;
 
 /** How many days of history a connection reaches by default. */
 export const SIMPLEFIN_DEFAULT_HISTORY_DAYS = 90;
@@ -306,7 +306,7 @@ export class SimpleFinAdapter implements DataSourceAdapter {
     if (this.coveredFrom === null || this.coveredFrom > startMs) this.coveredFrom = startMs;
   }
 
-  /** Reads one window of at most 90 days. */
+  /** Reads one window of at most 45 days. */
   private async fetchSlice(startMs: number, endMs: number): Promise<void> {
     const { url, auth } = splitAccessUrl(this.options.accessUrl);
     const query = new URLSearchParams({

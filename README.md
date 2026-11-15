@@ -571,7 +571,7 @@ a read. Losing the key means the stored credentials cannot be read any more,
 so keep it with your other secrets.
 
 **The limits are known and the app is built around them.** One request covers
-at most 90 days, so the history is fetched in slices; the data is refreshed
+at most 45 days, so the history is fetched in slices; the data is refreshed
 about once a day, so the app shows when the last sync was; and a source that
 never reports a pending transaction is a normal source.
 
