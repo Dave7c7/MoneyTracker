@@ -109,7 +109,8 @@ interface SimpleFinAccountSet {
  * Exchanges a setup token for an access URL.
  *
  * The token can only be used once. A 403 means it was already claimed, which
- * may mean someone else has the data, so the user is told to disable it.
+ * may mean someone else has the data, so the user is told to disable it. A 404
+ * means the token has expired or no longer exists, so the user needs a new one.
  *
  * @example
  * const accessUrl = await claimAccessUrl(setupToken);
@@ -134,6 +135,12 @@ export async function claimAccessUrl(
     throw new SimpleFinError(
       'This setup token has already been used. Someone may have claimed it, so revoke it at ' +
         'SimpleFIN and create a new one.',
+    );
+  }
+  if (response.status === 404) {
+    throw new SimpleFinError(
+      'This setup token has expired or was revoked. Create a new token at SimpleFIN and try ' +
+        'again.',
     );
   }
   if (!response.ok) {
@@ -174,11 +181,13 @@ export function decodeSetupToken(setupToken: string): string {
     throw new SimpleFinError('The setup token is not a SimpleFIN token.');
   }
 
-  if (url.protocol !== 'https:' && url.hostname !== '127.0.0.1' && url.hostname !== 'localhost') {
+  if (url.protocol !== 'https:') {
     throw new SimpleFinError('The setup token does not point at a secure address.');
   }
   return url.toString();
-} /**
+}
+
+/**
  * The data source for a SimpleFIN connection.
  *
  * One access URL can cover several banks. Every account is identified by its
@@ -474,11 +483,7 @@ function splitAccessUrl(accessUrl: string): { url: string; auth: string } {
     throw new SimpleFinError('The stored access URL is not usable.');
   }
 
-  if (
-    parsed.protocol !== 'https:' &&
-    parsed.hostname !== '127.0.0.1' &&
-    parsed.hostname !== 'localhost'
-  ) {
+  if (parsed.protocol !== 'https:') {
     throw new SimpleFinError('The stored access URL is not a secure address.');
   }
 
@@ -498,18 +503,14 @@ function splitAccessUrl(accessUrl: string): { url: string; auth: string } {
  * Whether an address is one the app is willing to talk to.
  *
  * The protocol says only secure addresses, and the app never sends a
- * credential over plain http. A server on this machine is allowed, so the
- * app can be tested and a self-hosted server can be used.
+ * credential over plain http, including to a server on this machine.
  */
 function isSecureAddress(address: string): boolean {
-  let url: URL;
   try {
-    url = new URL(address);
+    return new URL(address).protocol === 'https:';
   } catch {
     return false;
   }
-  if (url.protocol === 'https:') return true;
-  return url.protocol === 'http:' && (url.hostname === '127.0.0.1' || url.hostname === 'localhost');
 }
 
 /** Keeps an error message safe to show. */

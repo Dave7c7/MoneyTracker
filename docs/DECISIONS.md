@@ -254,3 +254,18 @@ alerts and safe-area-aware undo toasts retain their own behavior and semantics.
 **Cost:** a few workflow-specific visual states remain intentionally distinct.
 Playwright covers all workflow behavior plus every page in both color schemes
 at phone, Pixel and desktop widths.
+
+## 2026-11-15 — SimpleFIN addresses are HTTPS-only
+
+SimpleFIN setup and access URLs must use HTTPS. The previous loopback exception
+accepted plain HTTP for `localhost` and `127.0.0.1`, so whether an address was
+secure depended on its hostname rather than its transport. The adapter now
+rejects every non-HTTPS claim or access URL.
+
+A 404 from the claim request means the setup token expired or was revoked, and
+the error tells the user to create a new token. A 403 still means the token was
+already claimed, with guidance to revoke it.
+
+**Cost:** the adapter tests keep HTTPS access URLs and lower them only in the
+test fetch shim. A plain-HTTP SimpleFIN server, including one on loopback, is no
+longer accepted.
