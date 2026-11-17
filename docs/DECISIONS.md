@@ -293,3 +293,17 @@ its children to the top level.
 misfire on an unrelated merchant; those cost a correction, which merchant
 memory then remembers. Custom categories have no keyword suggestions of their
 own; rules and merchant memory cover them.
+
+## 2026-11-17 — Transactions by day and by week
+
+The transactions page can group its rows by day or by week (`?view=day` or
+`?view=week`), with a heading per group showing the number of transactions,
+money out and money in. Grouping uses the posted plain date, so a transaction
+stays on the day the bank posted it. Weeks run Sunday to Saturday, like a US
+calendar; `weekStart` takes the first weekday as a parameter if that ever needs
+to change. Transfers are listed in their group but never counted in its totals.
+Pending transactions get a group of their own at the top. A grouped view loads
+up to 500 rows instead of 100, so the oldest week is less likely to be cut off.
+
+**Cost:** totals cover the rows shown, not the whole history; with more than
+500 rows in the filter, the oldest group can be partial.

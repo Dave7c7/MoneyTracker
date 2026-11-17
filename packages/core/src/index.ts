@@ -9,6 +9,7 @@
 export * from './types.ts';
 export * from './money.ts';
 export * from './dates.ts';
+export * from './periods.ts';
 export * from './merchant.ts';
 export * from './random.ts';
 export * from './rules.ts';
