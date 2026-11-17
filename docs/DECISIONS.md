@@ -269,3 +269,27 @@ already claimed, with guidance to revoke it.
 **Cost:** the adapter tests keep HTTPS access URLs and lower them only in the
 test fetch shim. A plain-HTTP SimpleFIN server, including one on loopback, is no
 longer accepted.
+
+## 2026-11-17 — Keyword suggestions and user categories
+
+Many uncategorized merchants say what they are in their name ("UBER *TRIP",
+"MTA*NYCT PAYGO", "JOES DELI"). A new pipeline step after the bank category
+matches a fixed keyword table and suggests a default category, stored with
+source `keyword` and a reason that names the keyword. The confidence is 0.6, so
+a suggestion never confirms itself: it pre-fills the review inbox, where one
+tap (or "Confirm all suggestions") locks it. Keywords point at category slugs,
+which never change, so renaming a default category keeps its suggestions. The
+step is deterministic and needs no provider, so it comes before the optional AI
+step.
+
+Users can add their own categories (top level, or one level under a spending
+or income group), and rename or recolour any category. Default categories
+cannot be deleted. Deleting a user category moves its transactions and split
+parts to a category the user picks (Uncategorized by default, which unlocks
+them and sends them back to review), removes its rules and budgets, and lifts
+its children to the top level.
+
+**Cost:** the keyword table is English and US-centric, and a short keyword can
+misfire on an unrelated merchant; those cost a correction, which merchant
+memory then remembers. Custom categories have no keyword suggestions of their
+own; rules and merchant memory cover them.

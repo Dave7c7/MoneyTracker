@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { formatMoney } from '@moneytracker/core';
@@ -41,12 +42,16 @@ interface PreviousAssignment {
     | 'merchant_memory'
     | 'bank'
     | 'ai'
+    | 'keyword'
     | 'transfer_detection'
     | 'fallback';
   confidence: number;
   reason: string;
   locked: boolean;
 }
+
+/** The most transactions one bulk request may carry. */
+const BULK_LIMIT = 500;
 
 /** A bulk edit that can still be undone. */
 interface PendingUndo {
@@ -78,7 +83,16 @@ export function ReviewInbox({
   const [undo, setUndo] = useState<PendingUndo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const router = useRouter();
   const itemRefs = useRef<Array<HTMLLIElement | null>>([]);
+
+  // A refresh brings new groups from the server; show them.
+  const [shownInitial, setShownInitial] = useState(initialGroups);
+  if (shownInitial !== initialGroups) {
+    setShownInitial(initialGroups);
+    setGroups(initialGroups);
+  }
 
   const selectedGroups = useMemo(
     () => groups.filter((group) => selected.has(group.key)),
@@ -86,15 +100,22 @@ export function ReviewInbox({
   );
 
   /**
-   * Applies a category to a set of transactions.
+   * Applies categories to groups of transactions: one bulk request per
+   * category, and one undo for all of them.
    */
-  const applyCategory = useCallback(
-    async (targets: ReviewGroupView[], categoryId: string, categoryName: string) => {
-      if (targets.length === 0) return;
+  const applyDecisions = useCallback(
+    async (decisions: Array<{ group: ReviewGroupView; categoryId: string }>, message: string) => {
+      if (decisions.length === 0) return;
 
-      const transactionIds = targets.flatMap((group) => group.transactions.map((t) => t.id));
-      const keys = new Set(targets.map((group) => group.key));
+      const keys = new Set(decisions.map((decision) => decision.group.key));
       const removed = groups.filter((group) => keys.has(group.key));
+
+      const idsByCategory = new Map<string, string[]>();
+      for (const { group, categoryId } of decisions) {
+        const ids = idsByCategory.get(categoryId) ?? [];
+        ids.push(...group.transactions.map((transaction) => transaction.id));
+        idsByCategory.set(categoryId, ids);
+      }
 
       // Optimistic: the rows disappear straight away.
       setGroups((current) => current.filter((group) => !keys.has(group.key)));
@@ -106,21 +127,33 @@ export function ReviewInbox({
       setBusy(true);
 
       try {
-        const response = await fetch('/api/transactions/bulk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transactionIds, categoryId }),
-        });
+        let changed = 0;
+        const previous: PendingUndo['previous'] = [];
 
-        if (!response.ok) throw new Error('The server refused the change');
-        const result = (await response.json()) as {
-          changed: number;
-          previous: Array<{ transactionId: string; assignment: PreviousAssignment | null }>;
-        };
+        for (const [categoryId, ids] of idsByCategory) {
+          for (let start = 0; start < ids.length; start += BULK_LIMIT) {
+            const response = await fetch('/api/transactions/bulk', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                transactionIds: ids.slice(start, start + BULK_LIMIT),
+                categoryId,
+              }),
+            });
+
+            if (!response.ok) throw new Error('The server refused the change');
+            const result = (await response.json()) as {
+              changed: number;
+              previous: PendingUndo['previous'];
+            };
+            changed += result.changed;
+            previous.push(...result.previous);
+          }
+        }
 
         setUndo({
-          message: `${result.changed} transaction${result.changed === 1 ? '' : 's'} → ${categoryName}`,
-          previous: result.previous,
+          message: `${changed} transaction${changed === 1 ? '' : 's'} → ${message}`,
+          previous,
           removed,
         });
         setError(null);
@@ -134,6 +167,64 @@ export function ReviewInbox({
     },
     [groups],
   );
+
+  /** Applies one category to a set of groups. */
+  const applyCategory = useCallback(
+    (targets: ReviewGroupView[], categoryId: string, categoryName: string) =>
+      applyDecisions(
+        targets.map((group) => ({ group, categoryId })),
+        categoryName,
+      ),
+    [applyDecisions],
+  );
+
+  /**
+   * The groups with a real suggestion: a spending or income category, not
+   * Uncategorized and not a suspected transfer, which deserves its own look.
+   */
+  const suggestedGroups = useMemo(() => {
+    const suggestable = new Set(
+      categories
+        .filter((category) => category.kind === 'spending' || category.kind === 'income')
+        .map((category) => category.id),
+    );
+    return groups.filter(
+      (group) => group.suggestedCategoryId && suggestable.has(group.suggestedCategoryId),
+    );
+  }, [categories, groups]);
+
+  /** Confirms every suggestion on the screen at once. */
+  const confirmAllSuggestions = useCallback(
+    () =>
+      applyDecisions(
+        suggestedGroups.map((group) => ({ group, categoryId: group.suggestedCategoryId! })),
+        'their suggested categories',
+      ),
+    [applyDecisions, suggestedGroups],
+  );
+
+  /**
+   * Runs the suggestions over transactions that came in before they existed,
+   * then reloads the inbox with the new guesses.
+   */
+  const findSuggestions = useCallback(async () => {
+    setBusy(true);
+    try {
+      const response = await fetch('/api/review/suggestions', { method: 'POST' });
+      if (!response.ok) throw new Error('Could not look for suggestions');
+      const result = (await response.json()) as { applied: { changed: number } };
+      setNotice(
+        result.applied.changed > 0
+          ? `Found suggestions for ${result.applied.changed} transaction${result.applied.changed === 1 ? '' : 's'}`
+          : 'No new suggestions found',
+      );
+      router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not look for suggestions');
+    } finally {
+      setBusy(false);
+    }
+  }, [router]);
 
   /**
    * Puts a bulk edit back the way it was.
@@ -223,6 +314,28 @@ export function ReviewInbox({
 
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {suggestedGroups.length > 0 && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void confirmAllSuggestions()}
+            className="finance-button finance-button--primary finance-button--small"
+          >
+            Confirm all {suggestedGroups.length} suggestion
+            {suggestedGroups.length === 1 ? '' : 's'}
+          </button>
+        )}
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void findSuggestions()}
+          className="finance-button finance-button--ghost finance-button--small"
+        >
+          Suggest categories
+        </button>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
         <span>
           {groups.length} {groups.length === 1 ? 'merchant' : 'merchants'} waiting
@@ -367,6 +480,9 @@ export function ReviewInbox({
       </ul>
 
       {error && <UndoToast message={error} tone="error" onDismiss={() => setError(null)} />}
+      {!error && !undo && notice && (
+        <UndoToast message={notice} onDismiss={() => setNotice(null)} />
+      )}
       {!error && undo && (
         <UndoToast
           message={undo.message}

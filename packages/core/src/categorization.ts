@@ -7,8 +7,9 @@
  *   2. merchant memory     (confidence 0.9)
  *   3. transfer detection  (confidence 0.95, or 0.4 when unconfirmed)
  *   4. bank category       (confidence capped at 0.7)
- *   5. AI suggestion       (confidence capped below the others, optional)
- *   6. fallback            (Uncategorized, confidence 0)
+ *   5. keyword suggestion  (confidence 0.6, e.g. "UBER" -> Transit)
+ *   6. AI suggestion       (confidence capped below the others, optional)
+ *   7. fallback            (Uncategorized, confidence 0)
  *
  * Every assignment carries its source and a human-readable reason, so the UI
  * can always explain why a transaction was categorized the way it was.
@@ -16,6 +17,7 @@
 
 import { merchantKey, normalizeMerchant } from './merchant.ts';
 import { selectRule, type RuleMatchInput } from './rules.ts';
+import { suggestFromKeywords } from './suggestions.ts';
 import type {
   AssignmentSource,
   CategorizationContext,
@@ -34,6 +36,11 @@ export const TRANSFER_CONFIDENCE = 0.95;
 export const SUSPECTED_TRANSFER_CONFIDENCE = 0.4;
 /** Highest confidence a bank-provided category may ever get. */
 export const BANK_CONFIDENCE_CAP = 0.7;
+/**
+ * Confidence assigned to a keyword suggestion. Below the review threshold on
+ * purpose: a keyword fills in the category, and the user confirms it.
+ */
+export const KEYWORD_CONFIDENCE = 0.6;
 /** Highest confidence an AI suggestion may ever get. */
 export const AI_CONFIDENCE_CAP = 0.65;
 /** Below this confidence a transaction lands in the review inbox. */
@@ -142,7 +149,21 @@ export function categorize(
     }
   }
 
-  // 6. Fallback: goes to the review inbox.
+  // 5. Keyword suggestion: the merchant says what it is ("UBER", "DELI").
+  if (ctx.categoryIdBySlug) {
+    const match = suggestFromKeywords(tx.descriptionRaw, tx.merchantRaw);
+    const categoryId = match ? ctx.categoryIdBySlug.get(match.categorySlug) : undefined;
+    if (match && categoryId) {
+      return {
+        categoryId,
+        source: 'keyword',
+        confidence: KEYWORD_CONFIDENCE,
+        reason: `Suggested ${categoryName(ctx, categoryId)}: the description mentions "${match.keyword}"`,
+      };
+    }
+  }
+
+  // 7. Fallback: goes to the review inbox.
   return {
     categoryId: ctx.uncategorizedCategoryId,
     source: 'fallback',

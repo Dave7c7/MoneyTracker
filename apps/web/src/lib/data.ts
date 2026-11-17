@@ -27,6 +27,7 @@ import {
   countNeedsReview,
   getCategorySpendByMonth,
   listAccounts,
+  listCategoriesWithUsage,
   listBalances,
   listBudgets,
   listCategories,
@@ -484,6 +485,28 @@ export async function getReviewData() {
 }
 
 /** Data for the rules screen. */
+/** Everything the categories screen needs. */
+export async function getCategoriesData() {
+  const { db } = getDatabase();
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const categories = await listCategoriesWithUsage(db, userId);
+  return {
+    categories: categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      kind: category.kind,
+      color: category.color,
+      parentId: category.parentId,
+      isSystem: category.isSystem,
+      transactionCount: category.transactionCount,
+      ruleCount: category.ruleCount,
+      budgetCount: category.budgetCount,
+    })),
+  };
+}
+
 export async function getRulesData() {
   const { db } = getDatabase();
   const userId = await getUserId();

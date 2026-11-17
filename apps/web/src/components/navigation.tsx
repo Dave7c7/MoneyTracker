@@ -27,6 +27,7 @@ const secondaryLinks = [
   { href: '/budgets', label: 'Budgets', icon: BudgetsIcon },
   { href: '/goals', label: 'Goals', icon: GoalsIcon },
   { href: '/rules', label: 'Rules', icon: RulesIcon },
+  { href: '/categories', label: 'Categories', icon: CategoriesIcon },
 ] as const;
 
 function isActive(pathname: string, href: string): boolean {
@@ -244,6 +245,24 @@ function AccountsIcon() {
       <rect x="3" y="6" width="18" height="13" rx="2" />
       <path d="M3 10h18" />
       <path d="M7 15h4" />
+    </svg>
+  );
+}
+
+function CategoriesIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 12V4h8l9 9-8 8-9-9Z" />
+      <circle cx="7.5" cy="8.5" r="1.2" />
     </svg>
   );
 }

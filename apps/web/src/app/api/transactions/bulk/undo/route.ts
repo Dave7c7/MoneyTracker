@@ -22,6 +22,7 @@ const undoSchema = z.object({
               'merchant_memory',
               'bank',
               'ai',
+              'keyword',
               'transfer_detection',
               'fallback',
             ]),

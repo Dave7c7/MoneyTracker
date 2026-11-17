@@ -205,3 +205,22 @@ export async function readJson<T>(
 
   return { ok: true, data: parsed.data };
 }
+
+/** A hex colour, e.g. "#1baf7a". */
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use a colour like #1baf7a');
+
+/** The body of a new category. */
+export const categoryBodySchema = z.object({
+  name: z.string().trim().min(1).max(60),
+  kind: z.enum(['spending', 'income']).optional(),
+  parentId: z.string().uuid().nullable().optional(),
+  color: hexColor.nullable().optional(),
+});
+
+/** The body of a category change: every field optional. */
+export const categoryUpdateSchema = categoryBodySchema.partial();
+
+/** The body of a category deletion: where its transactions go. */
+export const categoryDeleteSchema = z.object({
+  moveToCategoryId: z.string().uuid().nullable().optional(),
+});

@@ -85,6 +85,13 @@
       "when": 1792757490214,
       "tag": "0011_tiny_thunderbird",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794890602569,
+      "tag": "0012_loud_tigra",
+      "breakpoints": true
     }
   ]
 }

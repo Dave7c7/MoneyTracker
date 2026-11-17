@@ -31,6 +31,7 @@ export interface TransactionListItem {
     | 'merchant_memory'
     | 'bank'
     | 'ai'
+    | 'keyword'
     | 'transfer_detection'
     | 'fallback'
     | null;

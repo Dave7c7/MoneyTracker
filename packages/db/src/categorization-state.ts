@@ -115,6 +115,7 @@ export async function loadCategorizationState(
   const uncategorized = categoryRows.find((row) => row.slug === 'uncategorized');
   const transferCategory = categoryRows.find((row) => row.kind === 'transfer');
   const categoryNames = new Map(categoryRows.map((row) => [row.id, row.name]));
+  const categoryIdBySlug = new Map(categoryRows.map((row) => [row.slug, row.id]));
   const bankCategoryMap = new Map(
     mappingRows.map((row) => [row.sourceCategory.toUpperCase(), row.categoryId]),
   );
@@ -148,6 +149,7 @@ export async function loadCategorizationState(
     merchantMemory,
     bankCategoryMap,
     categoryNames,
+    categoryIdBySlug,
     uncategorizedCategoryId: uncategorized?.id ?? 'uncategorized',
     ...(transferCategory ? { transferCategoryId: transferCategory.id } : {}),
   };
