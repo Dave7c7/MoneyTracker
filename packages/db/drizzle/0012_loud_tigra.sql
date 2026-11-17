@@ -1,0 +1,1 @@
+ALTER TYPE "public"."assignment_source" ADD VALUE 'keyword' BEFORE 'transfer_detection';

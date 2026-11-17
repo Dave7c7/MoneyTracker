@@ -11,6 +11,7 @@ export * from './defaults.ts';
 export * from './bootstrap.ts';
 export * from './categorization-state.ts';
 export * from './rules.ts';
+export * from './categories.ts';
 export * from './assignments.ts';
 export * from './transfers.ts';
 export * from './splits.ts';

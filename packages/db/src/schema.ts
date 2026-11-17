@@ -47,6 +47,7 @@ export const assignmentSourceEnum = pgEnum('assignment_source', [
   'merchant_memory',
   'bank',
   'ai',
+  'keyword',
   'transfer_detection',
   'fallback',
 ]);

@@ -20,11 +20,16 @@
    - Limited to low-confidence assignments
    - Falls to review inbox when below threshold
 
-4. **Optional ML/LLM guess** (low priority)
+4. **Keyword suggestion** (low priority, confidence 0.6)
+   - A fixed table of merchant keywords, e.g. "UBER" → Transit, "DELI" → Restaurants
+   - Whole words only; the longest matching keyword wins
+   - Below the review threshold: fills in the category, the user confirms it
+
+5. **Optional ML/LLM guess** (low priority)
    - AI-assisted categorization if enabled
    - Only when other methods fail
 
-5. **Fallback "Uncategorized"** (lowest priority)
+6. **Fallback "Uncategorized"** (lowest priority)
    - Default assignment when no other method applies
    - Goes to review inbox for manual categorization
 
@@ -37,6 +42,7 @@ Every category assignment includes:
   - `user_manual`: Direct manual edit
   - `merchant_memory`: Pattern from past corrections
   - `bank`: Bank-provided category
+  - `keyword`: Keyword suggestion
   - `ai`: AI/ML categorization
   - `fallback`: Default uncategorized
 - `confidence`: How confident the assignment is (0.0-1.0)

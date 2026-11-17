@@ -142,12 +142,14 @@ export function TransactionFilters({
         </div>
       </div>
 
-      {searchParams.size > 0 && (
+      {[...searchParams.keys()].some((key) => key !== 'view') && (
         <button
           type="button"
           onClick={() =>
             startTransition(() => {
-              router.replace(pathname, { scroll: false });
+              // Clearing the filters keeps the day or week grouping.
+              const view = searchParams.get('view');
+              router.replace(view ? `${pathname}?view=${view}` : pathname, { scroll: false });
             })
           }
           className="finance-button finance-button--ghost finance-button--small -ml-2"

@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
-import { toMinorUnits } from '@moneytracker/core';
+import { formatMoney, groupByPeriod, toMinorUnits, type Period } from '@moneytracker/core';
 
 import { CategoryMenu, type PickerCategory } from './category-menu.tsx';
 import { Money } from './money.tsx';
@@ -31,6 +31,7 @@ export interface TransactionListItem {
     | 'merchant_memory'
     | 'bank'
     | 'ai'
+    | 'keyword'
     | 'transfer_detection'
     | 'fallback'
     | null;
@@ -62,9 +63,12 @@ interface ScopePrompt {
 export function TransactionList({
   initialRows,
   categories,
+  groupBy = null,
 }: {
   initialRows: TransactionListItem[];
   categories: PickerCategory[];
+  /** Show the rows under a heading per day or per week, with totals. */
+  groupBy?: Period | null;
 }) {
   const [rows, setRows] = useState(initialRows);
   const [prompt, setPrompt] = useState<ScopePrompt | null>(null);
@@ -75,6 +79,27 @@ export function TransactionList({
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
   const [splittingId, setSplittingId] = useState<string | null>(null);
+
+  /*
+    Grouped from the rows as they stand, so a category change that turns a
+    row into a transfer updates the totals straight away.
+  */
+  const groups = useMemo(() => {
+    if (!groupBy) return null;
+    const transferIds = new Set(
+      categories.filter((category) => category.kind === 'transfer').map((category) => category.id),
+    );
+    return groupByPeriod(
+      rows.map((row) => ({
+        ...row,
+        isTransfer:
+          row.transferGroupId !== null ||
+          (row.categoryId !== null && transferIds.has(row.categoryId)),
+      })),
+      groupBy,
+    );
+  }, [categories, groupBy, rows]);
+  const currency = rows[0]?.currency ?? 'USD';
 
   /** Changes the category of one transaction, by hand. */
   const changeCategory = useCallback(
@@ -251,209 +276,246 @@ export function TransactionList({
     }
   }, [createdRuleId]);
 
+  /** One transaction row. */
+  const renderRow = (row: TransactionListItem) => (
+    <li key={row.id} className="px-4 py-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
+            {row.merchantName ?? row.descriptionRaw}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+            {row.merchantName ? row.descriptionRaw : row.accountName}
+          </p>
+
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+            {row.splitLines.length > 0 ? (
+              <>
+                <span className="rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-950 dark:text-brand-200">
+                  Split: {row.splitLines.map((line) => line.categoryName).join(' + ')}
+                </span>
+                {splitIsOff(row) && (
+                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">
+                    Does not add up
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSplittingId(splittingId === row.id ? null : row.id)}
+                  className="finance-button finance-button--ghost finance-button--tiny"
+                >
+                  {splittingId === row.id ? 'Close' : 'Edit split'}
+                </button>
+              </>
+            ) : (
+              <>
+                <CategoryMenu
+                  categories={categories}
+                  value={row.categoryId}
+                  label={`Category for ${row.merchantName ?? row.descriptionRaw}`}
+                  onSelect={(categoryId) => void changeCategory(row, categoryId)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setSplittingId(splittingId === row.id ? null : row.id)}
+                  className="finance-button finance-button--ghost finance-button--tiny"
+                >
+                  {splittingId === row.id ? 'Close' : 'Split'}
+                </button>
+              </>
+            )}
+            {row.pending ? (
+              <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                Pending
+              </span>
+            ) : (
+              <span className="text-xs text-slate-400">
+                {row.postedDate ? formatDate(row.postedDate) : '—'} · {row.accountName}
+              </span>
+            )}
+            {row.transferGroupId ? (
+              <button
+                type="button"
+                onClick={() => void toggleTransfer(row)}
+                title="This money moved between your own accounts. Click to undo."
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                  row.transferSource === 'suspected'
+                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200'
+                    : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-200'
+                }`}
+              >
+                {row.transferSource === 'suspected' ? 'Possible transfer' : 'Transfer'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void toggleTransfer(row)}
+                className="finance-button finance-button--ghost finance-button--tiny"
+              >
+                Mark as transfer
+              </button>
+            )}
+          </div>
+
+          {row.reason && <p className="mt-1 text-xs italic text-slate-400">{row.reason}</p>}
+        </div>
+
+        <Money
+          amountMinor={row.amountMinor}
+          currency={row.currency}
+          className="shrink-0 text-sm font-semibold"
+        />
+      </div>
+
+      {splittingId === row.id && (
+        <SplitEditor
+          transactionId={row.id}
+          amountMinor={row.amountMinor}
+          currency={row.currency}
+          categories={categories}
+          initialLines={row.splitLines}
+          onCancel={() => setSplittingId(null)}
+          onSaved={(lines) => {
+            setRows((current) =>
+              current.map((item) =>
+                item.id === row.id
+                  ? {
+                      ...item,
+                      splitLines: lines.map((line) => ({
+                        categoryId: line.categoryId,
+                        categoryName:
+                          categories.find((category) => category.id === line.categoryId)?.name ??
+                          'Uncategorized',
+                        amountMinor: line.amountMinor,
+                      })),
+                      reason: `Split into ${lines.length} parts`,
+                      assignmentSource: 'user_manual',
+                      confidence: 1,
+                    }
+                  : item,
+              ),
+            );
+            setSplittingId(null);
+            setMessage('Split saved');
+            setError(null);
+          }}
+        />
+      )}
+
+      {prompt?.transactionId === row.id && (
+        <div className="finance-callout mt-2 text-sm">
+          <p className="font-medium text-slate-800 dark:text-slate-100">
+            Apply to all from {prompt.merchantName}?
+          </p>
+
+          {showAmountRange ? (
+            <div className="mt-2 space-y-2">
+              <div className="flex items-center gap-2">
+                <input
+                  inputMode="decimal"
+                  value={minAmount}
+                  onChange={(event) => setMinAmount(event.target.value)}
+                  placeholder="From"
+                  aria-label="Amount from"
+                  className="finance-input finance-input--small min-w-0"
+                />
+                <input
+                  inputMode="decimal"
+                  value={maxAmount}
+                  onChange={(event) => setMaxAmount(event.target.value)}
+                  placeholder="To"
+                  aria-label="Amount to"
+                  className="finance-input finance-input--small min-w-0"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => void applyToMerchant(prompt, { min: minAmount, max: maxAmount })}
+                  className="finance-button finance-button--primary finance-button--small"
+                >
+                  Apply to matching amounts
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAmountRange(false)}
+                  className="finance-button finance-button--ghost finance-button--small"
+                >
+                  Back
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void applyToMerchant(prompt)}
+                className="finance-button finance-button--primary finance-button--small"
+              >
+                All from this merchant
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAmountRange(true)}
+                className="finance-button finance-button--secondary finance-button--small"
+              >
+                Matching an amount
+              </button>
+              <button
+                type="button"
+                onClick={() => setPrompt(null)}
+                className="finance-button finance-button--ghost finance-button--small"
+              >
+                This one only
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </li>
+  );
+
   return (
     <div className="space-y-3">
-      <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-        {rows.map((row) => (
-          <li key={row.id} className="px-4 py-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100">
-                  {row.merchantName ?? row.descriptionRaw}
-                </p>
-                <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
-                  {row.merchantName ? row.descriptionRaw : row.accountName}
-                </p>
-
-                <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  {row.splitLines.length > 0 ? (
+      {groups ? (
+        <div>
+          {groups.map((group) => (
+            <section key={group.key} aria-label={periodLabel(group, groupBy!)}>
+              <div className="sticky top-0 z-10 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 border-y border-slate-100 bg-[var(--finance-surface)] px-4 py-2 dark:border-slate-800">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {periodLabel(group, groupBy!)}
+                </h3>
+                <p className="tabular text-xs text-slate-500 dark:text-slate-400">
+                  {group.rows.length} transaction{group.rows.length === 1 ? '' : 's'}
+                  {group.outMinor > 0 && (
                     <>
-                      <span className="rounded-full bg-brand-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-950 dark:text-brand-200">
-                        Split: {row.splitLines.map((line) => line.categoryName).join(' + ')}
-                      </span>
-                      {splitIsOff(row) && (
-                        <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-900/40 dark:text-amber-200">
-                          Does not add up
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setSplittingId(splittingId === row.id ? null : row.id)}
-                        className="finance-button finance-button--ghost finance-button--tiny"
-                      >
-                        {splittingId === row.id ? 'Close' : 'Edit split'}
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <CategoryMenu
-                        categories={categories}
-                        value={row.categoryId}
-                        label={`Category for ${row.merchantName ?? row.descriptionRaw}`}
-                        onSelect={(categoryId) => void changeCategory(row, categoryId)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setSplittingId(splittingId === row.id ? null : row.id)}
-                        className="finance-button finance-button--ghost finance-button--tiny"
-                      >
-                        {splittingId === row.id ? 'Close' : 'Split'}
-                      </button>
+                      {' · '}
+                      <span className="font-medium text-slate-700 dark:text-slate-200">
+                        {formatMoney(-group.outMinor, currency)}
+                      </span>{' '}
+                      out
                     </>
                   )}
-                  {row.pending ? (
-                    <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-300">
-                      Pending
-                    </span>
-                  ) : (
-                    <span className="text-xs text-slate-400">
-                      {row.postedDate ? formatDate(row.postedDate) : '—'} · {row.accountName}
-                    </span>
+                  {group.inMinor > 0 && (
+                    <>
+                      {' · '}
+                      <span className="font-medium text-emerald-700 dark:text-emerald-400">
+                        +{formatMoney(group.inMinor, currency)}
+                      </span>{' '}
+                      in
+                    </>
                   )}
-                  {row.transferGroupId ? (
-                    <button
-                      type="button"
-                      onClick={() => void toggleTransfer(row)}
-                      title="This money moved between your own accounts. Click to undo."
-                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                        row.transferSource === 'suspected'
-                          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200'
-                          : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-200'
-                      }`}
-                    >
-                      {row.transferSource === 'suspected' ? 'Possible transfer' : 'Transfer'}
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => void toggleTransfer(row)}
-                      className="finance-button finance-button--ghost finance-button--tiny"
-                    >
-                      Mark as transfer
-                    </button>
-                  )}
-                </div>
-
-                {row.reason && <p className="mt-1 text-xs italic text-slate-400">{row.reason}</p>}
-              </div>
-
-              <Money
-                amountMinor={row.amountMinor}
-                currency={row.currency}
-                className="shrink-0 text-sm font-semibold"
-              />
-            </div>
-
-            {splittingId === row.id && (
-              <SplitEditor
-                transactionId={row.id}
-                amountMinor={row.amountMinor}
-                currency={row.currency}
-                categories={categories}
-                initialLines={row.splitLines}
-                onCancel={() => setSplittingId(null)}
-                onSaved={(lines) => {
-                  setRows((current) =>
-                    current.map((item) =>
-                      item.id === row.id
-                        ? {
-                            ...item,
-                            splitLines: lines.map((line) => ({
-                              categoryId: line.categoryId,
-                              categoryName:
-                                categories.find((category) => category.id === line.categoryId)
-                                  ?.name ?? 'Uncategorized',
-                              amountMinor: line.amountMinor,
-                            })),
-                            reason: `Split into ${lines.length} parts`,
-                            assignmentSource: 'user_manual',
-                            confidence: 1,
-                          }
-                        : item,
-                    ),
-                  );
-                  setSplittingId(null);
-                  setMessage('Split saved');
-                  setError(null);
-                }}
-              />
-            )}
-
-            {prompt?.transactionId === row.id && (
-              <div className="finance-callout mt-2 text-sm">
-                <p className="font-medium text-slate-800 dark:text-slate-100">
-                  Apply to all from {prompt.merchantName}?
                 </p>
-
-                {showAmountRange ? (
-                  <div className="mt-2 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        inputMode="decimal"
-                        value={minAmount}
-                        onChange={(event) => setMinAmount(event.target.value)}
-                        placeholder="From"
-                        aria-label="Amount from"
-                        className="finance-input finance-input--small min-w-0"
-                      />
-                      <input
-                        inputMode="decimal"
-                        value={maxAmount}
-                        onChange={(event) => setMaxAmount(event.target.value)}
-                        placeholder="To"
-                        aria-label="Amount to"
-                        className="finance-input finance-input--small min-w-0"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          void applyToMerchant(prompt, { min: minAmount, max: maxAmount })
-                        }
-                        className="finance-button finance-button--primary finance-button--small"
-                      >
-                        Apply to matching amounts
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowAmountRange(false)}
-                        className="finance-button finance-button--ghost finance-button--small"
-                      >
-                        Back
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void applyToMerchant(prompt)}
-                      className="finance-button finance-button--primary finance-button--small"
-                    >
-                      All from this merchant
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowAmountRange(true)}
-                      className="finance-button finance-button--secondary finance-button--small"
-                    >
-                      Matching an amount
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPrompt(null)}
-                      className="finance-button finance-button--ghost finance-button--small"
-                    >
-                      This one only
-                    </button>
-                  </div>
-                )}
               </div>
-            )}
-          </li>
-        ))}
-      </ul>
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                {group.rows.map(renderRow)}
+              </ul>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800">{rows.map(renderRow)}</ul>
+      )}
 
       {error && <UndoToast message={error} tone="error" onDismiss={() => setError(null)} />}
       {!error && message && (
@@ -468,6 +530,26 @@ export function TransactionList({
       )}
     </div>
   );
+}
+
+/**
+ * The heading of a day or a week.
+ *
+ * @example
+ * periodLabel({ start: '2026-11-17', end: '2026-11-17' }, 'day'); // "Tuesday, Nov 17"
+ * periodLabel({ start: '2026-11-15', end: '2026-11-21' }, 'week'); // "Nov 15 – Nov 21"
+ */
+function periodLabel(group: { start: string | null; end: string | null }, period: Period): string {
+  if (!group.start || !group.end) return 'Pending';
+  if (period === 'day') {
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    }).format(new Date(`${group.start}T00:00:00Z`));
+  }
+  return `${formatDate(group.start)} – ${formatDate(group.end)}`;
 }
 
 /** Formats a plain date for display. */

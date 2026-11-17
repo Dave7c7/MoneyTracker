@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 /** A category the user can pick. */
@@ -133,6 +134,15 @@ export function CategoryMenu({
               </li>
             ))}
           </ul>
+
+          <div className="border-t border-slate-100 p-1 dark:border-slate-800">
+            <Link
+              href={query ? `/categories?name=${encodeURIComponent(query)}` : '/categories'}
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-brand-600 hover:bg-[var(--finance-accent-soft)] dark:text-brand-500"
+            >
+              {filtered.length === 0 && query ? `Create “${query}”…` : 'Manage categories'}
+            </Link>
+          </div>
         </div>
       )}
     </div>

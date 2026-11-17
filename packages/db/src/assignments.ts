@@ -33,6 +33,7 @@ export interface PreviousAssignment {
     | 'merchant_memory'
     | 'bank'
     | 'ai'
+    | 'keyword'
     | 'transfer_detection'
     | 'fallback';
   confidence: number;
@@ -61,6 +62,7 @@ export interface ReviewTransaction {
     | 'merchant_memory'
     | 'bank'
     | 'ai'
+    | 'keyword'
     | 'transfer_detection'
     | 'fallback'
     | null;

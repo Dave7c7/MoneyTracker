@@ -26,6 +26,7 @@ export type AssignmentSource =
   | 'merchant_memory'
   | 'bank'
   | 'ai'
+  | 'keyword'
   | 'transfer_detection'
   | 'fallback';
 
@@ -117,6 +118,12 @@ export interface CategorizationContext {
   bankCategoryMap?: ReadonlyMap<string, string>;
   /** Display names for categories, used to build explanations. */
   categoryNames?: ReadonlyMap<string, string>;
+  /**
+   * Category slug -> category id. Turns keyword suggestions ("UBER" ->
+   * `transit`) into the user's own categories. Without it, keyword
+   * suggestions are off.
+   */
+  categoryIdBySlug?: ReadonlyMap<string, string>;
   /** The category that means "money moved between the user's own accounts". */
   transferCategoryId?: string;
   /** Category id used when nothing matches. */

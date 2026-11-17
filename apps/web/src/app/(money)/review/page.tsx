@@ -39,6 +39,12 @@ export default async function ReviewPage() {
             >
               Rules
             </Link>
+            <Link
+              href="/categories"
+              className="font-medium text-brand-600 hover:underline dark:text-brand-500"
+            >
+              Categories
+            </Link>
           </div>
         }
       />

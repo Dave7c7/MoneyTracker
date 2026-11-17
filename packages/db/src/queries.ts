@@ -72,6 +72,7 @@ export interface TransactionRow {
     | 'merchant_memory'
     | 'bank'
     | 'ai'
+    | 'keyword'
     | 'transfer_detection'
     | 'fallback'
     | null;

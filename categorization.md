@@ -8,8 +8,9 @@ Categorization is the core feature. Treat it with the most care.
 2. **Merchant memory**: the category the user previously chose for this normalized merchant.
 3. **Transfer detection**: money moving between the user's own accounts is never spending. A confirmed transfer is confident; a suspected one stays below the threshold and waits in the review inbox.
 4. **Bank-provided category**: mapped through a mapping table. Never trusted blindly; confidence is capped at 0.7.
-5. **ML/LLM suggestion** (optional): always lower confidence than 1-3.
-6. **Fallback**: `Uncategorized`, confidence 0, goes to review inbox.
+5. **Keyword suggestion**: a fixed table of merchant keywords (`packages/core/src/suggestions.ts`), e.g. "UBER" → Transit, "DELI" → Restaurants. Whole words only, longest keyword wins. Confidence 0.6, below the review threshold: it fills in the category and the user confirms it.
+6. **ML/LLM suggestion** (optional): always lower confidence than 1-3, and only consulted when nothing above matched.
+7. **Fallback**: `Uncategorized`, confidence 0, goes to review inbox.
 
 Stop at the first step that produces a result.
 
@@ -18,7 +19,7 @@ Stop at the first step that produces a result.
 ```ts
 {
   transactionId, categoryId,
-  source: "user_manual" | "user_rule" | "merchant_memory" | "bank" | "ai" | "fallback",
+  source: "user_manual" | "user_rule" | "merchant_memory" | "bank" | "keyword" | "ai" | "transfer_detection" | "fallback",
   confidence: number,        // 0..1
   reason: string,            // human-readable, e.g. "Matched your rule: Shell → Gas"
   locked: boolean            // true for manual edits
