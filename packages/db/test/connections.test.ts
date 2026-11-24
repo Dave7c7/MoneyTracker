@@ -178,6 +178,27 @@ describe.skipIf(!testDatabaseUrl)('connections', () => {
     expect(connection?.lastSyncedAt).toBeNull();
   });
 
+  it('keeps the last successful sync when a later sync fails', async () => {
+    const created = await createConnection(
+      db,
+      userId,
+      { adapterId: 'simplefin', name: 'SoFi checking', credential: 'secret-token' },
+      KEY,
+    );
+
+    await recordSyncResult(db, userId, created!.id, { ok: true });
+    const [synced] = await listConnections(db, userId);
+    expect(synced?.lastSyncedAt).toBeInstanceOf(Date);
+
+    await recordSyncResult(db, userId, created!.id, { ok: false, error: 'HTTP 503' });
+
+    // The next sync starts from the last good one, not from the whole history.
+    const [failed] = await listConnections(db, userId);
+    expect(failed?.status).toBe('error');
+    expect(failed?.lastError).toBe('HTTP 503');
+    expect(failed?.lastSyncedAt?.getTime()).toBe(synced?.lastSyncedAt?.getTime());
+  });
+
   it('removes a connection', async () => {
     const created = await createConnection(
       db,
