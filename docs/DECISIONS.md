@@ -307,3 +307,22 @@ up to 500 rows instead of 100, so the oldest week is less likely to be cut off.
 
 **Cost:** totals cover the rows shown, not the whole history; with more than
 500 rows in the filter, the oldest group can be partial.
+
+## 2026-11-24 — A failed sync keeps its place, and SimpleFIN errors say more
+
+A failed sync used to erase `lastSyncedAt`. The next sync then had no starting
+point and asked SimpleFIN for the whole history, in several 45-day requests in
+a row: heavier, slower and more likely to fail again, so one bad night (an HTTP
+503 on 2026-11-15) kept the connection failing for days. A failure now keeps
+the moment of the last successful sync; only `status` and `lastError` change.
+
+The SimpleFIN adapter retries a request twice (after 2 and 10 seconds) when the
+network fails or the server answers 5xx, including the 52x codes of the proxy in
+front of SimpleFIN. A 403 (access revoked) and a 429 (asking too often) are not
+retried. When the retries run out, the error names the days asked for, the
+`Server` header, and the first 200 characters of the body, with markup and
+anything credential-like removed, so a failing sync can be told apart from a
+failing SimpleFIN or a failing network on the machine the app runs on.
+
+**Cost:** a sync during a real outage takes up to 12 seconds longer per request
+before it gives up.

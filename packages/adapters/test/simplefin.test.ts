@@ -4,6 +4,7 @@ import {
   SimpleFinAdapter,
   SimpleFinError,
   accountTypeOf,
+  bodySnippet,
   claimAccessUrl,
   decodeSetupToken,
   splitAccountName,
@@ -257,6 +258,134 @@ describe('the SimpleFIN adapter', () => {
     });
 
     await expect(adapter.fetchAccounts()).rejects.toThrow(/revoked|Setup/i);
+  });
+
+  it('does not retry a refused access', async () => {
+    let calls = 0;
+    const fetchImpl: FetchLike = async () => {
+      calls += 1;
+      return { ok: false, status: 403, text: async () => '' };
+    };
+
+    const adapter = new SimpleFinAdapter({
+      accessUrl: 'https://demo:token@beta-bridge.simplefin.org/simplefin',
+      fetchImpl,
+      retryDelaysMs: [0, 0],
+    });
+
+    await expect(adapter.fetchAccounts()).rejects.toThrow(/revoked/);
+    expect(calls).toBe(1);
+  });
+
+  it('retries a server error and carries on when it passes', async () => {
+    const statuses = [503, 524];
+    let calls = 0;
+    const fetchImpl: FetchLike = async () => {
+      calls += 1;
+      const status = statuses.shift();
+      if (status) return { ok: false, status, text: async () => 'busy' };
+      return { ok: true, status: 200, text: async () => JSON.stringify(ACCOUNT_SET) };
+    };
+
+    const adapter = new SimpleFinAdapter({
+      accessUrl: 'https://demo:token@beta-bridge.simplefin.org/simplefin',
+      fetchImpl,
+      retryDelaysMs: [0, 0],
+      since: new Date(Date.now() - 86_400_000),
+    });
+
+    await expect(adapter.fetchAccounts()).resolves.toHaveLength(2);
+    expect(calls).toBe(3);
+  });
+
+  it('retries a network error', async () => {
+    let calls = 0;
+    const fetchImpl: FetchLike = async () => {
+      calls += 1;
+      if (calls === 1) throw new Error('ECONNRESET');
+      return { ok: true, status: 200, text: async () => JSON.stringify(ACCOUNT_SET) };
+    };
+
+    const adapter = new SimpleFinAdapter({
+      accessUrl: 'https://demo:token@beta-bridge.simplefin.org/simplefin',
+      fetchImpl,
+      retryDelaysMs: [0, 0],
+      since: new Date(Date.now() - 86_400_000),
+    });
+
+    await expect(adapter.fetchAccounts()).resolves.toHaveLength(2);
+    expect(calls).toBe(2);
+  });
+
+  it('says which days, which server and what it said when the retries run out', async () => {
+    let calls = 0;
+    const fetchImpl: FetchLike = async () => {
+      calls += 1;
+      return {
+        ok: false,
+        status: 503,
+        headers: { get: (name: string) => (name.toLowerCase() === 'server' ? 'cloudflare' : null) },
+        text: async () =>
+          '<html><head><style>p{}</style></head><body><h1>Service Unavailable</h1></body></html>',
+      };
+    };
+
+    const adapter = new SimpleFinAdapter({
+      accessUrl: 'https://demo:token@beta-bridge.simplefin.org/simplefin',
+      fetchImpl,
+      retryDelaysMs: [0, 0],
+      since: new Date(Date.now() - 86_400_000),
+    });
+
+    const error = await adapter.fetchAccounts().then(
+      () => null,
+      (caught: unknown) => caught,
+    );
+    expect(error).toBeInstanceOf(SimpleFinError);
+    const message = (error as Error).message;
+    expect(calls).toBe(3);
+    expect(message).toMatch(/HTTP 503/);
+    // The window starts at the last sync less the overlap of five days.
+    const start = new Date(Date.now() - 6 * 86_400_000).toISOString().slice(0, 10);
+    expect(message).toContain(`asked for ${start} to `);
+    expect(message).toMatch(/after 3 tries/);
+    expect(message).toMatch(/server: cloudflare/);
+    expect(message).toMatch(/It said: "Service Unavailable"/);
+    // The credentials never end up in the message.
+    expect(message).not.toMatch(/token|demo/);
+  });
+
+  it('does not retry an answer that is not a server error', async () => {
+    let calls = 0;
+    const fetchImpl: FetchLike = async () => {
+      calls += 1;
+      return { ok: false, status: 429, text: async () => 'Too many requests' };
+    };
+
+    const adapter = new SimpleFinAdapter({
+      accessUrl: 'https://demo:token@beta-bridge.simplefin.org/simplefin',
+      fetchImpl,
+      retryDelaysMs: [0, 0],
+    });
+
+    await expect(adapter.fetchAccounts()).rejects.toThrow(/HTTP 429; .*1 try.*Too many requests/);
+    expect(calls).toBe(1);
+  });
+});
+
+describe('quoting a response body', () => {
+  it('drops markup and keeps the text short', () => {
+    const quoted = bodySnippet(`<p>Down for maintenance</p>${'x '.repeat(300)}`);
+    expect(quoted.startsWith('Down for maintenance')).toBe(true);
+    expect(quoted.length).toBeLessThanOrEqual(200);
+  });
+
+  it('hides credentials and long tokens', () => {
+    const quoted = bodySnippet(
+      'see https://user:pass@bridge.example/simplefin and key abcdefghijklmnopqrstuvwxyz0123456789',
+    );
+    expect(quoted).not.toMatch(/user:pass/);
+    expect(quoted).not.toMatch(/abcdefghijklmnopqrstuvwxyz0123456789/);
   });
 });
 

@@ -35,6 +35,13 @@ export const SIMPLEFIN_DEFAULT_HISTORY_DAYS = 90;
  */
 export const SIMPLEFIN_OVERLAP_DAYS = 5;
 
+/**
+ * How long to wait before each retry of a request that failed on the server
+ * side. Two retries: a short blip is ridden out within the run, and a real
+ * outage does not turn one sync into a stream of requests.
+ */
+export const SIMPLEFIN_RETRY_DELAYS_MS: readonly number[] = [2_000, 10_000];
+
 /** How a request is made. Tests hand in their own. */
 export type FetchLike = (
   input: string,
@@ -42,6 +49,8 @@ export type FetchLike = (
 ) => Promise<{
   ok: boolean;
   status: number;
+  /** The response headers. Optional, so a test can leave them out. */
+  headers?: { get(name: string): string | null };
   text(): Promise<string>;
 }>;
 
@@ -67,6 +76,8 @@ export interface SimpleFinOptions {
   since?: Date;
   /** How to make requests. */
   fetchImpl?: FetchLike;
+  /** How long to wait before each retry. Tests pass zeros. */
+  retryDelaysMs?: readonly number[];
 }
 
 /** An error the app can show the user. */
@@ -316,26 +327,10 @@ export class SimpleFinAdapter implements DataSourceAdapter {
       pending: '1',
     });
 
-    let response: Awaited<ReturnType<FetchLike>>;
-    try {
-      response = await this.fetchImpl(`${url}/accounts?${query.toString()}`, {
-        headers: { Authorization: `Basic ${auth}` },
-      });
-    } catch {
-      throw new SimpleFinError(
-        'SimpleFIN could not be reached. Check the connection and try again.',
-      );
-    }
-
-    if (response.status === 403) {
-      throw new SimpleFinError(
-        'SimpleFIN refused the access. It may have been revoked, so check the connection at ' +
-          'SimpleFIN and give the app a new setup token.',
-      );
-    }
-    if (!response.ok) {
-      throw new SimpleFinError(`SimpleFIN answered with an error (HTTP ${response.status}).`);
-    }
+    const response = await this.request(`${url}/accounts?${query.toString()}`, auth, {
+      startMs,
+      endMs,
+    });
 
     let payload: SimpleFinAccountSet;
     try {
@@ -367,6 +362,53 @@ export class SimpleFinAdapter implements DataSourceAdapter {
     }
   }
 
+  /**
+   * Makes one request, and retries it when the failure is on the other side.
+   *
+   * A network error or a 5xx (including 52x from the proxy in front of
+   * SimpleFIN) is retried after a short wait. Anything else is an answer and
+   * is not retried: a 403 means the access was revoked, and a 429 means the
+   * app is asking too often, which more requests would only make worse.
+   *
+   * When the request still fails, the error says which days were asked for,
+   * which server answered, and the start of what it said, so a failing sync
+   * can be told apart from a failing SimpleFIN.
+   */
+  private async request(
+    address: string,
+    auth: string,
+    range: { startMs: number; endMs: number },
+  ): Promise<Awaited<ReturnType<FetchLike>>> {
+    const delays = this.options.retryDelaysMs ?? SIMPLEFIN_RETRY_DELAYS_MS;
+    const attempts = delays.length + 1;
+    const window = `${isoDay(range.startMs)} to ${isoDay(range.endMs)}`;
+
+    for (let attempt = 1; ; attempt += 1) {
+      let response: Awaited<ReturnType<FetchLike>> | null = null;
+      try {
+        response = await this.fetchImpl(address, {
+          headers: { Authorization: `Basic ${auth}` },
+        });
+      } catch {
+        response = null;
+      }
+
+      const retryable = response === null || response.status >= 500;
+      if (!retryable || attempt >= attempts) {
+        if (response === null) {
+          throw new SimpleFinError(
+            `SimpleFIN could not be reached (asked for ${window}, ${tries(attempts)}). ` +
+              'Check the network of the machine the app runs on.',
+          );
+        }
+        if (response.ok) return response;
+        throw await describeFailure(response, window, retryable ? attempts : attempt);
+      }
+
+      await wait(delays[attempt - 1] ?? 0);
+    }
+  }
+
   /** The account behind an external id, if it was read. */
   private findAccount(externalId: string): SimpleFinAccount | null {
     const direct = this.accounts.get(externalId);
@@ -389,6 +431,74 @@ export class SimpleFinAdapter implements DataSourceAdapter {
     const fromSince = this.options.since.getTime() - SIMPLEFIN_OVERLAP_DAYS * 86_400_000;
     return Math.max(fromHistory, fromSince);
   }
+}
+
+/** Waits, for a retry. */
+function wait(ms: number): Promise<void> {
+  if (ms <= 0) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** A date as YYYY-MM-DD, in UTC. */
+function isoDay(ms: number): string {
+  return new Date(ms).toISOString().slice(0, 10);
+}
+
+/** "after 3 tries", or "1 try". */
+function tries(count: number): string {
+  return count === 1 ? '1 try' : `after ${count} tries`;
+}
+
+/**
+ * Builds the error for a request that failed with an HTTP status.
+ *
+ * It names the server that answered (the `Server` header, such as
+ * "cloudflare") and quotes the start of the body, with markup and anything
+ * that looks like a credential taken out. The access URL is never part of it.
+ */
+async function describeFailure(
+  response: Awaited<ReturnType<FetchLike>>,
+  window: string,
+  attempts: number,
+): Promise<SimpleFinError> {
+  if (response.status === 403) {
+    return new SimpleFinError(
+      'SimpleFIN refused the access. It may have been revoked, so check the connection at ' +
+        'SimpleFIN and give the app a new setup token.',
+    );
+  }
+
+  const server = sanitizeMessage(response.headers?.get('server') ?? '').slice(0, 40);
+  let body = '';
+  try {
+    body = bodySnippet(await response.text());
+  } catch {
+    body = '';
+  }
+
+  const kind =
+    response.status >= 500
+      ? "SimpleFIN's server had trouble answering"
+      : 'SimpleFIN answered with an error';
+  const details = [
+    `asked for ${window}`,
+    tries(attempts),
+    server ? `server: ${server}` : null,
+  ].filter((part): part is string => part !== null);
+  const said = body ? ` It said: "${body}"` : '';
+
+  return new SimpleFinError(`${kind} (HTTP ${response.status}; ${details.join(', ')}).${said}`);
+}
+
+/** The start of a response body, safe to store and show. */
+export function bodySnippet(body: string): string {
+  const text = body
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    // Credentials inside a URL, and long token-like strings.
+    .replace(/\/\/[^\s/@]+@/g, '//[hidden]@')
+    .replace(/[A-Za-z0-9+/_=-]{32,}/g, '[hidden]');
+  return sanitizeMessage(text.replace(/\s+/g, ' ')).slice(0, 200).trim();
 }
 
 /** The id an account is known by: its connection and its own id. */
