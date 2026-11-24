@@ -197,11 +197,14 @@ export async function recordSyncResult(
   connectionId: string,
   result: { ok: true } | { ok: false; error: string },
 ): Promise<void> {
+  // A failure keeps the moment of the last successful sync. The next sync
+  // starts from it, so a retry asks for a few days, not the whole history: a
+  // bigger request is more likely to fail again, and then it never recovers.
   await db
     .update(connections)
     .set({
       status: result.ok ? 'active' : 'error',
-      lastSyncedAt: result.ok ? new Date() : null,
+      ...(result.ok ? { lastSyncedAt: new Date() } : {}),
       lastError: result.ok ? null : result.error,
       updatedAt: new Date(),
     })
