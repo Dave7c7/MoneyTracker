@@ -7,6 +7,7 @@ import { SpendingByCategoryChart } from '@/components/charts/spending-chart.tsx'
 import { EmptyState } from '@/components/empty-state.tsx';
 import { formatAmount, Money } from '@/components/money.tsx';
 import { PageHeader } from '@/components/page-header.tsx';
+import { SafeToSpendCard } from '@/components/safe-to-spend-card.tsx';
 import { StatCard } from '@/components/stat-card.tsx';
 import { requireUser } from '@/lib/auth.ts';
 import { getOverviewData } from '@/lib/data.ts';
@@ -81,6 +82,8 @@ export default async function OverviewPage() {
           </div>
         }
       />
+
+      {data.safeToSpend && <SafeToSpendCard data={data.safeToSpend} />}
 
       <div className="grid grid-cols-2 gap-2.5 ph:gap-3 lg:grid-cols-4">
         <StatCard

@@ -17,6 +17,7 @@ import {
   monthRange,
   netWorthSeries,
   recurringTotals,
+  safeToSpend,
   spendingByCategory,
   toDashboardTransactions,
   toPlainDate,
@@ -124,6 +125,7 @@ export async function getOverviewData(month = currentMonth()) {
   const needsReview = await countNeedsReview(db, userId);
   const recent = await listTransactions(db, userId, { limit: 6 });
   const breakdownRows = await getCategorySpendByMonth(db, userId, { month });
+  const safe = await getSafeToSpend(db, userId, transactions, month, timeZone);
 
   return {
     month,
@@ -138,7 +140,60 @@ export async function getOverviewData(month = currentMonth()) {
     recent,
     breakdown: buildCategoryBreakdownView(breakdownRows, month),
     breakdownMonths: months,
+    safeToSpend: safe,
   };
+}
+
+/** Today as YYYY-MM-DD in the user's timezone. */
+function todayIn(timeZone: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+/**
+ * Safe to spend for the month on screen.
+ *
+ * Only the current month has a "rest of the month", so a past month gets
+ * null. The end-to-end suite pins its month (E2E_MONTH) and is given the
+ * middle of it as today.
+ */
+async function getSafeToSpend(
+  db: ReturnType<typeof getDatabase>['db'],
+  userId: string,
+  transactions: Parameters<typeof safeToSpend>[0]['transactions'],
+  month: string,
+  timeZone: string,
+) {
+  let today = todayIn(timeZone);
+  if (today.slice(0, 7) !== month) {
+    if (!process.env.E2E_MONTH) return null;
+    today = `${month}-15`;
+  }
+
+  // Recurring charges are found when a screen asks, as the subscriptions
+  // page does: a bill that started last week counts here without a visit there.
+  await detectRecurringItems(db, userId);
+  const [recurring, goals] = await Promise.all([
+    listRecurringItems(db, userId),
+    listSavingsGoals(db, userId),
+  ]);
+
+  return safeToSpend({
+    transactions,
+    recurring: recurring.map((item) => ({
+      merchantName: item.merchantName,
+      amountMinor: item.amountMinor,
+      nextDate: item.nextDate,
+      status: item.status,
+    })),
+    goals: goals.map((goal) => toGoalView(goal, today)),
+    today,
+    timeZone,
+  });
 }
 
 /** Data for the spending page. */

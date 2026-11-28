@@ -326,3 +326,33 @@ failing SimpleFIN or a failing network on the machine the app runs on.
 
 **Cost:** a sync during a real outage takes up to 12 seconds longer per request
 before it gives up.
+
+## 2026-11-28 — Safe to spend
+
+The overview opens with one number: what can still be spent this month.
+
+    expected income   the larger of this month's income so far and the average
+                      of the last three months that had income
+  − spent             posted spending this month, refunds netted
+  − pending           pending charges (money already gone, not yet posted)
+  − bills still due   recurring charges (not dismissed) expected from today to
+                      the end of the month
+  − set aside         what each unreached goal with a deadline needs per month
+  = safe to spend     shown as "over by" when negative; per day = safe ÷ days
+                      left, today included
+
+Every part is shown under "How this is worked out", so the number is never a
+mystery. Transfers and card payments are never spending.
+
+**Why the larger of this month and the average:** early in the month little
+or no pay has arrived yet, so this month alone would say "over" on the 2nd; the
+average covers that. Once this month's pay is above the average, the real
+figure is used. Months with no income are left out of the average, so a new
+install with one month of history is not divided by three.
+
+Recurring detection now also runs when the overview loads, as it already did
+on the subscriptions page, so the bills are current without a visit there.
+
+**Cost:** money moved to savings for a goal this month is still set aside in
+full (the app cannot tell a goal deposit from any other transfer), and a past
+month shows no card, since it has no "rest of the month".

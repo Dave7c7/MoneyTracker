@@ -28,3 +28,4 @@ export * from './rate-limit.ts';
 export * from './bank-exports.ts';
 export * from './export.ts';
 export * from './alerts.ts';
+export * from './safe-to-spend.ts';
