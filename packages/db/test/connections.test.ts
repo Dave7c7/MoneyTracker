@@ -23,6 +23,8 @@ import {
   listConnections,
   readCredential,
   recordSyncResult,
+  SYNC_LOCK_KEY,
+  syncDueConnections,
 } from '../src/connections.ts';
 import { decryptSecret, encryptSecret, isEncryptionKey } from '../src/credentials.ts';
 import { loadDotEnv } from '../src/env.ts';
@@ -197,6 +199,53 @@ describe.skipIf(!testDatabaseUrl)('connections', () => {
     expect(failed?.status).toBe('error');
     expect(failed?.lastError).toBe('HTTP 503');
     expect(failed?.lastSyncedAt?.getTime()).toBe(synced?.lastSyncedAt?.getTime());
+  });
+
+  it('syncs a due connection on schedule and remembers the attempt', async () => {
+    const created = await createConnection(
+      db,
+      userId,
+      // Not a usable access URL, so the sync fails without reaching a network.
+      { adapterId: 'simplefin', name: 'SoFi checking', credential: 'not-a-url' },
+      KEY,
+    );
+
+    const attempts = new Map<string, Date>();
+    const outcome = await syncDueConnections(db, userId, KEY, { lastAttempts: attempts });
+
+    expect(outcome).toEqual({ synced: 0, failed: 1 });
+    expect(attempts.has(created!.id)).toBe(true);
+
+    // Just failed: the next check waits instead of trying again at once.
+    const again = await syncDueConnections(db, userId, KEY, { lastAttempts: attempts });
+    expect(again).toEqual({ synced: 0, failed: 0 });
+  });
+
+  it('skips the scheduled sync while another sync holds the lock', async () => {
+    await createConnection(
+      db,
+      userId,
+      { adapterId: 'simplefin', name: 'SoFi checking', credential: 'not-a-url' },
+      KEY,
+    );
+
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => (release = resolve));
+    let locked!: () => void;
+    const lockTaken = new Promise<void>((resolve) => (locked = resolve));
+
+    const holder = db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(${SYNC_LOCK_KEY})`);
+      locked();
+      await held;
+    });
+
+    await lockTaken;
+    const outcome = await syncDueConnections(db, userId, KEY, { lastAttempts: new Map() });
+    release();
+    await holder;
+
+    expect(outcome).toBeNull();
   });
 
   it('removes a connection', async () => {

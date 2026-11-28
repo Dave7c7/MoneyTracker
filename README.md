@@ -551,8 +551,15 @@ into the app. The app exchanges the token for a read-only access URL. The
 bank password never reaches the app, and the user can revoke the access at
 SimpleFIN at any time.
 
-**The connections are refreshed by a command.** A self-hosted app has no
-scheduler of its own, so the sync is something you run:
+**The app refreshes the connections by itself.** Every 15 minutes it checks
+which connections are due: a connection is synced once its refresh interval
+(a day for SimpleFIN) has passed since its last successful sync. A connection
+that failed waits six hours before the next attempt, so an outage at the
+provider is not met with a stream of requests. `AUTO_SYNC=false` turns this off.
+
+A cron line still works, for an install that prefers one or runs the app with
+`AUTO_SYNC=false`. The scheduler, the cron command and "Sync now" share one
+database lock, so two syncs never run at once:
 
 ```bash
 # from the repository, against the database in .env

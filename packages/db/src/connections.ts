@@ -9,9 +9,10 @@
  * read: the app never needs to show it.
  */
 
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 
 import { claimFor, getAdapter } from '@moneytracker/adapters';
+import { connectionsDue } from '@moneytracker/core';
 
 import type { Database } from './client.ts';
 import { accounts, connectionAccounts, connections } from './schema.ts';
@@ -474,12 +475,60 @@ export async function syncAllConnections(
   userId: string,
   keyHex: string,
 ): Promise<{ synced: number; failed: number }> {
-  const all = await listConnections(db, userId);
+  // Waits for a scheduled sync that is already running, then syncs.
+  const outcome = await withSyncLock(db, 'wait', async () => {
+    const all = await listConnections(db, userId);
+    return syncEach(
+      db,
+      userId,
+      keyHex,
+      all.filter((connection) => connection.status !== 'disabled'),
+    );
+  });
+  return outcome ?? { synced: 0, failed: 0 };
+}
+
+/**
+ * Syncs the connections whose refresh interval has passed.
+ *
+ * This is what the app's own scheduler runs every few minutes. It records
+ * when each connection was tried in `lastAttempts`, so a connection that keeps
+ * failing waits a few hours between attempts (see `connectionsDue`).
+ *
+ * Returns null, and syncs nothing, while another sync holds the lock: a
+ * "Sync now", a cron run or a second app process.
+ *
+ * @example
+ * const attempts = new Map<string, Date>();
+ * await syncDueConnections(db, userId, keyHex, { lastAttempts: attempts });
+ */
+export async function syncDueConnections(
+  db: Database,
+  userId: string,
+  keyHex: string,
+  options: { now?: Date; lastAttempts: Map<string, Date> },
+): Promise<{ synced: number; failed: number } | null> {
+  return withSyncLock(db, 'skip', async () => {
+    const now = options.now ?? new Date();
+    const due = connectionsDue(await listConnections(db, userId), {
+      now,
+      lastAttempts: options.lastAttempts,
+    });
+    for (const connection of due) options.lastAttempts.set(connection.id, now);
+    return syncEach(db, userId, keyHex, due);
+  });
+}
+
+/** Syncs connections one at a time; one failure does not stop the others. */
+async function syncEach(
+  db: Database,
+  userId: string,
+  keyHex: string,
+  list: readonly ConnectionRow[],
+): Promise<{ synced: number; failed: number }> {
   let synced = 0;
   let failed = 0;
-
-  for (const connection of all) {
-    if (connection.status === 'disabled') continue;
+  for (const connection of list) {
     try {
       await syncConnection(db, userId, connection.id, keyHex);
       synced += 1;
@@ -487,6 +536,33 @@ export async function syncAllConnections(
       failed += 1;
     }
   }
-
   return { synced, failed };
+}
+
+/** The advisory lock every sync of all connections takes. Any fixed number. */
+export const SYNC_LOCK_KEY = 4_172_031_905;
+
+/**
+ * Runs `work` while holding the sync lock.
+ *
+ * The lock is a Postgres transaction-level advisory lock, so it is released
+ * when the transaction ends, including when the process dies. The work itself
+ * writes through `db`, not the transaction, so each sync commits on its own.
+ */
+async function withSyncLock<T>(
+  db: Database,
+  mode: 'wait' | 'skip',
+  work: () => Promise<T>,
+): Promise<T | null> {
+  return db.transaction(async (tx) => {
+    if (mode === 'wait') {
+      await tx.execute(sql`select pg_advisory_xact_lock(${SYNC_LOCK_KEY})`);
+    } else {
+      const result = await tx.execute<{ locked: boolean }>(
+        sql`select pg_try_advisory_xact_lock(${SYNC_LOCK_KEY}) as locked`,
+      );
+      if (!result.rows[0]?.locked) return null;
+    }
+    return work();
+  });
 }

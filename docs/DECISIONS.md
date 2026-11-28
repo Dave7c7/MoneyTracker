@@ -326,3 +326,23 @@ failing SimpleFIN or a failing network on the machine the app runs on.
 
 **Cost:** a sync during a real outage takes up to 12 seconds longer per request
 before it gives up.
+
+## 2026-11-28 — The app syncs its bank connections by itself
+
+The sync used to be a command for the host's cron (`pnpm db:sync`). An install
+without that cron line never synced, and nothing said so: transactions simply
+stopped arriving. The app now runs its own scheduler from `instrumentation.ts`.
+Every 15 minutes it syncs each connection whose `refresh_hours` (a day for
+SimpleFIN) has passed since its last successful sync. A connection that failed
+waits six hours before the next attempt, so a provider outage is not met with
+a request every 15 minutes; the wait is kept in memory, so a restart tries once
+at once.
+
+Scheduled syncs, "Sync now" and the cron command share a Postgres advisory lock
+(transaction-level, so a crashed process frees it). A scheduled check skips
+while the lock is held; a manual sync waits for it. `AUTO_SYNC=false` turns the
+scheduler off. The end-to-end suite runs with it off.
+
+**Cost:** the scheduler lives in the app process, so a second app process
+would run a second scheduler. The lock keeps them from syncing at the same
+time, and only one install process is supported anyway.
