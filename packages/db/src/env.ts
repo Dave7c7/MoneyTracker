@@ -67,6 +67,20 @@ const envSchema = z.object({
    * currency is the charge's own.
    */
   ALERT_LARGE_TRANSACTION_MINOR: z.coerce.number().int().min(0).default(50_000),
+  /**
+   * Whether the app syncs its bank connections by itself.
+   *
+   * On by default: each connection is synced once its refresh interval
+   * (a day for SimpleFIN) has passed. "false", "0" or "off" turns it off, for
+   * an install that prefers a cron line.
+   */
+  AUTO_SYNC: z.preprocess(
+    (value) =>
+      typeof value === 'string'
+        ? !['false', '0', 'off', 'no'].includes(value.trim().toLowerCase())
+        : value,
+    z.boolean().default(true),
+  ),
   /** The app's own address, for the link inside a webhook message. */
   APP_BASE_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
 });

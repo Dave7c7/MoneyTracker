@@ -110,6 +110,8 @@ export default defineConfig({
             a `.env` file. Never use this value anywhere else.
           */
           ENCRYPTION_KEY: 'deadbeef'.repeat(8),
+          // The suite never reaches a real bank: the app's own sync stays off.
+          AUTO_SYNC: 'false',
         },
       },
 });
