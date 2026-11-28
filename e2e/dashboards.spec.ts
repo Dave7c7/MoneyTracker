@@ -131,10 +131,12 @@ test.describe('dashboards', () => {
 
     await expect(page.getByRole('heading', { name: 'MoneyTracker', level: 1 })).toBeVisible();
 
-    // October 2026 in the demo dataset: rent, groceries and the rest.
-    await expect(main.getByText('$5,275.80').first()).toBeVisible();
-    await expect(main.getByText('$5,202.91').first()).toBeVisible();
-    await expect(main.getByText('$2,250.00').first()).toBeVisible();
+    // October 2026 in the demo dataset: rent, groceries and the rest. The
+    // safe-to-spend breakdown repeats some amounts while it is closed, so only
+    // what is on screen counts.
+    await expect(main.getByText('$5,275.80').filter({ visible: true }).first()).toBeVisible();
+    await expect(main.getByText('$5,202.91').filter({ visible: true }).first()).toBeVisible();
+    await expect(main.getByText('$2,250.00').filter({ visible: true }).first()).toBeVisible();
 
     // The accounts carry their balances.
     await expect(main.getByText('Everyday Checking ••4417')).toBeVisible();

@@ -36,6 +36,7 @@ export function SafeToSpendCard({ data }: { data: SafeToSpend }) {
       <div data-testid="safe-to-spend">
         <p className="finance-stat-label">Safe to spend this month</p>
         <p
+          data-testid="safe-to-spend-amount"
           className={`mt-1.5 font-display text-4xl font-semibold tracking-tight tabular-nums sm:text-5xl ${
             over ? 'text-rose-700 dark:text-rose-400' : ''
           }`}

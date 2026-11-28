@@ -8,7 +8,9 @@ test.describe('safe to spend', () => {
     const card = page.getByTestId('safe-to-spend');
     await expect(card).toBeVisible();
     await expect(card.getByText('Safe to spend this month')).toBeVisible();
-    await expect(card.getByText(/^(-?\$[\d,]+\.\d{2}|Over by \$[\d,]+\.\d{2})$/)).toBeVisible();
+    await expect(card.getByTestId('safe-to-spend-amount')).toHaveText(
+      /^(-?\$[\d,]+\.\d{2}|Over by \$[\d,]+\.\d{2})$/,
+    );
 
     await card.getByText('How this is worked out').click();
     await expect(card.getByText(/Income this month|Income \(/)).toBeVisible();
